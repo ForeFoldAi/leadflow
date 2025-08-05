@@ -21,6 +21,8 @@ export const leads = pgTable("leads", {
   nextFollowupDate: date("next_followup_date"),
   customerInterestedIn: text("customer_interested_in"),
   preferredCommunicationChannel: text("preferred_communication_channel"), // "email" | "phone" | "whatsapp" | "sms" | "in-person"
+  leadSource: text("lead_source"), // "website" | "referral" | "linkedin" | "facebook" | "twitter" | "campaign" | "other"
+  customLeadSource: text("custom_lead_source"), // Used when leadSource is "other"
   leadStatus: text("lead_status").notNull(), // "new" | "followup" | "qualified" | "hot" | "converted" | "lost"
   additionalNotes: text("additional_notes"),
 });
@@ -42,6 +44,8 @@ export const insertLeadSchema = createInsertSchema(leads, {
   nextFollowupDate: z.string().optional(),
   customerInterestedIn: z.string().max(100, "Maximum 100 characters allowed").optional(),
   preferredCommunicationChannel: z.enum(["email", "phone", "whatsapp", "sms", "in-person"]).optional(),
+  leadSource: z.enum(["website", "referral", "linkedin", "facebook", "twitter", "campaign", "other"]).optional(),
+  customLeadSource: z.string().max(50, "Maximum 50 characters allowed").optional(),
   leadStatus: z.enum(["new", "followup", "qualified", "hot", "converted", "lost"], { required_error: "Lead status is required" }),
   additionalNotes: z.string().max(100, "Maximum 100 characters allowed").optional(),
 }).omit({ id: true });

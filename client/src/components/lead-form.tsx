@@ -25,6 +25,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
   const [lastContactedByCount, setLastContactedByCount] = useState(lead?.lastContactedBy?.length || 0);
   const [interestedInCount, setInterestedInCount] = useState(lead?.customerInterestedIn?.length || 0);
   const [notesCount, setNotesCount] = useState(lead?.additionalNotes?.length || 0);
+  const [customSourceCount, setCustomSourceCount] = useState(lead?.customLeadSource?.length || 0);
 
   const form = useForm<InsertLead>({
     resolver: zodResolver(insertLeadSchema),
@@ -45,6 +46,8 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
       nextFollowupDate: lead?.nextFollowupDate || "",
       customerInterestedIn: lead?.customerInterestedIn || "",
       preferredCommunicationChannel: (lead?.preferredCommunicationChannel as "email" | "phone" | "whatsapp" | "sms" | "in-person") || undefined,
+      leadSource: (lead?.leadSource as "website" | "referral" | "linkedin" | "facebook" | "twitter" | "campaign" | "other") || undefined,
+      customLeadSource: lead?.customLeadSource || "",
       leadStatus: (lead?.leadStatus as "new" | "followup" | "qualified" | "hot" | "converted" | "lost") || "new",
       additionalNotes: lead?.additionalNotes || "",
     },
@@ -432,6 +435,61 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="leadSource"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lead Source</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-lead-source">
+                          <SelectValue placeholder="Select lead source" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="website">Website</SelectItem>
+                        <SelectItem value="referral">Referral</SelectItem>
+                        <SelectItem value="linkedin">LinkedIn</SelectItem>
+                        <SelectItem value="facebook">Facebook</SelectItem>
+                        <SelectItem value="twitter">Twitter</SelectItem>
+                        <SelectItem value="campaign">Campaign</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("leadSource") === "other" && (
+                <FormField
+                  control={form.control}
+                  name="customLeadSource"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Custom Lead Source</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter custom lead source (max 50 characters)"
+                          maxLength={50}
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setCustomSourceCount(e.target.value.length);
+                          }}
+                          data-testid="input-custom-lead-source"
+                        />
+                      </FormControl>
+                      <p className="text-sm text-gray-500 mt-1" data-testid="text-custom-source-count">
+                        {customSourceCount}/50 characters
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

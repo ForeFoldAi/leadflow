@@ -61,6 +61,8 @@ export class MemStorage implements IStorage {
         nextFollowupDate: "2024-02-01",
         customerInterestedIn: "Enterprise software solutions for scalability",
         preferredCommunicationChannel: "email" as const,
+        leadSource: "website" as const,
+        customLeadSource: null,
         leadStatus: "hot" as const,
         additionalNotes: "Very interested in our enterprise package, budget approved"
       },
@@ -82,6 +84,8 @@ export class MemStorage implements IStorage {
         nextFollowupDate: "2024-01-25",
         customerInterestedIn: "Cloud infrastructure and deployment tools",
         preferredCommunicationChannel: "phone" as const,
+        leadSource: "referral" as const,
+        customLeadSource: null,
         leadStatus: "qualified" as const,
         additionalNotes: "Needs solution for 50+ developers, considering competitors"
       },
@@ -103,6 +107,8 @@ export class MemStorage implements IStorage {
         nextFollowupDate: "2024-02-05",
         customerInterestedIn: "Inventory management and tracking systems",
         preferredCommunicationChannel: "whatsapp" as const,
+        leadSource: "linkedin" as const,
+        customLeadSource: null,
         leadStatus: "converted" as const,
         additionalNotes: "Converted to premium plan, very satisfied with service"
       },
@@ -124,6 +130,8 @@ export class MemStorage implements IStorage {
         nextFollowupDate: "2024-01-30",
         customerInterestedIn: "Business process automation and workflow tools",
         preferredCommunicationChannel: "email" as const,
+        leadSource: "campaign" as const,
+        customLeadSource: null,
         leadStatus: "followup" as const,
         additionalNotes: "Interested but needs approval from partners"
       },
@@ -145,6 +153,8 @@ export class MemStorage implements IStorage {
         nextFollowupDate: "2024-01-28",
         customerInterestedIn: "Point of sale systems and customer analytics",
         preferredCommunicationChannel: "phone" as const,
+        leadSource: "other" as const,
+        customLeadSource: "Trade Show",
         leadStatus: "new" as const,
         additionalNotes: "Initial contact made, needs detailed proposal"
       }
@@ -179,6 +189,8 @@ export class MemStorage implements IStorage {
       nextFollowupDate: insertLead.nextFollowupDate || null,
       customerInterestedIn: insertLead.customerInterestedIn || null,
       preferredCommunicationChannel: insertLead.preferredCommunicationChannel || null,
+      leadSource: insertLead.leadSource || null,
+      customLeadSource: insertLead.customLeadSource || null,
       additionalNotes: insertLead.additionalNotes || null
     };
     this.leads.set(id, lead);
