@@ -54,13 +54,13 @@ export default function AppHeader() {
     <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo and Brand Section */}
-          <div className="flex items-center space-x-8">
+          {/* Logo, Brand and Welcome Section */}
+          <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <img 
-                    src="/forefold-logo.png" 
+                    src="/new-forefold-logo.png" 
                     alt="ForeFold AI Logo" 
                     className="h-12 w-12 object-contain filter drop-shadow-lg"
                   />
@@ -77,6 +77,17 @@ export default function AppHeader() {
               </div>
             </div>
 
+            {/* Welcome Section */}
+            <div className="hidden md:flex flex-col border-l border-slate-600 pl-6">
+              <p className="text-slate-300 text-sm font-medium">Welcome,</p>
+              <p className="text-white text-base font-semibold">
+                {currentUser.companyName || currentUser.name || "User"}
+              </p>
+            </div>
+          </div>
+
+          {/* Right side - Navigation and User Menu */}
+          <div className="flex items-center space-x-6">
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-2">
               {navItems.map((item) => (
@@ -93,97 +104,95 @@ export default function AppHeader() {
                 </Button>
               ))}
             </nav>
-          </div>
 
+            {/* User Menu */}
+            <div className="flex items-center space-x-4">
+              {/* Mobile menu button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="md:hidden text-slate-300 hover:text-white hover:bg-slate-700/50"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                data-testid="mobile-menu-button"
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
 
-
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden text-slate-300 hover:text-white hover:bg-slate-700/50"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              data-testid="mobile-menu-button"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-
-            {/* User Profile Section */}
-            <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">{currentUser.name || "User"}</p>
-                <p className="text-xs text-slate-400 truncate max-w-[120px]">
-                  {currentUser.email}
-                </p>
+              {/* User Profile Section */}
+              <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-white">{currentUser.name || "User"}</p>
+                  <p className="text-xs text-slate-400 truncate max-w-[120px]">
+                    {currentUser.email}
+                  </p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-purple-500/30 hover:border-purple-400 transition-colors" data-testid="user-menu">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white font-semibold">
+                          {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
+                    <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
+                      <div className="flex flex-col space-y-1 leading-none">
+                        <p className="font-medium text-white">{currentUser.name || "User"}</p>
+                        <p className="w-[200px] truncate text-sm text-slate-400">
+                          {currentUser.email}
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="menu-settings" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-purple-500/30 hover:border-purple-400 transition-colors" data-testid="user-menu">
-                    <Avatar className="h-9 w-9">
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white font-semibold">
-                        {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-white">{currentUser.name || "User"}</p>
-                      <p className="w-[200px] truncate text-sm text-slate-400">
-                        {currentUser.email}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-slate-700" />
-                  <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="menu-settings" className="text-slate-300 hover:text-white hover:bg-slate-700">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-700" />
-                  <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout" className="text-slate-300 hover:text-white hover:bg-slate-700">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
 
-            {/* Mobile User Menu */}
-            <div className="md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-slate-600" data-testid="mobile-user-menu">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
-                        {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-white">{currentUser.name || "User"}</p>
-                      <p className="w-[200px] truncate text-sm text-slate-400">
-                        {currentUser.email}
-                      </p>
+              {/* Mobile User Menu */}
+              <div className="md:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-slate-600" data-testid="mobile-user-menu">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
+                          {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
+                    <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
+                      <div className="flex flex-col space-y-1 leading-none">
+                        <p className="font-medium text-white">{currentUser.name || "User"}</p>
+                        <p className="w-[200px] truncate text-sm text-slate-400">
+                          {currentUser.email}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-slate-700" />
-                  <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="mobile-menu-settings" className="text-slate-300 hover:text-white hover:bg-slate-700">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-700" />
-                  <DropdownMenuItem onClick={handleLogout} data-testid="mobile-menu-logout" className="text-slate-300 hover:text-white hover:bg-slate-700">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="mobile-menu-settings" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    <DropdownMenuItem onClick={handleLogout} data-testid="mobile-menu-logout" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
