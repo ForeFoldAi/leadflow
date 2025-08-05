@@ -6,15 +6,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText, Clock, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ff7675'];
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState("30");
 
-  // Fetch analytics data
+  // Fetch comprehensive analytics data
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["/api/analytics", timeRange],
     queryFn: async () => {
@@ -24,50 +25,52 @@ export default function Analytics() {
     },
   });
 
-  const { data: leads = [] } = useQuery({
-    queryKey: ["/api/leads"],
-  });
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AppHeader />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-lg text-gray-600">Loading analytics...</div>
+        </div>
+      </div>
+    );
+  }
 
-  // Type the leads data properly
-  const typedLeads = leads as any[];
+  if (!analytics) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AppHeader />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-lg text-red-600">Failed to load analytics data</div>
+        </div>
+      </div>
+    );
+  }
 
-  // Calculate metrics from leads data
-  const totalLeads = typedLeads.length;
-  const convertedLeads = typedLeads.filter((lead: any) => lead.leadStatus === 'converted').length;
-  const hotLeads = typedLeads.filter((lead: any) => lead.leadStatus === 'hot').length;
-  const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads * 100).toFixed(1) : 0;
-
-  // Prepare chart data
+  // Prepare chart data from analytics
   const statusData = [
-    { name: 'New', value: typedLeads.filter((l: any) => l.leadStatus === 'new').length, color: '#0088FE' },
-    { name: 'Follow-up', value: typedLeads.filter((l: any) => l.leadStatus === 'followup').length, color: '#00C49F' },
-    { name: 'Qualified', value: typedLeads.filter((l: any) => l.leadStatus === 'qualified').length, color: '#FFBB28' },
-    { name: 'Hot', value: typedLeads.filter((l: any) => l.leadStatus === 'hot').length, color: '#FF8042' },
-    { name: 'Converted', value: convertedLeads, color: '#82ca9d' },
-    { name: 'Lost', value: typedLeads.filter((l: any) => l.leadStatus === 'lost').length, color: '#ff7675' },
+    { name: 'New', value: analytics.leadsByStatus?.new || 0, color: '#0088FE' },
+    { name: 'Follow-up', value: analytics.leadsByStatus?.followup || 0, color: '#00C49F' },
+    { name: 'Qualified', value: analytics.leadsByStatus?.qualified || 0, color: '#FFBB28' },
+    { name: 'Hot', value: analytics.leadsByStatus?.hot || 0, color: '#FF8042' },
+    { name: 'Converted', value: analytics.leadsByStatus?.converted || 0, color: '#82ca9d' },
+    { name: 'Lost', value: analytics.leadsByStatus?.lost || 0, color: '#ff7675' },
+  ].filter(item => item.value > 0);
+
+  const leadSourceData = [
+    { name: 'Website', value: analytics.leadSourceBreakdown?.website || 0, color: '#0088FE' },
+    { name: 'Referral', value: analytics.leadSourceBreakdown?.referral || 0, color: '#00C49F' },
+    { name: 'LinkedIn', value: analytics.leadSourceBreakdown?.linkedin || 0, color: '#FFBB28' },
+    { name: 'Facebook', value: analytics.leadSourceBreakdown?.facebook || 0, color: '#FF8042' },
+    { name: 'Twitter', value: analytics.leadSourceBreakdown?.twitter || 0, color: '#8884d8' },
+    { name: 'Campaign', value: analytics.leadSourceBreakdown?.campaign || 0, color: '#82ca9d' },
+    { name: 'Other', value: analytics.leadSourceBreakdown?.other || 0, color: '#ff7675' },
   ].filter(item => item.value > 0);
 
   const categoryData = [
-    { name: 'Potential', value: typedLeads.filter((l: any) => l.customerCategory === 'potential').length },
-    { name: 'Existing', value: typedLeads.filter((l: any) => l.customerCategory === 'existing').length },
-  ];
-
-  const monthlyData = [
-    { month: 'Jan', leads: 45, converted: 12 },
-    { month: 'Feb', leads: 52, converted: 15 },
-    { month: 'Mar', leads: 48, converted: 18 },
-    { month: 'Apr', leads: 61, converted: 22 },
-    { month: 'May', leads: 55, converted: 19 },
-    { month: 'Jun', leads: 67, converted: 25 },
-  ];
-
-  const communicationData = [
-    { channel: 'Email', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'email').length },
-    { channel: 'Phone', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'phone').length },
-    { channel: 'WhatsApp', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'whatsapp').length },
-    { channel: 'SMS', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'sms').length },
-    { channel: 'In-Person', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'in-person').length },
-  ].filter(item => item.count > 0);
+    { name: 'Potential', value: analytics.leadsByCategory?.potential || 0, color: '#0088FE' },
+    { name: 'Existing', value: analytics.leadsByCategory?.existing || 0, color: '#00C49F' },
+  ].filter(item => item.value > 0);
 
   // Export functionality
   const exportReport = () => {
@@ -75,179 +78,218 @@ export default function Analytics() {
       generatedAt: new Date().toISOString(),
       timeRange: `${timeRange} days`,
       summary: {
-        totalLeads,
-        convertedLeads,
-        hotLeads,
-        conversionRate: `${conversionRate}%`
+        totalLeads: analytics.totalLeads,
+        convertedLeads: analytics.convertedLeads,
+        conversionRate: `${analytics.conversionRate}%`,
+        hotLeads: analytics.hotLeads,
+        qualifiedLeads: analytics.qualifiedLeads,
+        lostLeads: analytics.lostLeads,
+        followupPending: analytics.followupPending,
+        newLeadsThisWeek: analytics.newLeadsThisWeek,
+        newLeadsThisMonth: analytics.newLeadsThisMonth,
+        averageTimeToConvert: `${analytics.averageTimeToConvert} days`
       },
-      leadsByStatus: statusData,
-      leadsByCategory: categoryData,
-      communicationPreferences: communicationData,
-      monthlyTrends: monthlyData
+      leadSourceBreakdown: analytics.leadSourceBreakdown,
+      leadsByStatus: analytics.leadsByStatus,
+      next7DaysFollowups: analytics.next7DaysFollowups
     };
-
-    // Convert to CSV format
-    const csvData = [
-      ['Analytics Report - Generated at', new Date().toISOString()],
-      ['Time Range', `${timeRange} days`],
-      [''],
-      ['Summary'],
-      ['Total Leads', totalLeads],
-      ['Converted Leads', convertedLeads],
-      ['Hot Leads', hotLeads],
-      ['Conversion Rate', `${conversionRate}%`],
-      [''],
-      ['Leads by Status'],
-      ['Status', 'Count'],
-      ...statusData.map(item => [item.name, item.value]),
-      [''],
-      ['Leads by Category'],
-      ['Category', 'Count'],
-      ...categoryData.map(item => [item.name, item.value]),
-      [''],
-      ['Communication Preferences'],
-      ['Channel', 'Count'],
-      ...communicationData.map(item => [item.channel, item.count]),
-      [''],
-      ['Monthly Trends'],
-      ['Month', 'Leads', 'Converted'],
-      ...monthlyData.map(item => [item.month, item.leads, item.converted])
-    ];
-
-    const csvContent = csvData.map(row => 
-      row.map(cell => `"${cell}"`).join(',')
-    ).join('\n');
     
-    const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
-    const exportFileDefaultName = `leadflow-analytics-report-${new Date().toISOString().split('T')[0]}.csv`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-report-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <AppHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Analytics Dashboard</h2>
-              <p className="mt-1 text-sm text-gray-600">Insights and performance metrics for your leads</p>
-            </div>
-            <div className="mt-4 sm:mt-0 flex space-x-3">
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-40" data-testid="select-time-range">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">Last 7 days</SelectItem>
-                  <SelectItem value="30">Last 30 days</SelectItem>
-                  <SelectItem value="90">Last 90 days</SelectItem>
-                  <SelectItem value="365">Last year</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" onClick={exportReport} data-testid="button-export">
-                <Download className="mr-2 h-4 w-4" />
-                Export Report
-              </Button>
-            </div>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900" data-testid="text-analytics-title">
+              Analytics Dashboard
+            </h1>
+            <p className="mt-2 text-gray-600">Comprehensive insights into your lead management performance</p>
+          </div>
+          <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-40" data-testid="select-time-range">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7" data-testid="option-7-days">Last 7 days</SelectItem>
+                <SelectItem value="30" data-testid="option-30-days">Last 30 days</SelectItem>
+                <SelectItem value="90" data-testid="option-90-days">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={exportReport} 
+              variant="outline"
+              data-testid="button-export-report"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Report
+            </Button>
           </div>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="metric-total-leads">{totalLeads}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
-                +12% from last month
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Leads */}
+          <Card data-testid="card-total-leads">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Leads</p>
+                  <p className="text-3xl font-bold text-gray-900">{analytics.totalLeads}</p>
+                </div>
+                <Users className="h-8 w-8 text-blue-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-sm text-gray-600">Active leads in system</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="metric-conversion-rate">{conversionRate}%</div>
-              <Progress value={parseFloat(conversionRate.toString())} className="mt-2" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Hot Leads</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600" data-testid="metric-hot-leads">{hotLeads}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
-                +8% from last week
+          {/* New Leads This Week */}
+          <Card data-testid="card-new-leads-week">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">New Leads (Week)</p>
+                  <p className="text-3xl font-bold text-gray-900">{analytics.newLeadsThisWeek}</p>
+                </div>
+                <Target className="h-8 w-8 text-green-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-gray-600">This month: {analytics.newLeadsThisMonth}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Converted</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600" data-testid="metric-converted">{convertedLeads}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
-                +15% from last month
+          {/* Follow-up Pending */}
+          <Card data-testid="card-followup-pending">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Follow-up Pending</p>
+                  <p className="text-3xl font-bold text-red-600">{analytics.followupPending}</p>
+                </div>
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-red-600">Requires immediate attention</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Conversion Rate */}
+          <Card data-testid="card-conversion-rate">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+                  <p className="text-3xl font-bold text-green-600">{analytics.conversionRate}%</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-green-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-sm text-gray-600">{analytics.convertedLeads} converted</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Lead Status Distribution */}
-          <Card>
+        {/* Second Row Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Qualified Leads */}
+          <Card data-testid="card-qualified-leads">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Qualified Leads</p>
+                  <p className="text-3xl font-bold text-yellow-600">{analytics.qualifiedLeads}</p>
+                </div>
+                <Target className="h-8 w-8 text-yellow-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-gray-600">Ready for conversion</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Hot Leads */}
+          <Card data-testid="card-hot-leads">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Hot Leads</p>
+                  <p className="text-3xl font-bold text-orange-600">{analytics.hotLeads}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-orange-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-gray-600">High conversion potential</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Lost Leads */}
+          <Card data-testid="card-lost-leads">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Lost Leads</p>
+                  <p className="text-3xl font-bold text-red-600">{analytics.lostLeads}</p>
+                </div>
+                <XCircle className="h-8 w-8 text-red-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-gray-600">Did not convert</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Average Time to Convert */}
+          <Card data-testid="card-avg-time-convert">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Avg. Time to Convert</p>
+                  <p className="text-3xl font-bold text-blue-600">{analytics.averageTimeToConvert}</p>
+                  <p className="text-sm text-gray-500">days</p>
+                </div>
+                <Clock className="h-8 w-8 text-blue-500" />
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-gray-600">Process efficiency</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Lead Source Breakdown */}
+          <Card data-testid="card-lead-source-chart">
             <CardHeader>
-              <CardTitle>Lead Status Distribution</CardTitle>
-              <CardDescription>Current status breakdown of all leads</CardDescription>
+              <CardTitle>Lead Source Breakdown</CardTitle>
+              <CardDescription>Where your leads are coming from</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={statusData}
+                      data={leadSourceData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -256,7 +298,7 @@ export default function Analytics() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {statusData.map((entry, index) => (
+                      {leadSourceData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -267,23 +309,62 @@ export default function Analytics() {
             </CardContent>
           </Card>
 
-          {/* Monthly Trends */}
-          <Card>
+          {/* Leads by Status */}
+          <Card data-testid="card-status-chart">
             <CardHeader>
-              <CardTitle>Monthly Lead Trends</CardTitle>
-              <CardDescription>Lead generation and conversion over time</CardDescription>
+              <CardTitle>Leads by Status</CardTitle>
+              <CardDescription>Current distribution of lead statuses</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyData}>
+                  <BarChart data={statusData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8">
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Monthly Trends */}
+        <div className="grid grid-cols-1 mb-8">
+          <Card data-testid="card-monthly-trends">
+            <CardHeader>
+              <CardTitle>Monthly Trends</CardTitle>
+              <CardDescription>Leads added and converted over time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={analytics.monthlyTrends || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="leads" stroke="#8884d8" name="Total Leads" />
-                    <Line type="monotone" dataKey="converted" stroke="#82ca9d" name="Converted" />
+                    <Line 
+                      type="monotone" 
+                      dataKey="leads" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                      name="Leads Added"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="converted" 
+                      stroke="#82ca9d" 
+                      strokeWidth={2}
+                      name="Converted Leads"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -291,54 +372,48 @@ export default function Analytics() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Communication Preferences */}
-          <Card>
+        {/* Next 7 Days Follow-up Calendar */}
+        <div className="grid grid-cols-1 mb-8">
+          <Card data-testid="card-followup-calendar">
             <CardHeader>
-              <CardTitle>Communication Preferences</CardTitle>
-              <CardDescription>Preferred communication channels</CardDescription>
+              <CardTitle>Next 7 Days Follow-up Calendar</CardTitle>
+              <CardDescription>Upcoming follow-ups scheduled for the next week</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={communicationData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="channel" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Lead Categories */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Categories</CardTitle>
-              <CardDescription>Distribution by customer type</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {categoryData.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                      />
-                      <span className="font-medium">{category.name} Customer</span>
+              {analytics.next7DaysFollowups && analytics.next7DaysFollowups.length > 0 ? (
+                <div className="space-y-4">
+                  {analytics.next7DaysFollowups.map((followup: any) => (
+                    <div 
+                      key={followup.id} 
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                      data-testid={`followup-${followup.id}`}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <Calendar className="h-5 w-5 text-blue-500" />
+                        <div>
+                          <p className="font-medium text-gray-900">{followup.name}</p>
+                          <p className="text-sm text-gray-600">{followup.companyName || 'No company'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <Badge 
+                          variant={followup.leadStatus === 'hot' ? 'destructive' : 'secondary'}
+                        >
+                          {followup.leadStatus}
+                        </Badge>
+                        <span className="text-sm text-gray-600">
+                          {followup.nextFollowupDate ? format(new Date(followup.nextFollowupDate), 'MMM dd') : 'No date'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">{category.value} leads</span>
-                      <Badge variant="secondary">
-                        {totalLeads > 0 ? ((category.value / totalLeads) * 100).toFixed(1) : 0}%
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No follow-ups scheduled for the next 7 days</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

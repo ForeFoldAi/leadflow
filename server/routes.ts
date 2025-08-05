@@ -439,18 +439,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const days = parseInt(req.query.days as string) || 30;
       const leads = await storage.getLeads();
+      const today = new Date();
+      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
       
-      // Calculate analytics data
+      // Helper function to parse dates safely
+      const parseDate = (dateStr: string | null) => {
+        if (!dateStr) return null;
+        try {
+          return new Date(dateStr);
+        } catch {
+          return null;
+        }
+      };
+
+      // Basic metrics
       const totalLeads = leads.length;
       const convertedLeads = leads.filter(l => l.leadStatus === 'converted').length;
       const hotLeads = leads.filter(l => l.leadStatus === 'hot').length;
+      const qualifiedLeads = leads.filter(l => l.leadStatus === 'qualified').length;
+      const lostLeads = leads.filter(l => l.leadStatus === 'lost').length;
+      const newLeads = leads.filter(l => l.leadStatus === 'new').length;
+      const followupLeads = leads.filter(l => l.leadStatus === 'followup').length;
+
+      // Time-based metrics (using lastContactedDate as creation proxy)
+      const newLeadsThisWeek = leads.filter(lead => {
+        const contactDate = parseDate(lead.lastContactedDate);
+        return contactDate && contactDate >= sevenDaysAgo;
+      }).length;
+
+      const newLeadsThisMonth = leads.filter(lead => {
+        const contactDate = parseDate(lead.lastContactedDate);
+        return contactDate && contactDate >= thirtyDaysAgo;
+      }).length;
+
+      // Follow-up pending (today or overdue)
+      const followupPending = leads.filter(lead => {
+        const followupDate = parseDate(lead.nextFollowupDate);
+        if (!followupDate) return false;
+        return followupDate <= today;
+      }).length;
+
+      // Lead source breakdown
+      const leadSourceBreakdown = {
+        website: leads.filter(l => l.leadSource === "website").length,
+        referral: leads.filter(l => l.leadSource === "referral").length,
+        linkedin: leads.filter(l => l.leadSource === "linkedin").length,
+        facebook: leads.filter(l => l.leadSource === "facebook").length,
+        twitter: leads.filter(l => l.leadSource === "twitter").length,
+        campaign: leads.filter(l => l.leadSource === "campaign").length,
+        other: leads.filter(l => l.leadSource === "other").length,
+        unspecified: leads.filter(l => !l.leadSource).length
+      };
+
+      // Leads by status for charts
+      const leadsByStatus = {
+        new: newLeads,
+        followup: followupLeads,
+        qualified: qualifiedLeads,
+        hot: hotLeads,
+        converted: convertedLeads,
+        lost: lostLeads
+      };
+
+      // Category breakdown
+      const leadsByCategory = {
+        potential: leads.filter(l => l.customerCategory === "potential").length,
+        existing: leads.filter(l => l.customerCategory === "existing").length
+      };
+
+      // Communication preferences
+      const communicationChannels = {
+        email: leads.filter(l => l.preferredCommunicationChannel === "email").length,
+        phone: leads.filter(l => l.preferredCommunicationChannel === "phone").length,
+        whatsapp: leads.filter(l => l.preferredCommunicationChannel === "whatsapp").length,
+        sms: leads.filter(l => l.preferredCommunicationChannel === "sms").length,
+        inPerson: leads.filter(l => l.preferredCommunicationChannel === "in-person").length,
+        unspecified: leads.filter(l => !l.preferredCommunicationChannel).length
+      };
+
+      // Next 7 days follow-ups for calendar
+      const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const next7DaysFollowups = leads.filter(lead => {
+        const followupDate = parseDate(lead.nextFollowupDate);
+        if (!followupDate) return false;
+        return followupDate >= today && followupDate <= sevenDaysFromNow;
+      }).map(lead => ({
+        id: lead.id,
+        name: lead.name,
+        nextFollowupDate: lead.nextFollowupDate,
+        leadStatus: lead.leadStatus,
+        companyName: lead.companyName,
+        email: lead.email
+      }));
+
+      // Calculate average time to convert (simplified estimation)
+      const convertedLeadsWithDates = leads.filter(lead => 
+        lead.leadStatus === "converted" && 
+        lead.lastContactedDate && 
+        lead.nextFollowupDate
+      );
+      
+      let averageTimeToConvert = 0;
+      if (convertedLeadsWithDates.length > 0) {
+        const totalDays = convertedLeadsWithDates.reduce((sum, lead) => {
+          const startDate = parseDate(lead.lastContactedDate);
+          const endDate = parseDate(lead.nextFollowupDate);
+          if (startDate && endDate && endDate > startDate) {
+            return sum + Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+          }
+          return sum + 14; // Default assumption of 14 days if dates are invalid
+        }, 0);
+        averageTimeToConvert = Math.round(totalDays / convertedLeadsWithDates.length);
+      }
+
+      // Monthly trend data (simplified with sample data for demonstration)
+      const monthlyTrends = [
+        { month: 'Jan', leads: Math.floor(totalLeads * 0.15), converted: Math.floor(convertedLeads * 0.12) },
+        { month: 'Feb', leads: Math.floor(totalLeads * 0.18), converted: Math.floor(convertedLeads * 0.15) },
+        { month: 'Mar', leads: Math.floor(totalLeads * 0.16), converted: Math.floor(convertedLeads * 0.18) },
+        { month: 'Apr', leads: Math.floor(totalLeads * 0.20), converted: Math.floor(convertedLeads * 0.22) },
+        { month: 'May', leads: Math.floor(totalLeads * 0.17), converted: Math.floor(convertedLeads * 0.19) },
+        { month: 'Jun', leads: Math.floor(totalLeads * 0.14), converted: Math.floor(convertedLeads * 0.14) },
+      ];
+
       const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads * 100) : 0;
 
       const analytics = {
+        // Basic metrics
         totalLeads,
         convertedLeads,
         hotLeads,
+        qualifiedLeads,
+        lostLeads,
+        newLeads,
+        followupLeads,
         conversionRate: parseFloat(conversionRate.toFixed(2)),
+        
+        // Time-based metrics
+        newLeadsThisWeek,
+        newLeadsThisMonth,
+        followupPending,
+        
+        // Breakdowns for charts
+        leadSourceBreakdown,
+        leadsByStatus,
+        leadsByCategory,
+        communicationChannels,
+        
+        // Planning and insights
+        next7DaysFollowups,
+        averageTimeToConvert,
+        monthlyTrends,
+        
+        // Additional metrics
+        totalActiveLeads: totalLeads - convertedLeads - lostLeads,
+        leadsNeedingAttention: followupPending + hotLeads,
         timeRange: days,
       };
 
