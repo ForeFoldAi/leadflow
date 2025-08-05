@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, LogIn, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ForeFoldLogo from "@/components/forefold-logo";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -74,12 +75,8 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4">
-            <img 
-              src="/attached_assets/Revised ForeFold Logo_1754376248863.png" 
-              alt="ForeFold AI Logo" 
-              className="h-16 w-auto mx-auto"
-            />
+          <div className="mx-auto mb-4 flex justify-center">
+            <ForeFoldLogo className="h-16 w-16" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
           <p className="text-gray-600 mt-1">by ForeFoldAI</p>

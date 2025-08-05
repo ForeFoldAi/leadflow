@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import ForeFoldLogo from "./forefold-logo";
 
 export default function AppHeader() {
   const [, setLocation] = useLocation();
@@ -57,13 +58,7 @@ export default function AppHeader() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="flex items-center">
-                <div className="p-1">
-                  <img 
-                    src="/attached_assets/Revised ForeFold Logo_1754376248863.png" 
-                    alt="ForeFold AI Logo" 
-                    className="h-10 w-auto"
-                  />
-                </div>
+                <ForeFoldLogo className="h-8 w-8" />
                 <div className="ml-3">
                   <h1 className="text-xl font-semibold text-gray-900">LeadFlow</h1>
                   <p className="text-xs text-gray-500">by ForeFoldAI</p>
