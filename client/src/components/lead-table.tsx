@@ -83,8 +83,8 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
       }
       return response.json();
     },
-    staleTime: 0, // Always refetch to ensure fresh data
-    gcTime: 0, // Don't keep cached data
+    staleTime: 30000, // Keep data fresh for 30 seconds
+    gcTime: 300000, // Keep cached data for 5 minutes
   });
 
   const deleteMutation = useMutation({
@@ -217,9 +217,9 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-200 rounded"></div>
+          <div className="animate-pulse space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-10 bg-gray-100 rounded opacity-60"></div>
             ))}
           </div>
         </CardContent>
