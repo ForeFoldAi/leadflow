@@ -51,38 +51,45 @@ export default function AppHeader() {
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo and Title */}
-          <div className="flex items-center">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo and Brand Section */}
+          <div className="flex items-center space-x-8">
             <div className="flex-shrink-0">
-              <div className="flex items-center">
-                <img 
-                  src="/forefold-logo.png" 
-                  alt="ForeFold AI Logo" 
-                  className="h-8 w-8 object-contain"
-                />
-                <div className="ml-3 text-center">
-                  <h1 className="text-xl font-semibold text-gray-900">LeadFlow</h1>
-                  <p className="text-xs text-gray-500 text-center">by ForeFoldAI</p>
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <img 
+                    src="/forefold-logo.png" 
+                    alt="ForeFold AI Logo" 
+                    className="h-12 w-12 object-contain filter drop-shadow-lg"
+                  />
+                  <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl"></div>
+                </div>
+                <div className="flex flex-col">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
+                    LeadFlow
+                  </h1>
+                  <p className="text-sm text-slate-400 font-medium tracking-wide">
+                    powered by <span className="text-purple-400">ForeFoldAI</span>
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex ml-8 space-x-1">
+            <nav className="hidden md:flex space-x-2">
               {navItems.map((item) => (
                 <Button
                   key={item.path}
                   variant="ghost"
-                  size="sm"
+                  size="default"
                   onClick={() => setLocation(item.path)}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200 px-4 py-2 rounded-lg border border-transparent hover:border-slate-600"
                   data-testid={`nav-${item.label.toLowerCase()}`}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
                 </Button>
               ))}
             </nav>
@@ -96,65 +103,108 @@ export default function AppHeader() {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden"
+              className="md:hidden text-slate-300 hover:text-white hover:bg-slate-700/50"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-testid="mobile-menu-button"
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
 
-            {/* User dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full" data-testid="user-menu">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{currentUser.name || "User"}</p>
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {currentUser.email}
-                    </p>
+            {/* User Profile Section */}
+            <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
+              <div className="text-right">
+                <p className="text-sm font-medium text-white">{currentUser.name || "User"}</p>
+                <p className="text-xs text-slate-400 truncate max-w-[120px]">
+                  {currentUser.email}
+                </p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-purple-500/30 hover:border-purple-400 transition-colors" data-testid="user-menu">
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white font-semibold">
+                        {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium text-white">{currentUser.name || "User"}</p>
+                      <p className="w-[200px] truncate text-sm text-slate-400">
+                        {currentUser.email}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="menu-settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="menu-settings" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Mobile User Menu */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-slate-600" data-testid="mobile-user-menu">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
+                        {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium text-white">{currentUser.name || "User"}</p>
+                      <p className="w-[200px] truncate text-sm text-slate-400">
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="mobile-menu-settings" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem onClick={handleLogout} data-testid="mobile-menu-logout" className="text-slate-300 hover:text-white hover:bg-slate-700">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
+            <div className="px-4 pt-4 pb-4 space-y-2 border-t border-slate-700 bg-slate-800/30">
               {navItems.map((item) => (
                 <Button
                   key={item.path}
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
                   onClick={() => {
                     setLocation(item.path);
                     setIsMobileMenuOpen(false);
                   }}
                   data-testid={`mobile-nav-${item.label.toLowerCase()}`}
                 >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.label}
+                  <item.icon className="mr-3 h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
                 </Button>
               ))}
             </div>
