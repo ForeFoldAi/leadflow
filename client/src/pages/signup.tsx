@@ -26,7 +26,6 @@ const signupSchema = z.object({
   industry: z.string().min(1, "Industry is required"),
   website: z.string().url("Invalid website URL").optional().or(z.literal("")),
   phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number format").optional().or(z.literal("")),
-  subscriptionPlan: z.enum(["basic", "professional", "enterprise"], { required_error: "Please select a subscription plan" }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -63,7 +62,6 @@ export default function Signup() {
       industry: "",
       website: "",
       phoneNumber: "",
-      subscriptionPlan: "basic",
     },
   });
 
@@ -260,22 +258,7 @@ export default function Signup() {
                 )}
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="subscriptionPlan" className="text-sm">Subscription Plan</Label>
-                <Select onValueChange={(value) => form.setValue("subscriptionPlan", value as any)}>
-                  <SelectTrigger data-testid="select-subscription-plan">
-                    <SelectValue placeholder="Select subscription plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="basic">Basic - $29/month</SelectItem>
-                    <SelectItem value="professional">Professional - $79/month</SelectItem>
-                    <SelectItem value="enterprise">Enterprise - $199/month</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.subscriptionPlan && (
-                  <p className="text-sm text-red-600">{form.formState.errors.subscriptionPlan.message}</p>
-                )}
-              </div>
+
 
               <div className="space-y-1">
                 <Label htmlFor="password" className="text-sm">Password</Label>
