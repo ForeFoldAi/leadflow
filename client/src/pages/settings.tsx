@@ -112,14 +112,21 @@ export default function Settings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileForm) => {
-      const response = await apiRequest("PUT", "/api/users/profile", data);
-      return response.json();
+      const response = await apiRequest("PUT", "/api/users/profile", {
+        ...data,
+        email: currentUser.email || data.email // Ensure email is included
+      });
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
+      // Update localStorage with new user data if returned
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
       form.reset();
     },
     onError: (error: any) => {
