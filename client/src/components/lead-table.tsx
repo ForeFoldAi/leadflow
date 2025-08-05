@@ -155,6 +155,41 @@ export default function LeadTable({ filters, onEditLead, userPreferences }: Lead
     }
   };
 
+  const getFollowupStatus = (followupDate: string | null) => {
+    if (!followupDate) return { status: 'none', className: '', bgClassName: '' };
+    
+    try {
+      const followup = new Date(followupDate);
+      const today = new Date();
+      const diffInDays = Math.ceil((followup.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffInDays < 0) {
+        // Overdue (past due date)
+        return { 
+          status: 'overdue', 
+          className: 'text-red-700 font-medium', 
+          bgClassName: 'bg-red-50 border-l-4 border-red-400' 
+        };
+      } else if (diffInDays <= 7) {
+        // Approaching (within a week)
+        return { 
+          status: 'approaching', 
+          className: 'text-yellow-700 font-medium', 
+          bgClassName: 'bg-yellow-50 border-l-4 border-yellow-400' 
+        };
+      } else {
+        // Future (more than a week away)
+        return { 
+          status: 'future', 
+          className: 'text-green-700 font-medium', 
+          bgClassName: 'bg-green-50 border-l-4 border-green-400' 
+        };
+      }
+    } catch {
+      return { status: 'none', className: '', bgClassName: '' };
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -193,7 +228,23 @@ export default function LeadTable({ filters, onEditLead, userPreferences }: Lead
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader className="px-6 py-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-semibold text-gray-900">Recent Leads</CardTitle>
+          <div>
+            <CardTitle className="text-lg font-semibold text-gray-900">Recent Leads</CardTitle>
+            <div className="flex items-center space-x-4 mt-2 text-xs">
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 bg-red-50 border-l-2 border-red-400 rounded-sm"></div>
+                <span className="text-gray-600">Overdue</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 bg-yellow-50 border-l-2 border-yellow-400 rounded-sm"></div>
+                <span className="text-gray-600">Due Soon</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 bg-green-50 border-l-2 border-green-400 rounded-sm"></div>
+                <span className="text-gray-600">Future</span>
+              </div>
+            </div>
+          </div>
           <div className="flex space-x-2">
             <TooltipProvider>
               <Tooltip>
@@ -306,8 +357,16 @@ export default function LeadTable({ filters, onEditLead, userPreferences }: Lead
                     <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-by-${lead.id}`}>
                       {lead.lastContactedBy || "-"}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500" data-testid={`text-next-followup-${lead.id}`}>
-                      {formatDate(lead.nextFollowupDate)}
+                    <TableCell className="text-sm" data-testid={`text-next-followup-${lead.id}`}>
+                      {lead.nextFollowupDate ? (
+                        <div className={`px-2 py-1 rounded-md ${getFollowupStatus(lead.nextFollowupDate).bgClassName}`}>
+                          <span className={getFollowupStatus(lead.nextFollowupDate).className}>
+                            {formatDate(lead.nextFollowupDate)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
                     </TableCell>
                     {showInterestedColumn && (
                       <TableCell className="text-sm text-gray-500" data-testid={`text-customer-interested-${lead.id}`}>
