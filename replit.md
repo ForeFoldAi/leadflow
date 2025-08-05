@@ -66,6 +66,8 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
 - ✅ Analytics properly shows John Smith's Aug 07, 2025 follow-up in the calendar widget
 - ✅ Fixed analytics data not refreshing dynamically by adding analytics cache invalidation to all lead operations
 - ✅ Analytics now updates in real-time when leads are created, updated, or deleted
+- ✅ Added Lead Created Date field to database schema and export functionality
+- ✅ Export CSV now includes "Lead Created Date" column showing when each lead was first added to the system
 
 # User Preferences
 

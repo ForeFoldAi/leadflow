@@ -64,7 +64,8 @@ export class MemStorage implements IStorage {
         leadSource: "website" as const,
         customLeadSource: null,
         leadStatus: "hot" as const,
-        additionalNotes: "Very interested in our enterprise package, budget approved"
+        additionalNotes: "Very interested in our enterprise package, budget approved",
+        createdAt: new Date("2025-08-01T10:00:00Z")
       },
       {
         id: "2", 
@@ -87,7 +88,8 @@ export class MemStorage implements IStorage {
         leadSource: "referral" as const,
         customLeadSource: null,
         leadStatus: "qualified" as const,
-        additionalNotes: "Needs solution for 50+ developers, considering competitors"
+        additionalNotes: "Needs solution for 50+ developers, considering competitors",
+        createdAt: new Date("2025-08-02T14:30:00Z")
       },
       {
         id: "3",
@@ -110,7 +112,8 @@ export class MemStorage implements IStorage {
         leadSource: "linkedin" as const,
         customLeadSource: null,
         leadStatus: "converted" as const,
-        additionalNotes: "Converted to premium plan, very satisfied with service"
+        additionalNotes: "Converted to premium plan, very satisfied with service",
+        createdAt: new Date("2025-07-25T09:15:00Z")
       },
       {
         id: "4",
@@ -133,7 +136,8 @@ export class MemStorage implements IStorage {
         leadSource: "campaign" as const,
         customLeadSource: null,
         leadStatus: "followup" as const,
-        additionalNotes: "Interested but needs approval from partners"
+        additionalNotes: "Interested but needs approval from partners",
+        createdAt: new Date("2025-08-03T16:45:00Z")
       },
       {
         id: "5",
@@ -156,7 +160,8 @@ export class MemStorage implements IStorage {
         leadSource: "other" as const,
         customLeadSource: "Trade Show",
         leadStatus: "new" as const,
-        additionalNotes: "Initial contact made, needs detailed proposal"
+        additionalNotes: "Initial contact made, needs detailed proposal",
+        createdAt: new Date("2025-08-04T11:20:00Z")
       }
     ];
 
@@ -191,7 +196,8 @@ export class MemStorage implements IStorage {
       preferredCommunicationChannel: insertLead.preferredCommunicationChannel || null,
       leadSource: insertLead.leadSource || null,
       customLeadSource: insertLead.customLeadSource || null,
-      additionalNotes: insertLead.additionalNotes || null
+      additionalNotes: insertLead.additionalNotes || null,
+      createdAt: new Date()
     };
     this.leads.set(id, lead);
     return lead;

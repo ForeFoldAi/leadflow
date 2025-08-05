@@ -25,6 +25,7 @@ export const leads = pgTable("leads", {
   customLeadSource: text("custom_lead_source"), // Used when leadSource is "other"
   leadStatus: text("lead_status").notNull(), // "new" | "followup" | "qualified" | "hot" | "converted" | "lost"
   additionalNotes: text("additional_notes"),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
 export const insertLeadSchema = createInsertSchema(leads, {
@@ -48,7 +49,7 @@ export const insertLeadSchema = createInsertSchema(leads, {
   customLeadSource: z.string().max(50, "Maximum 50 characters allowed").optional(),
   leadStatus: z.enum(["new", "followup", "qualified", "hot", "converted", "lost"], { required_error: "Lead status is required" }),
   additionalNotes: z.string().max(100, "Maximum 100 characters allowed").optional(),
-}).omit({ id: true });
+}).omit({ id: true, createdAt: true });
 
 export type InsertLead = z.infer<typeof insertLeadSchema>;
 export type Lead = typeof leads.$inferSelect;

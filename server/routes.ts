@@ -56,7 +56,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "Customer Interested In",
         "Preferred Communication Channel",
         "Lead Status",
-        "Additional Notes"
+        "Additional Notes",
+        "Lead Created Date"
       ];
 
       // Convert leads to CSV format
@@ -78,7 +79,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `"${lead.customerInterestedIn || ""}"`,
         `"${lead.preferredCommunicationChannel || ""}"`,
         `"${getStatusLabel(lead.leadStatus)}"`,
-        `"${lead.additionalNotes || ""}"`
+        `"${lead.additionalNotes || ""}"`,
+        `"${lead.createdAt ? lead.createdAt.toISOString().split('T')[0] : ""}"`
       ]);
 
       // Combine headers and rows
