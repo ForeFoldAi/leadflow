@@ -58,11 +58,7 @@ export default function AppHeader() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="flex items-center">
-                <img 
-                  src="/attached_assets/Logo only_1754377025614.png" 
-                  alt="ForeFold AI Logo" 
-                  className="h-8 w-8"
-                />
+                <ForeFoldLogo className="h-8 w-8" />
                 <div className="ml-3 text-center">
                   <h1 className="text-xl font-semibold text-gray-900">LeadFlow</h1>
                   <p className="text-xs text-gray-500 text-center">by ForeFoldAI</p>

@@ -76,11 +76,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4">
-            <img 
-              src="/attached_assets/Logo only_1754377025614.png" 
-              alt="ForeFold AI Logo" 
-              className="h-16 w-16 mx-auto"
-            />
+            <ForeFoldLogo className="h-16 w-16 mx-auto" />
           </div>
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
