@@ -298,7 +298,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     onClick={() => setShowInterestedColumn(!showInterestedColumn)}
                     data-testid="toggle-interested-column"
                   >
-                    {showInterestedColumn ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showInterestedColumn ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     Interested In
                   </Button>
                 </TooltipTrigger>
@@ -316,7 +316,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     onClick={() => setShowNotesColumn(!showNotesColumn)}
                     data-testid="toggle-notes-column"
                   >
-                    {showNotesColumn ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showNotesColumn ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     Notes
                   </Button>
                 </TooltipTrigger>

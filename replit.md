@@ -53,6 +53,7 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
 - ✅ Unified interface: All lead management functions now contained within single card component
 - ✅ Fixed search functionality with proper debouncing to prevent screen flashing during text entry
 - ✅ Increased debounce delay to 800ms for smoother user experience while typing
+- ✅ Fixed eye symbol logic for column toggles: Eye shows when visible, EyeOff shows when hidden
 
 # User Preferences
 
