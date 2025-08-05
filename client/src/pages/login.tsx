@@ -77,7 +77,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="mx-auto mb-4">
             <img 
-              src="/forefold-logo.svg" 
+              src="/forefold-logo.png" 
               alt="ForeFold AI Logo" 
               className="h-16 w-16 mx-auto object-contain"
             />
