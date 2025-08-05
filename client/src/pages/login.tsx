@@ -86,15 +86,12 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
             <p className="text-gray-600 mt-1">by ForeFoldAI</p>
           </div>
-          <p className="text-gray-500 mt-4 text-sm text-center">Sign in to your account</p>
+          <h2 className="text-2xl font-semibold text-gray-900 mt-6">Welcome Back</h2>
+          <p className="text-gray-600 mt-2">Enter your credentials to access your account</p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Welcome Back</CardTitle>
-            <CardDescription className="text-center">
-              Enter your credentials to access your account
-            </CardDescription>
+          <CardHeader className="pb-4">
           </CardHeader>
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
