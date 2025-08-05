@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, LogIn, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import backgroundImage from "@assets/Gemini_Generated_Image_1p7qq81p7qq81p7q_1754413492894.png";
 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -75,7 +76,7 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
-        backgroundImage: `url('@assets/Gemini_Generated_Image_1p7qq81p7qq81p7q_1754413492894.png')`,
+        backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
