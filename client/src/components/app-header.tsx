@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Users, Search, BarChart3, Settings, LogOut, Menu, X, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AppHeader() {
   const [, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
 
   const getUserFromStorage = () => {
@@ -33,7 +34,36 @@ export default function AppHeader() {
     }
   };
 
-  const currentUser = getUserFromStorage();
+  // Load user data on mount and listen for storage changes
+  useEffect(() => {
+    const loadUser = () => {
+      const user = getUserFromStorage();
+      setCurrentUser(user);
+    };
+
+    // Load initial user data
+    loadUser();
+
+    // Listen for storage changes (when user data is updated)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "user") {
+        loadUser();
+      }
+    };
+
+    // Listen for custom events when user data is updated
+    const handleUserUpdate = () => {
+      loadUser();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("userUpdated", handleUserUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("userUpdated", handleUserUpdate);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -81,7 +111,7 @@ export default function AppHeader() {
             <div className="hidden md:flex flex-col border-l border-slate-600 pl-6">
               <p className="text-slate-300 text-sm font-medium">Welcome,</p>
               <p className="text-white text-base font-semibold">
-                {currentUser.companyName || currentUser.name || "User"}
+                {currentUser?.companyName || currentUser?.name || "User"}
               </p>
             </div>
           </div>
@@ -121,9 +151,9 @@ export default function AppHeader() {
               {/* User Profile Section */}
               <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white">{currentUser.name || "User"}</p>
+                  <p className="text-sm font-medium text-white">{currentUser?.name || "User"}</p>
                   <p className="text-xs text-slate-400 truncate max-w-[120px]">
-                    {currentUser.email}
+                    {currentUser?.email}
                   </p>
                 </div>
                 <DropdownMenu>
@@ -131,7 +161,7 @@ export default function AppHeader() {
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-purple-500/30 hover:border-purple-400 transition-colors" data-testid="user-menu">
                       <Avatar className="h-9 w-9">
                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white font-semibold">
-                          {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                          {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -139,9 +169,9 @@ export default function AppHeader() {
                   <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
                     <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
                       <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium text-white">{currentUser.name || "User"}</p>
+                        <p className="font-medium text-white">{currentUser?.name || "User"}</p>
                         <p className="w-[200px] truncate text-sm text-slate-400">
-                          {currentUser.email}
+                          {currentUser?.email}
                         </p>
                       </div>
                     </div>
@@ -166,7 +196,7 @@ export default function AppHeader() {
                     <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-slate-600" data-testid="mobile-user-menu">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
-                          {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                          {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -174,9 +204,9 @@ export default function AppHeader() {
                   <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end" forceMount>
                     <div className="flex items-center justify-start gap-2 p-3 bg-slate-900/50">
                       <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium text-white">{currentUser.name || "User"}</p>
+                        <p className="font-medium text-white">{currentUser?.name || "User"}</p>
                         <p className="w-[200px] truncate text-sm text-slate-400">
-                          {currentUser.email}
+                          {currentUser?.email}
                         </p>
                       </div>
                     </div>

@@ -169,6 +169,10 @@ export default function Settings() {
       // Update localStorage with new user data if returned
       if (data && data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
+        
+        // Dispatch custom event to notify header of user data change
+        window.dispatchEvent(new CustomEvent("userUpdated"));
+        
         // Reset form with updated values instead of reloading page
         form.reset({
           name: data.user.name || "",
