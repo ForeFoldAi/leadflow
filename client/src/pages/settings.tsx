@@ -205,7 +205,14 @@ export default function Settings() {
   });
 
   const onSubmit = (data: ProfileForm) => {
-    updateProfileMutation.mutate(data);
+    // Only send password fields if user is actually changing password
+    const submitData = { ...data };
+    if (!data.newPassword || data.newPassword.trim() === '') {
+      delete submitData.currentPassword;
+      delete submitData.newPassword;
+      delete submitData.confirmPassword;
+    }
+    updateProfileMutation.mutate(submitData);
   };
 
   const handleSaveNotifications = () => {

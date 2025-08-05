@@ -292,9 +292,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug route to check user credentials (development only)
+  app.get("/api/debug/users", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      // Only show this in development
+      if (process.env.NODE_ENV === 'development') {
+        res.json(users.map(user => ({
+          email: user.email,
+          hasPassword: !!user.password,
+          passwordLength: user.password?.length || 0,
+          name: user.name,
+          role: user.role,
+          isActive: user.isActive
+        })));
+      } else {
+        res.status(403).json({ error: "Not available in production" });
+      }
+    } catch (error) {
+      console.error("Debug users error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Route to reset users to original credentials (development only)
+  app.post("/api/debug/reset-users", async (req, res) => {
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        storage.resetUsers();
+        res.json({ message: "Users reset to original credentials successfully" });
+      } else {
+        res.status(403).json({ error: "Not available in production" });
+      }
+    } catch (error) {
+      console.error("Reset users error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.put("/api/users/profile", async (req, res) => {
     try {
-      const { email, currentPassword, newPassword, ...updates } = req.body;
+      const { email, currentPassword, newPassword, confirmPassword, ...updates } = req.body;
       
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
@@ -305,18 +343,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // If changing password, verify current password
-      if (newPassword) {
-        if (!currentPassword) {
+      // Only process password change if newPassword is provided and not empty
+      if (newPassword && newPassword.trim() !== '') {
+        if (!currentPassword || currentPassword.trim() === '') {
           return res.status(400).json({ error: "Current password is required to change password" });
         }
         if (user.password !== currentPassword) {
           return res.status(401).json({ error: "Current password is incorrect" });
         }
+        if (newPassword !== confirmPassword) {
+          return res.status(400).json({ error: "New passwords do not match" });
+        }
         updates.password = newPassword;
       }
 
-      const updatedUser = await storage.updateUser(user.id, updates);
+      // Only update non-empty fields (excluding password-related fields)
+      const fieldsToUpdate: any = {};
+      if (updates.name && updates.name.trim() !== '') fieldsToUpdate.name = updates.name;
+      if (updates.role) fieldsToUpdate.role = updates.role;
+      if (updates.password) fieldsToUpdate.password = updates.password;
+
+      const updatedUser = await storage.updateUser(user.id, fieldsToUpdate);
       if (!updatedUser) {
         return res.status(404).json({ error: "User not found" });
       }

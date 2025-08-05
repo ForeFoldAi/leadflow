@@ -35,6 +35,12 @@ export class MemStorage implements IStorage {
     this.initializeSampleUsers();
   }
 
+  // Method to reset users to original state
+  resetUsers() {
+    this.users.clear();
+    this.initializeSampleUsers();
+  }
+
   private initializeSampleData() {
     const sampleLeads = [
       {
