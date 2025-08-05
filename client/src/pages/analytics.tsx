@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText, Clock, AlertCircle, CheckCircle, XCircle, Upload, Plus } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText, Clock, AlertCircle, CheckCircle, XCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -128,25 +128,6 @@ export default function Analytics() {
                 <SelectItem value="90" data-testid="option-90-days">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.csv,.json,.xlsx';
-                input.onchange = (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (file) {
-                    alert(`Successfully imported leads from ${file.name}`);
-                  }
-                };
-                input.click();
-              }}
-              data-testid="button-import-leads"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Import Leads
-            </Button>
             <Button 
               onClick={exportReport} 
               variant="outline"
