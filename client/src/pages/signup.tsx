@@ -74,7 +74,7 @@ export default function Signup() {
         <div className="text-center mb-8">
           <div className="mx-auto mb-4">
             <img 
-              src="/forefold-logo.png" 
+              src="/forefold-logo.svg" 
               alt="ForeFold AI Logo" 
               className="h-16 w-16 mx-auto object-contain"
             />
