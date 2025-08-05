@@ -36,16 +36,25 @@ export default function Login() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginForm) => apiRequest("POST", "/api/auth/login", data),
-    onSuccess: (response: any) => {
-      if (response && response.user) {
-        localStorage.setItem("user", JSON.stringify(response.user));
+    mutationFn: async (data: LoginForm) => {
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      return response.json(); // Parse the JSON from the Response object
+    },
+    onSuccess: (data: any) => {
+      console.log("Login success data:", data);
+      if (data && data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("User data stored in localStorage:", localStorage.getItem("user"));
         toast({
           title: "Success",
           description: "Logged in successfully",
         });
-        // Force immediate redirect to dashboard
+        
+        // Immediate redirect
+        console.log("Attempting redirect...");
         window.location.href = "/";
+      } else {
+        console.error("Invalid response structure:", data);
       }
     },
     onError: (error: any) => {
