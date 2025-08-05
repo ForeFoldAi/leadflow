@@ -6,7 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff, ChevronLeft, ChevronRight as ChevronRightIcon, Upload, Plus } from "lucide-react";
+import LeadFilters from "./lead-filters";
+import ExportDialog from "./export-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Lead } from "@shared/schema";
@@ -19,6 +21,7 @@ interface LeadTableProps {
     category: string;
     city: string;
   };
+  onFiltersChange?: (filters: { search: string; status: string; category: string; city: string; }) => void;
   onEditLead: (lead: Lead) => void;
   userPreferences?: {
     defaultView: string;
@@ -28,9 +31,17 @@ interface LeadTableProps {
     exportFormat: string;
     exportNotes: boolean;
   };
+  onImportLeads?: () => void;
+  onAddNewLead?: () => void;
+  exportFilters?: {
+    search: string;
+    status: string;
+    category: string;
+    city: string;
+  };
 }
 
-export default function LeadTable({ filters, onEditLead, userPreferences }: LeadTableProps) {
+export default function LeadTable({ filters, onFiltersChange, onEditLead, userPreferences, onImportLeads, onAddNewLead, exportFilters }: LeadTableProps) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showInterestedColumn, setShowInterestedColumn] = useState(() => {
@@ -227,22 +238,54 @@ export default function LeadTable({ filters, onEditLead, userPreferences }: Lead
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader className="px-6 py-4 border-b border-gray-200">
+        {/* Action Buttons Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900 mb-3 sm:mb-0">Leads View</CardTitle>
+          <div className="flex space-x-3">
+            {onImportLeads && (
+              <Button 
+                variant="outline"
+                onClick={onImportLeads}
+                data-testid="button-import-leads"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Import Leads
+              </Button>
+            )}
+            {exportFilters && <ExportDialog currentFilters={exportFilters} />}
+            {onAddNewLead && (
+              <Button 
+                onClick={onAddNewLead}
+                data-testid="button-add-lead"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Lead
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Filters Row */}
+        {onFiltersChange && (
+          <div className="mb-4">
+            <LeadFilters filters={filters} onFiltersChange={onFiltersChange} />
+          </div>
+        )}
+
+        {/* Legend and Column Toggles Row */}
         <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-lg font-semibold text-gray-900">Leads View</CardTitle>
-            <div className="flex items-center space-x-4 mt-2 text-xs">
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-red-50 border-l-2 border-red-400 rounded-sm"></div>
-                <span className="text-gray-600">Overdue</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-yellow-50 border-l-2 border-yellow-400 rounded-sm"></div>
-                <span className="text-gray-600">Due Soon</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-green-50 border-l-2 border-green-400 rounded-sm"></div>
-                <span className="text-gray-600">Future</span>
-              </div>
+          <div className="flex items-center space-x-4 text-xs">
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-red-50 border-l-2 border-red-400 rounded-sm"></div>
+              <span className="text-gray-600">Overdue</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-yellow-50 border-l-2 border-yellow-400 rounded-sm"></div>
+              <span className="text-gray-600">Due Soon</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-green-50 border-l-2 border-green-400 rounded-sm"></div>
+              <span className="text-gray-600">Future</span>
             </div>
           </div>
           <div className="flex space-x-2">

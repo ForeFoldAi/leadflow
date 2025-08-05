@@ -98,34 +98,16 @@ export default function Dashboard() {
       <AppHeader />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Primary Leads View Section - Highlighted as main content */}
+        {/* Primary Leads View Section - Unified interface */}
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div className="mt-3 sm:mt-0 flex space-x-3">
-              <Button 
-                variant="outline"
-                onClick={handleImportLeads}
-                data-testid="button-import-leads"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Import Leads
-              </Button>
-              <ExportDialog currentFilters={filters} />
-              <Button 
-                onClick={() => setIsFormOpen(true)}
-                data-testid="button-add-lead"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add New Lead
-              </Button>
-            </div>
-          </div>
-
-          <LeadFilters filters={filters} onFiltersChange={setFilters} />
           <LeadTable 
             filters={filters} 
+            onFiltersChange={setFilters}
             onEditLead={handleEditLead}
             userPreferences={userPreferences}
+            onImportLeads={handleImportLeads}
+            onAddNewLead={() => setIsFormOpen(true)}
+            exportFilters={filters}
           />
         </div>
 
