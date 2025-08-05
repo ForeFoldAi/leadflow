@@ -59,6 +59,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leads/stats/summary"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      queryClient.refetchQueries({ queryKey: ["/api/leads"] });
       toast({
         title: "Success",
         description: "Lead created successfully",
@@ -80,6 +81,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leads/stats/summary"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      queryClient.refetchQueries({ queryKey: ["/api/leads"] });
       toast({
         title: "Success",
         description: "Lead updated successfully",

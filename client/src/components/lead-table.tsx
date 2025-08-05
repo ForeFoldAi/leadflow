@@ -74,7 +74,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
   if (filters.city && filters.city !== "all") queryParams.append("city", filters.city);
 
   const { data: leads, isLoading } = useQuery<Lead[]>({
-    queryKey: ["/api/leads", queryParams.toString()],
+    queryKey: ["/api/leads", filters],
     queryFn: async () => {
       const url = queryParams.toString() ? `/api/leads?${queryParams.toString()}` : '/api/leads';
       const response = await fetch(url);
@@ -83,6 +83,8 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
       }
       return response.json();
     },
+    staleTime: 0, // Always refetch to ensure fresh data
+    gcTime: 0, // Don't keep cached data
   });
 
   const deleteMutation = useMutation({
@@ -91,6 +93,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leads/stats/summary"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      queryClient.refetchQueries({ queryKey: ["/api/leads"] });
       setDeletingId(null);
       toast({
         title: "Success",
