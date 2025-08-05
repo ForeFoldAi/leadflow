@@ -211,26 +211,26 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className={`${showInterestedColumn || showNotesColumn ? 'overflow-x-auto' : ''}`}>
-          <Table className={`${!showInterestedColumn && !showNotesColumn ? 'table-fixed w-full' : ''}`}>
+        <div className={`${showInterestedColumn || showNotesColumn ? 'overflow-x-auto' : ''} w-full`}>
+          <Table className={`w-full ${!showInterestedColumn && !showNotesColumn ? 'table-fixed' : ''}`}>
             <TableHeader>
               <TableRow className="bg-gray-50">
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Expand</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-1/6' : ''}`}>Lead</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-1/6' : ''}`}>Contact</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-1/6' : ''}`}>Company</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-20' : ''}`}>Status</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-24' : ''}`}>Last Contact</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-32' : ''}`}>Last Contacted By</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-24' : ''}`}>Next Followup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-12">Expand</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[18%]' : ''}`}>Lead</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[15%]' : ''}`}>Contact</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[15%]' : ''}`}>Company</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[10%]' : ''}`}>Status</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[12%]' : ''}`}>Last Contact</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[12%]' : ''}`}>Last Contacted By</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[10%]' : ''}`}>Next Followup</TableHead>
                 {showInterestedColumn && (
                   <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Interested In</TableHead>
                 )}
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider text-center ${!showInterestedColumn && !showNotesColumn ? 'w-20' : ''}`}>Preferred Channel</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider text-center ${!showInterestedColumn && !showNotesColumn ? 'w-[8%]' : ''}`}>Channel</TableHead>
                 {showNotesColumn && (
                   <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
                 )}
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-20' : ''}`}>Actions</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[10%]' : ''}`}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -261,8 +261,8 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-gray-900" data-testid={`text-email-${lead.id}`}>{lead.email}</div>
-                      <div className="text-sm text-gray-500" data-testid={`text-phone-${lead.id}`}>{lead.phoneNumber}</div>
+                      <div className="text-sm text-gray-900" data-testid={`text-phone-${lead.id}`}>{lead.phoneNumber}</div>
+                      <div className="text-sm text-gray-500">Contact Info</div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-900" data-testid={`text-company-${lead.id}`}>
@@ -363,6 +363,7 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                             <div className="space-y-2">
                               <h4 className="font-medium text-gray-900">Personal Information</h4>
                               <div className="text-sm text-gray-600">
+                                <p><span className="font-medium">Email:</span> {lead.email}</p>
                                 <p><span className="font-medium">Date of Birth:</span> {lead.dateOfBirth || "Not provided"}</p>
                                 <p><span className="font-medium">Location:</span> {lead.city}, {lead.state}, {lead.country}</p>
                                 <p><span className="font-medium">Pincode:</span> {lead.pincode}</p>
