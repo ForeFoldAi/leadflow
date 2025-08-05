@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
@@ -13,6 +14,24 @@ interface LeadFiltersProps {
 }
 
 export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersProps) {
+  const [searchValue, setSearchValue] = useState(filters.search);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchValue !== filters.search) {
+        onFiltersChange({ ...filters, search: searchValue });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // Update local search value when filters change externally
+  useEffect(() => {
+    setSearchValue(filters.search);
+  }, [filters.search]);
+
   const updateFilter = (key: string, value: string) => {
     const newValue = value === "all" ? "" : value;
     onFiltersChange({ ...filters, [key]: newValue });
@@ -26,8 +45,8 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
           <Input
             type="text"
             placeholder="Search..."
-            value={filters.search}
-            onChange={(e) => updateFilter("search", e.target.value)}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             className="pl-10"
             data-testid="input-search"
           />
