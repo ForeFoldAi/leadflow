@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -28,25 +28,28 @@ export default function Analytics() {
     queryKey: ["/api/leads"],
   });
 
+  // Type the leads data properly
+  const typedLeads = leads as any[];
+
   // Calculate metrics from leads data
-  const totalLeads = leads.length;
-  const convertedLeads = leads.filter((lead: any) => lead.leadStatus === 'converted').length;
-  const hotLeads = leads.filter((lead: any) => lead.leadStatus === 'hot').length;
+  const totalLeads = typedLeads.length;
+  const convertedLeads = typedLeads.filter((lead: any) => lead.leadStatus === 'converted').length;
+  const hotLeads = typedLeads.filter((lead: any) => lead.leadStatus === 'hot').length;
   const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads * 100).toFixed(1) : 0;
 
   // Prepare chart data
   const statusData = [
-    { name: 'New', value: leads.filter((l: any) => l.leadStatus === 'new').length, color: '#0088FE' },
-    { name: 'Follow-up', value: leads.filter((l: any) => l.leadStatus === 'followup').length, color: '#00C49F' },
-    { name: 'Qualified', value: leads.filter((l: any) => l.leadStatus === 'qualified').length, color: '#FFBB28' },
-    { name: 'Hot', value: leads.filter((l: any) => l.leadStatus === 'hot').length, color: '#FF8042' },
+    { name: 'New', value: typedLeads.filter((l: any) => l.leadStatus === 'new').length, color: '#0088FE' },
+    { name: 'Follow-up', value: typedLeads.filter((l: any) => l.leadStatus === 'followup').length, color: '#00C49F' },
+    { name: 'Qualified', value: typedLeads.filter((l: any) => l.leadStatus === 'qualified').length, color: '#FFBB28' },
+    { name: 'Hot', value: typedLeads.filter((l: any) => l.leadStatus === 'hot').length, color: '#FF8042' },
     { name: 'Converted', value: convertedLeads, color: '#82ca9d' },
-    { name: 'Lost', value: leads.filter((l: any) => l.leadStatus === 'lost').length, color: '#ff7675' },
+    { name: 'Lost', value: typedLeads.filter((l: any) => l.leadStatus === 'lost').length, color: '#ff7675' },
   ].filter(item => item.value > 0);
 
   const categoryData = [
-    { name: 'Potential', value: leads.filter((l: any) => l.customerCategory === 'potential').length },
-    { name: 'Existing', value: leads.filter((l: any) => l.customerCategory === 'existing').length },
+    { name: 'Potential', value: typedLeads.filter((l: any) => l.customerCategory === 'potential').length },
+    { name: 'Existing', value: typedLeads.filter((l: any) => l.customerCategory === 'existing').length },
   ];
 
   const monthlyData = [
@@ -59,12 +62,40 @@ export default function Analytics() {
   ];
 
   const communicationData = [
-    { channel: 'Email', count: leads.filter((l: any) => l.preferredCommunicationChannel === 'email').length },
-    { channel: 'Phone', count: leads.filter((l: any) => l.preferredCommunicationChannel === 'phone').length },
-    { channel: 'WhatsApp', count: leads.filter((l: any) => l.preferredCommunicationChannel === 'whatsapp').length },
-    { channel: 'SMS', count: leads.filter((l: any) => l.preferredCommunicationChannel === 'sms').length },
-    { channel: 'In-Person', count: leads.filter((l: any) => l.preferredCommunicationChannel === 'in-person').length },
+    { channel: 'Email', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'email').length },
+    { channel: 'Phone', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'phone').length },
+    { channel: 'WhatsApp', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'whatsapp').length },
+    { channel: 'SMS', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'sms').length },
+    { channel: 'In-Person', count: typedLeads.filter((l: any) => l.preferredCommunicationChannel === 'in-person').length },
   ].filter(item => item.count > 0);
+
+  // Export functionality
+  const exportReport = () => {
+    const reportData = {
+      generatedAt: new Date().toISOString(),
+      timeRange: `${timeRange} days`,
+      summary: {
+        totalLeads,
+        convertedLeads,
+        hotLeads,
+        conversionRate: `${conversionRate}%`
+      },
+      leadsByStatus: statusData,
+      leadsByCategory: categoryData,
+      communicationPreferences: communicationData,
+      monthlyTrends: monthlyData
+    };
+
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `leadflow-analytics-report-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
 
   if (isLoading) {
     return (
@@ -109,7 +140,7 @@ export default function Analytics() {
                   <SelectItem value="365">Last year</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" data-testid="button-export">
+              <Button variant="outline" onClick={exportReport} data-testid="button-export">
                 <Download className="mr-2 h-4 w-4" />
                 Export Report
               </Button>

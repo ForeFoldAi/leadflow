@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Database, Mail, Phone, Save, Eye, EyeOff } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Database, Mail, Phone, Save, Eye, EyeOff, Smartphone, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -59,18 +59,16 @@ export default function Settings() {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: ProfileForm) => apiRequest("PUT", "/api/users/profile", data),
+    mutationFn: async (data: ProfileForm) => {
+      const response = await apiRequest("PUT", "/api/users/profile", data);
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
-      form.reset({
-        ...form.getValues(),
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      form.reset();
     },
     onError: (error: any) => {
       toast({
@@ -90,7 +88,6 @@ export default function Settings() {
       <AppHeader />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
           <p className="mt-1 text-sm text-gray-600">Manage your account settings and preferences</p>
@@ -98,20 +95,20 @@ export default function Settings() {
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" data-testid="tab-profile">
-              <User className="mr-2 h-4 w-4" />
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="notifications" data-testid="tab-notifications">
-              <Bell className="mr-2 h-4 w-4" />
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
               Notifications
             </TabsTrigger>
-            <TabsTrigger value="security" data-testid="tab-security">
-              <Shield className="mr-2 h-4 w-4" />
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
               Security
             </TabsTrigger>
-            <TabsTrigger value="preferences" data-testid="tab-preferences">
-              <Database className="mr-2 h-4 w-4" />
+            <TabsTrigger value="preferences" className="flex items-center gap-2">
+              <SettingsIcon className="h-4 w-4" />
               Preferences
             </TabsTrigger>
           </TabsList>
@@ -122,7 +119,7 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
-                  Update your personal information and account details
+                  Update your account details and password
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -132,6 +129,7 @@ export default function Settings() {
                       <Label htmlFor="name">Full Name</Label>
                       <Input
                         id="name"
+                        placeholder="Enter your full name"
                         {...form.register("name")}
                         data-testid="input-name"
                       />
@@ -145,6 +143,7 @@ export default function Settings() {
                       <Input
                         id="email"
                         type="email"
+                        placeholder="Enter your email"
                         {...form.register("email")}
                         data-testid="input-email"
                       />
@@ -156,88 +155,90 @@ export default function Settings() {
 
                   <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary" className="px-3 py-1">
-                        {currentUser.role === "admin" ? "Administrator" : 
-                         currentUser.role === "manager" ? "Sales Manager" : "Sales Representative"}
-                      </Badge>
-                      <span className="text-sm text-gray-500">Contact your administrator to change roles</span>
-                    </div>
+                    <Select value={form.watch("role")} onValueChange={(value) => form.setValue("role", value as any)}>
+                      <SelectTrigger data-testid="select-role">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Separator />
 
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Change Password</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Current Password</Label>
-                        <div className="relative">
-                          <Input
-                            id="currentPassword"
-                            type={showCurrentPassword ? "text" : "password"}
-                            placeholder="Enter current password"
-                            {...form.register("currentPassword")}
-                            data-testid="input-current-password"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          >
-                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="currentPassword"
+                          type={showCurrentPassword ? "text" : "password"}
+                          placeholder="Enter current password"
+                          {...form.register("currentPassword")}
+                          data-testid="input-current-password"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        >
+                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
                       </div>
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword">New Password</Label>
-                        <div className="relative">
-                          <Input
-                            id="newPassword"
-                            type={showNewPassword ? "text" : "password"}
-                            placeholder="Enter new password"
-                            {...form.register("newPassword")}
-                            data-testid="input-new-password"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                          >
-                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="Enter new password"
+                          {...form.register("newPassword")}
+                          data-testid="input-new-password"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
                       </div>
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <div className="relative">
-                          <Input
-                            id="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm new password"
-                            {...form.register("confirmPassword")}
-                            data-testid="input-confirm-password"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          >
-                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        {form.formState.errors.confirmPassword && (
-                          <p className="text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
-                        )}
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm new password"
+                          {...form.register("confirmPassword")}
+                          data-testid="input-confirm-password"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
                       </div>
+                      {form.formState.errors.confirmPassword && (
+                        <p className="text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
+                      )}
                     </div>
                   </div>
 
@@ -262,259 +263,237 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications">
+          {/* Notifications Tab */}  
+          <TabsContent value="notifications" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Email Notifications
+                </CardTitle>
                 <CardDescription>
-                  Configure how you want to receive notifications
+                  Choose which email notifications you'd like to receive
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Email Notifications</Label>
-                      <p className="text-sm text-gray-500">Receive notifications via email</p>
-                    </div>
-                    <Switch defaultChecked data-testid="switch-email-notifications" />
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="new-leads">New Lead Notifications</Label>
+                    <p className="text-sm text-gray-500">Get notified when new leads are added</p>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">New Lead Alerts</Label>
-                      <p className="text-sm text-gray-500">Get notified when new leads are added</p>
-                    </div>
-                    <Switch defaultChecked data-testid="switch-new-lead-alerts" />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Follow-up Reminders</Label>
-                      <p className="text-sm text-gray-500">Reminders for scheduled follow-ups</p>
-                    </div>
-                    <Switch defaultChecked data-testid="switch-followup-reminders" />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Status Updates</Label>
-                      <p className="text-sm text-gray-500">Notifications when lead status changes</p>
-                    </div>
-                    <Switch data-testid="switch-status-updates" />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Weekly Reports</Label>
-                      <p className="text-sm text-gray-500">Receive weekly performance reports</p>
-                    </div>
-                    <Switch defaultChecked data-testid="switch-weekly-reports" />
-                  </div>
+                  <Switch id="new-leads" defaultChecked data-testid="switch-new-leads" />
                 </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Notification Timing</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Quiet Hours Start</Label>
-                      <Input type="time" defaultValue="22:00" data-testid="input-quiet-start" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Quiet Hours End</Label>
-                      <Input type="time" defaultValue="08:00" data-testid="input-quiet-end" />
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="follow-ups">Follow-up Reminders</Label>
+                    <p className="text-sm text-gray-500">Receive reminders for scheduled follow-ups</p>
                   </div>
+                  <Switch id="follow-ups" defaultChecked data-testid="switch-follow-ups" />
                 </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="hot-leads">Hot Lead Alerts</Label>
+                    <p className="text-sm text-gray-500">Get alerted when leads become hot prospects</p>
+                  </div>
+                  <Switch id="hot-leads" defaultChecked data-testid="switch-hot-leads" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="conversions">Conversion Notifications</Label>
+                    <p className="text-sm text-gray-500">Celebrate when leads convert to customers</p>
+                  </div>
+                  <Switch id="conversions" defaultChecked data-testid="switch-conversions" />
+                </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex justify-end">
-                  <Button data-testid="button-save-notifications">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Preferences
-                  </Button>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5" />
+                  Push Notifications
+                </CardTitle>
+                <CardDescription>
+                  Configure browser and mobile push notifications
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="browser-push">Browser Notifications</Label>
+                    <p className="text-sm text-gray-500">Show notifications in your browser</p>
+                  </div>
+                  <Switch id="browser-push" data-testid="switch-browser-push" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="daily-summary">Daily Summary</Label>
+                    <p className="text-sm text-gray-500">Daily digest of your lead activity</p>
+                  </div>
+                  <Switch id="daily-summary" defaultChecked data-testid="switch-daily-summary" />
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Security Tab */}
-          <TabsContent value="security">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Security</CardTitle>
-                  <CardDescription>
-                    Manage your account security settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Two-Factor Authentication</Label>
-                      <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
-                    </div>
-                    <Button variant="outline" data-testid="button-enable-2fa">Enable 2FA</Button>
+          <TabsContent value="security" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Account Security
+                </CardTitle>
+                <CardDescription>
+                  Manage your account security settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="two-factor">Two-Factor Authentication</Label>
+                    <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
                   </div>
+                  <Button variant="outline" size="sm" data-testid="button-enable-2fa">
+                    Enable 2FA
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Login Notifications</Label>
+                    <p className="text-sm text-gray-500">Get notified of new sign-ins to your account</p>
+                  </div>
+                  <Switch defaultChecked data-testid="switch-login-notifications" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Session Management</Label>
+                    <p className="text-sm text-gray-500">View and manage your active sessions</p>
+                  </div>
+                  <Button variant="outline" size="sm" data-testid="button-manage-sessions">
+                    Manage Sessions
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Session Timeout</Label>
-                      <p className="text-sm text-gray-500">Automatically log out after inactivity</p>
-                    </div>
-                    <Select defaultValue="30">
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="60">1 hour</SelectItem>
-                        <SelectItem value="never">Never</SelectItem>
-                      </SelectContent>
-                    </Select>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="h-5 w-5" />
+                  API Access
+                </CardTitle>
+                <CardDescription>
+                  Manage API keys and integrations
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>API Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value="lf_xxxxxxxxxxxxxxxxxxxxxxxx"
+                      readOnly
+                      className="font-mono text-sm"
+                      data-testid="input-api-key"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-regenerate-api">
+                      Regenerate
+                    </Button>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Login Alerts</Label>
-                      <p className="text-sm text-gray-500">Get notified of suspicious login attempts</p>
-                    </div>
-                    <Switch defaultChecked data-testid="switch-login-alerts" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Active Sessions</CardTitle>
-                  <CardDescription>
-                    Manage your active login sessions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">Current Session</p>
-                        <p className="text-sm text-gray-500">Chrome on Windows • Last active: Now</p>
-                      </div>
-                      <Badge variant="secondary">Current</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <p className="text-sm text-gray-500">Use this key to access the LeadFlow API</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Preferences Tab */}
-          <TabsContent value="preferences">
+          <TabsContent value="preferences" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Application Preferences</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <SettingsIcon className="h-5 w-5" />
+                  Application Preferences
+                </CardTitle>
                 <CardDescription>
-                  Customize your application experience
+                  Customize your LeadFlow experience
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Default Lead Status</Label>
-                    <Select defaultValue="new">
-                      <SelectTrigger data-testid="select-default-status">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="followup">Follow-up</SelectItem>
-                        <SelectItem value="qualified">Qualified</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Default Communication Channel</Label>
-                    <Select defaultValue="email">
-                      <SelectTrigger data-testid="select-default-channel">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="phone">Phone</SelectItem>
-                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                        <SelectItem value="sms">SMS</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Items Per Page</Label>
-                    <Select defaultValue="25">
-                      <SelectTrigger data-testid="select-items-per-page">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Date Format</Label>
-                    <Select defaultValue="MM/DD/YYYY">
-                      <SelectTrigger data-testid="select-date-format">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Default Lead View</Label>
+                  <Select defaultValue="table" data-testid="select-default-view">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="table">Table View</SelectItem>
+                      <SelectItem value="grid">Grid View</SelectItem>
+                      <SelectItem value="list">List View</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Display Options</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-base">Show Customer Interested In Column</Label>
-                        <p className="text-sm text-gray-500">Display customer interest column by default</p>
-                      </div>
-                      <Switch data-testid="switch-show-interested" />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-base">Show Additional Notes Column</Label>
-                        <p className="text-sm text-gray-500">Display notes column by default</p>
-                      </div>
-                      <Switch data-testid="switch-show-notes" />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-base">Compact Table View</Label>
-                        <p className="text-sm text-gray-500">Use smaller row heights for more data</p>
-                      </div>
-                      <Switch data-testid="switch-compact-view" />
-                    </div>
-                  </div>
+                <div className="space-y-2">
+                  <Label>Items Per Page</Label>
+                  <Select defaultValue="20" data-testid="select-items-per-page">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 items</SelectItem>
+                      <SelectItem value="20">20 items</SelectItem>
+                      <SelectItem value="50">50 items</SelectItem>
+                      <SelectItem value="100">100 items</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Auto-save Changes</Label>
+                    <p className="text-sm text-gray-500">Automatically save form changes</p>
+                  </div>
+                  <Switch defaultChecked data-testid="switch-auto-save" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Compact Mode</Label>
+                    <p className="text-sm text-gray-500">Show more data in less space</p>
+                  </div>
+                  <Switch data-testid="switch-compact-mode" />
+                </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex justify-end">
-                  <Button data-testid="button-save-preferences">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Preferences
-                  </Button>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Data Management
+                </CardTitle>
+                <CardDescription>
+                  Manage your data and exports
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Default Export Format</Label>
+                  <Select defaultValue="csv" data-testid="select-export-format">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="csv">CSV</SelectItem>
+                      <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
+                      <SelectItem value="json">JSON</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Include Notes in Export</Label>
+                    <p className="text-sm text-gray-500">Add additional notes to exported data</p>
+                  </div>
+                  <Switch defaultChecked data-testid="switch-export-notes" />
                 </div>
               </CardContent>
             </Card>

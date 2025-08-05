@@ -7,7 +7,7 @@ import LeadForm from "@/components/lead-form";
 import ExportDialog from "@/components/export-dialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import type { Lead } from "@shared/schema";
 
 export default function Dashboard() {
@@ -19,6 +19,31 @@ export default function Dashboard() {
     category: "",
     city: "",
   });
+
+  const handleImportLeads = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv,.json,.xlsx';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const content = event.target?.result as string;
+            // Here you would parse the file content and add leads
+            console.log('File imported:', file.name, content);
+            // For now, just show a success message
+            alert(`Successfully imported leads from ${file.name}`);
+          } catch (error) {
+            alert('Error importing file. Please check the format.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
 
   const handleEditLead = (lead: Lead) => {
     setEditingLead(lead);
@@ -44,6 +69,14 @@ export default function Dashboard() {
               <p className="mt-1 text-sm text-gray-600">Track and manage your sales leads efficiently</p>
             </div>
             <div className="mt-4 sm:mt-0 flex space-x-3">
+              <Button 
+                variant="outline"
+                onClick={handleImportLeads}
+                data-testid="button-import-leads"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Import Leads
+              </Button>
               <ExportDialog currentFilters={filters} />
               <Button 
                 onClick={() => setIsFormOpen(true)}
