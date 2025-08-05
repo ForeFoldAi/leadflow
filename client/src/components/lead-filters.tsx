@@ -22,7 +22,7 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
       if (searchValue !== filters.search) {
         onFiltersChange({ ...filters, search: searchValue });
       }
-    }, 300);
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [searchValue]);

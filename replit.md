@@ -51,6 +51,8 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
 - ✅ Removed "Leads View" title and subtitle text for minimalist, data-focused interface
 - ✅ Integrated all action buttons (Import, Export, Add New Lead) and filters directly into Leads View block
 - ✅ Unified interface: All lead management functions now contained within single card component
+- ✅ Fixed search functionality with proper debouncing to prevent screen flashing during text entry
+- ✅ Increased debounce delay to 800ms for smoother user experience while typing
 
 # User Preferences
 
