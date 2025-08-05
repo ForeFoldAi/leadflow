@@ -72,23 +72,34 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url('@assets/Gemini_Generated_Image_1p7qq81p7qq81p7q_1754413492894.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better readability */}
+      <div className="absolute inset-0 bg-black bg-opacity-10"></div>
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4">
             <img 
               src="/forefold-logo.png" 
               alt="ForeFold AI Logo" 
-              className="h-16 w-16 mx-auto object-contain"
+              className="h-16 w-16 mx-auto object-contain drop-shadow-lg"
             />
           </div>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
-            <p className="text-gray-600 mt-1">by ForeFoldAI</p>
+            <h1 className="text-3xl font-bold text-white drop-shadow-lg">LeadFlow</h1>
+            <p className="text-white drop-shadow-md mt-1">by ForeFoldAI</p>
           </div>
         </div>
 
-        <Card>
+        <Card className="backdrop-blur-sm bg-white/90 shadow-2xl border-0">
           <CardContent className="pt-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-900">Welcome Back</h2>
@@ -141,7 +152,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full btn-impressive-primary"
                 disabled={loginMutation.isPending}
                 data-testid="button-login"
               >
@@ -149,7 +160,7 @@ export default function Login() {
                   "Signing in..."
                 ) : (
                   <>
-                    <LogIn className="mr-2 h-4 w-4" />
+                    <LogIn className="mr-2 h-4 w-4 icon" />
                     Sign In
                   </>
                 )}
