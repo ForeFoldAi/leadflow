@@ -140,15 +140,18 @@ export default function Settings() {
     },
   });
 
-  // Update selectedRole when form role changes
+  // Update selectedRole when form role changes and initialize with current user role
   React.useEffect(() => {
+    if (currentUser.role) {
+      setSelectedRole(currentUser.role);
+    }
     const subscription = form.watch((value) => {
       if (value.role) {
         setSelectedRole(value.role);
       }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, currentUser.role]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileForm) => {
@@ -412,7 +415,7 @@ export default function Settings() {
 
                   <div className="space-y-2">
                     <Label htmlFor="role" className="text-sm">Role</Label>
-                    <Select onValueChange={(value) => {
+                    <Select value={form.watch("role")} onValueChange={(value) => {
                       form.setValue("role", value as "user" | "manager" | "other");
                       setSelectedRole(value);
                       if (value !== "other") {
@@ -465,7 +468,7 @@ export default function Settings() {
 
                   <div className="space-y-2">
                     <Label htmlFor="companySize" className="text-sm">Company Size</Label>
-                    <Select onValueChange={(value) => form.setValue("companySize", value as any)}>
+                    <Select value={form.watch("companySize")} onValueChange={(value) => form.setValue("companySize", value as any)}>
                       <SelectTrigger data-testid="select-company-size">
                         <SelectValue placeholder="Select company size" />
                       </SelectTrigger>

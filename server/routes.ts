@@ -418,6 +418,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fieldsToUpdate: any = {};
       if (updates.name && updates.name.trim() !== '') fieldsToUpdate.name = updates.name;
       if (updates.role) fieldsToUpdate.role = updates.role;
+      if (updates.customRole) fieldsToUpdate.customRole = updates.customRole;
+      if (updates.companyName && updates.companyName.trim() !== '') fieldsToUpdate.companyName = updates.companyName;
+      if (updates.companySize) fieldsToUpdate.companySize = updates.companySize;
+      if (updates.industry && updates.industry.trim() !== '') fieldsToUpdate.industry = updates.industry;
+      if (updates.website) fieldsToUpdate.website = updates.website;
+      if (updates.phoneNumber) fieldsToUpdate.phoneNumber = updates.phoneNumber;
       if (updates.password) fieldsToUpdate.password = updates.password;
 
       const updatedUser = await storage.updateUser(user.id, fieldsToUpdate);
