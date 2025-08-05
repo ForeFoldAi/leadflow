@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, LogIn, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import ForeFoldLogo from "@/components/forefold-logo";
+
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -76,7 +76,11 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4">
-            <ForeFoldLogo className="h-16 w-16 mx-auto" />
+            <img 
+              src="/forefold-logo.png" 
+              alt="ForeFold AI Logo" 
+              className="h-16 w-16 mx-auto object-contain"
+            />
           </div>
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
