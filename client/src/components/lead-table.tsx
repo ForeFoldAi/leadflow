@@ -215,7 +215,7 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
           <Table className={`w-full ${!showInterestedColumn && !showNotesColumn ? 'table-fixed' : ''}`}>
             <TableHeader>
               <TableRow className="bg-gray-50">
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-12">Expand</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-12 text-center">Expand</TableHead>
                 <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[18%]' : ''}`}>Lead</TableHead>
                 <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[15%]' : ''}`}>Contact</TableHead>
                 <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[15%]' : ''}`}>Company</TableHead>
@@ -237,7 +237,7 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
               {leads.map((lead: Lead) => (
                 <React.Fragment key={lead.id}>
                   <TableRow className="hover:bg-gray-50" data-testid={`row-lead-${lead.id}`}>
-                    <TableCell>
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -262,7 +262,6 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-900" data-testid={`text-phone-${lead.id}`}>{lead.phoneNumber}</div>
-                      <div className="text-sm text-gray-500">Contact Info</div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-900" data-testid={`text-company-${lead.id}`}>
