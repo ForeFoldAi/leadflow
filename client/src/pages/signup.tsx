@@ -106,14 +106,14 @@ export default function Signup() {
           </div>
         </div>
 
-        <Card className="max-h-[85vh] overflow-hidden">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-center text-lg">Get Started</CardTitle>
             <CardDescription className="text-center text-sm">
               Create your account to start managing leads
             </CardDescription>
           </CardHeader>
-          <CardContent className="max-h-[70vh] overflow-y-auto px-6">
+          <CardContent className="px-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="name" className="text-sm">Full Name</Label>
