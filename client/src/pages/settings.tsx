@@ -161,13 +161,23 @@ export default function Settings() {
       });
       return response;
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (response: any) => {
+      // Parse the response if it's not already parsed
+      let data = response;
+      if (typeof response.json === 'function') {
+        data = await response.json();
+      }
+      
+      console.log("Settings: Received response:", data);
+      
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
+      
       // Update localStorage with new user data if returned
       if (data && data.user) {
+        console.log("Settings: Updating localStorage with:", data.user);
         localStorage.setItem("user", JSON.stringify(data.user));
         
         // Dispatch custom event to notify header of user data change
@@ -189,6 +199,16 @@ export default function Settings() {
           newPassword: "",
           confirmPassword: "",
         });
+      } else {
+        console.log("Settings: No user data in response, updating localStorage manually");
+        // If no user data in response, update localStorage with form data
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const updatedUser = { ...currentUser, ...form.getValues() };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        // Dispatch custom event to notify header of user data change
+        console.log("Settings: Dispatching userUpdated event with manual update:", updatedUser);
+        window.dispatchEvent(new CustomEvent("userUpdated"));
       }
     },
     onError: (error: any) => {
