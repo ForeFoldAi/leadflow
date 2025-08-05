@@ -219,20 +219,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!email || !password) {
         return res.status(400).json({ 
-          error: "Email and password are required" 
+          error: "Please enter both email and password to continue." 
         });
       }
 
       const user = await storage.getUserByEmail(email);
       if (!user || user.password !== password) {
         return res.status(401).json({ 
-          error: "Invalid email or password" 
+          error: "Invalid credentials. Please check your email and password and try again." 
         });
       }
 
       if (!user.isActive) {
         return res.status(401).json({ 
-          error: "Account is deactivated" 
+          error: "Your account has been deactivated. Please contact support for assistance." 
         });
       }
 
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
         return res.status(400).json({ 
-          error: "User with this email already exists" 
+          error: "An account with this email already exists. Please try logging in instead." 
         });
       }
 
@@ -271,12 +271,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
-          error: "Validation failed", 
+          error: "Please check your information and try again.", 
           details: error.errors 
         });
       }
       console.error("Signup error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Something went wrong. Please try again later." });
     }
   });
 
