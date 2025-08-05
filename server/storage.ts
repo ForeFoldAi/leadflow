@@ -182,13 +182,36 @@ export class MemStorage implements IStorage {
   }
 
   async searchLeads(query: string): Promise<Lead[]> {
-    const lowerQuery = query.toLowerCase();
-    return Array.from(this.leads.values()).filter(lead =>
-      lead.name.toLowerCase().includes(lowerQuery) ||
-      lead.email.toLowerCase().includes(lowerQuery) ||
-      lead.phoneNumber.toLowerCase().includes(lowerQuery) ||
-      (lead.companyName && lead.companyName.toLowerCase().includes(lowerQuery))
-    );
+    const leads = Array.from(this.leads.values());
+    const lowercaseQuery = query.toLowerCase();
+    
+    return leads.filter(lead => {
+      // Search across all string fields
+      const searchableFields = [
+        lead.name,
+        lead.email,
+        lead.phoneNumber,
+        lead.city,
+        lead.state,
+        lead.country,
+        lead.pincode,
+        lead.companyName,
+        lead.designation,
+        lead.lastContactedBy,
+        lead.customerInterestedIn,
+        lead.additionalNotes,
+        lead.leadStatus,
+        lead.customerCategory,
+        lead.preferredCommunicationChannel,
+        lead.dateOfBirth,
+        lead.lastContactedDate,
+        lead.nextFollowupDate
+      ];
+      
+      return searchableFields.some(field => 
+        field && field.toLowerCase().includes(lowercaseQuery)
+      );
+    });
   }
 
   async filterLeads(filters: {

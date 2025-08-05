@@ -1,11 +1,12 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Phone, Mail, Trash2, MessageCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Lead } from "@shared/schema";
@@ -24,6 +25,9 @@ interface LeadTableProps {
 export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showInterestedColumn, setShowInterestedColumn] = useState(false);
+  const [showNotesColumn, setShowNotesColumn] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const queryParams = new URLSearchParams();
   if (filters.search) queryParams.append("search", filters.search);
@@ -86,14 +90,24 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
   const getCommunicationIcon = (channel: string) => {
     switch (channel) {
       case "phone":
-        return <Phone className="h-4 w-4" />;
+        return <Phone className="h-4 w-4 text-blue-600" />;
       case "email":
-        return <Mail className="h-4 w-4" />;
+        return <Mail className="h-4 w-4 text-green-600" />;
       case "whatsapp":
-        return <MessageCircle className="h-4 w-4" />;
+        return <MessageCircle className="h-4 w-4 text-green-500" />;
       default:
-        return <Mail className="h-4 w-4" />;
+        return <Mail className="h-4 w-4 text-gray-400" />;
     }
+  };
+
+  const toggleRowExpansion = (id: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
   };
 
   const getInitials = (name: string) => {
@@ -146,13 +160,54 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader className="px-6 py-4 border-b border-gray-200">
-        <CardTitle className="text-lg font-semibold text-gray-900">Recent Leads</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-semibold text-gray-900">Recent Leads</CardTitle>
+          <div className="flex space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowInterestedColumn(!showInterestedColumn)}
+                    data-testid="toggle-interested-column"
+                  >
+                    {showInterestedColumn ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Interested In
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {showInterestedColumn ? "Hide" : "Show"} Customer Interested In column
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowNotesColumn(!showNotesColumn)}
+                    data-testid="toggle-notes-column"
+                  >
+                    {showNotesColumn ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Notes
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {showNotesColumn ? "Hide" : "Show"} Additional Notes column
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-4">Expand</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Company</TableHead>
@@ -160,117 +215,175 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contact</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted By</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Followup</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Interested In</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Preferred Channel</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
+                {showInterestedColumn && (
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Interested In</TableHead>
+                )}
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Preferred Channel</TableHead>
+                {showNotesColumn && (
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
+                )}
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {leads.map((lead: Lead) => (
-                <TableRow key={lead.id} className="hover:bg-gray-50" data-testid={`row-lead-${lead.id}`}>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-700" data-testid={`text-initials-${lead.id}`}>
-                            {getInitials(lead.name)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900" data-testid={`text-name-${lead.id}`}>
-                          {lead.name}
-                        </div>
-                        <div className="text-sm text-gray-500" data-testid={`text-category-${lead.id}`}>
-                          {getCategoryLabel(lead.customerCategory)}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-gray-900" data-testid={`text-email-${lead.id}`}>{lead.email}</div>
-                    <div className="text-sm text-gray-500" data-testid={`text-phone-${lead.id}`}>{lead.phoneNumber}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-gray-900" data-testid={`text-company-${lead.id}`}>
-                      {lead.companyName || "-"}
-                    </div>
-                    <div className="text-sm text-gray-500" data-testid={`text-designation-${lead.id}`}>
-                      {lead.designation || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell data-testid={`status-${lead.id}`}>
-                    {getStatusBadge(lead.leadStatus)}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-${lead.id}`}>
-                    {formatDate(lead.lastContactedDate)}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-by-${lead.id}`}>
-                    {lead.lastContactedBy || "-"}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500" data-testid={`text-next-followup-${lead.id}`}>
-                    {formatDate(lead.nextFollowupDate)}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500" data-testid={`text-customer-interested-${lead.id}`}>
-                    <div className="max-w-xs truncate" title={lead.customerInterestedIn || ""}>
-                      {lead.customerInterestedIn || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center" data-testid={`preferred-channel-${lead.id}`}>
-                    <div className="flex justify-center">
-                      {getCommunicationIcon(lead.preferredCommunicationChannel)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500" data-testid={`text-additional-notes-${lead.id}`}>
-                    <div className="max-w-xs truncate" title={lead.additionalNotes || ""}>
-                      {lead.additionalNotes || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
+                <React.Fragment key={lead.id}>
+                  <TableRow className="hover:bg-gray-50" data-testid={`row-lead-${lead.id}`}>
+                    <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEditLead(lead)}
-                        data-testid={`button-edit-${lead.id}`}
+                        onClick={() => toggleRowExpansion(lead.id)}
+                        data-testid={`button-expand-${lead.id}`}
                       >
-                        <Edit size={16} className="text-primary" />
+                        {expandedRows.has(lead.id) ? 
+                          <ChevronDown className="h-4 w-4" /> : 
+                          <ChevronRight className="h-4 w-4" />
+                        }
                       </Button>
-                      {getCommunicationIcon(lead.preferredCommunicationChannel)}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={deleteMutation.isPending && deletingId === lead.id}
-                            data-testid={`button-delete-${lead.id}`}
-                          >
-                            <Trash2 size={16} className="text-red-400" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{lead.name}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel data-testid={`button-cancel-delete-${lead.id}`}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(lead.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                              data-testid={`button-confirm-delete-${lead.id}`}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-sm font-medium text-white" data-testid={`text-initials-${lead.id}`}>
+                              {getInitials(lead.name)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900" data-testid={`text-name-${lead.id}`}>
+                            {lead.name}
+                          </div>
+                          <div className="text-sm text-gray-500" data-testid={`text-category-${lead.id}`}>
+                            {getCategoryLabel(lead.customerCategory)}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900" data-testid={`text-email-${lead.id}`}>{lead.email}</div>
+                      <div className="text-sm text-gray-500" data-testid={`text-phone-${lead.id}`}>{lead.phoneNumber}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900" data-testid={`text-company-${lead.id}`}>
+                        {lead.companyName || "-"}
+                      </div>
+                      <div className="text-sm text-gray-500" data-testid={`text-designation-${lead.id}`}>
+                        {lead.designation || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell data-testid={`status-${lead.id}`}>
+                      {getStatusBadge(lead.leadStatus)}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-${lead.id}`}>
+                      {formatDate(lead.lastContactedDate)}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-by-${lead.id}`}>
+                      {lead.lastContactedBy || "-"}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500" data-testid={`text-next-followup-${lead.id}`}>
+                      {formatDate(lead.nextFollowupDate)}
+                    </TableCell>
+                    {showInterestedColumn && (
+                      <TableCell className="text-sm text-gray-500" data-testid={`text-customer-interested-${lead.id}`}>
+                        <div className="max-w-xs truncate" title={lead.customerInterestedIn || ""}>
+                          {lead.customerInterestedIn || "-"}
+                        </div>
+                      </TableCell>
+                    )}
+                    <TableCell className="text-center" data-testid={`preferred-channel-${lead.id}`}>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex justify-center">
+                              {getCommunicationIcon(lead.preferredCommunicationChannel)}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Preferred: {lead.preferredCommunicationChannel}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+                    {showNotesColumn && (
+                      <TableCell className="text-sm text-gray-500" data-testid={`text-additional-notes-${lead.id}`}>
+                        <div className="max-w-xs truncate" title={lead.additionalNotes || ""}>
+                          {lead.additionalNotes || "-"}
+                        </div>
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditLead(lead)}
+                          data-testid={`button-edit-${lead.id}`}
+                        >
+                          <Edit size={16} className="text-blue-600 hover:text-blue-800" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={deleteMutation.isPending && deletingId === lead.id}
+                              data-testid={`button-delete-${lead.id}`}
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                              <Trash2 size={16} className="text-red-500 hover:text-red-700" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{lead.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel data-testid={`button-cancel-delete-${lead.id}`}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(lead.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                data-testid={`button-confirm-delete-${lead.id}`}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  {expandedRows.has(lead.id) && (
+                    <TableRow className="bg-gray-50">
+                      <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10}>
+                        <div className="p-4 space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <h4 className="font-medium text-gray-900">Personal Information</h4>
+                              <div className="text-sm text-gray-600">
+                                <p><span className="font-medium">Date of Birth:</span> {lead.dateOfBirth || "Not provided"}</p>
+                                <p><span className="font-medium">Location:</span> {lead.city}, {lead.state}, {lead.country}</p>
+                                <p><span className="font-medium">Pincode:</span> {lead.pincode}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium text-gray-900">Interest & Notes</h4>
+                              <div className="text-sm text-gray-600">
+                                <p><span className="font-medium">Interested In:</span></p>
+                                <p className="pl-2 italic">{lead.customerInterestedIn || "Not specified"}</p>
+                                <p><span className="font-medium">Additional Notes:</span></p>
+                                <p className="pl-2 italic">{lead.additionalNotes || "No additional notes"}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))}
             </TableBody>
           </Table>
