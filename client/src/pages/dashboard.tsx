@@ -132,14 +132,7 @@ export default function Dashboard() {
             userPreferences={userPreferences}
           />
         </div>
-        
-        {/* Secondary section for Lead Management reference */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-700">Lead Management</h3>
-            <p className="text-sm text-gray-500 mt-1">Access analytics and settings through navigation</p>
-          </div>
-        </div>
+
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

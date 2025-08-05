@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Users, Search, BarChart3, Settings, LogOut, Menu, X } from "lucide-react";
+import { Users, Search, BarChart3, Settings, LogOut, Menu, X, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -45,7 +45,7 @@ export default function AppHeader() {
   };
 
   const navItems = [
-    { path: "/", label: "Dashboard", icon: Users },
+    { path: "/", label: "Leads", icon: UserCheck },
     { path: "/analytics", label: "Analytics", icon: BarChart3 },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
