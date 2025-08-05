@@ -86,10 +86,40 @@ export default function Analytics() {
       monthlyTrends: monthlyData
     };
 
-    const dataStr = JSON.stringify(reportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    // Convert to CSV format
+    const csvData = [
+      ['Analytics Report - Generated at', new Date().toISOString()],
+      ['Time Range', `${timeRange} days`],
+      [''],
+      ['Summary'],
+      ['Total Leads', totalLeads],
+      ['Converted Leads', convertedLeads],
+      ['Hot Leads', hotLeads],
+      ['Conversion Rate', `${conversionRate}%`],
+      [''],
+      ['Leads by Status'],
+      ['Status', 'Count'],
+      ...statusData.map(item => [item.name, item.value]),
+      [''],
+      ['Leads by Category'],
+      ['Category', 'Count'],
+      ...categoryData.map(item => [item.name, item.value]),
+      [''],
+      ['Communication Preferences'],
+      ['Channel', 'Count'],
+      ...communicationData.map(item => [item.channel, item.count]),
+      [''],
+      ['Monthly Trends'],
+      ['Month', 'Leads', 'Converted'],
+      ...monthlyData.map(item => [item.month, item.leads, item.converted])
+    ];
+
+    const csvContent = csvData.map(row => 
+      row.map(cell => `"${cell}"`).join(',')
+    ).join('\n');
     
-    const exportFileDefaultName = `leadflow-analytics-report-${new Date().toISOString().split('T')[0]}.json`;
+    const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    const exportFileDefaultName = `leadflow-analytics-report-${new Date().toISOString().split('T')[0]}.csv`;
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);

@@ -25,7 +25,7 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           <Input
             type="text"
-            placeholder="Search leads..."
+            placeholder="Search..."
             value={filters.search}
             onChange={(e) => updateFilter("search", e.target.value)}
             className="pl-10"

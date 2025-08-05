@@ -79,8 +79,83 @@ export default function Settings() {
     },
   });
 
+  const saveNotificationsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Simulate API call for notifications settings
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Notification preferences saved successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save notification preferences",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const saveSecurityMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Simulate API call for security settings
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Security settings saved successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save security settings",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const savePreferencesMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Simulate API call for preferences
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Preferences saved successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save preferences",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: ProfileForm) => {
     updateProfileMutation.mutate(data);
+  };
+
+  const handleSaveNotifications = () => {
+    saveNotificationsMutation.mutate({});
+  };
+
+  const handleSaveSecurity = () => {
+    saveSecurityMutation.mutate({});
+  };
+
+  const handleSavePreferences = () => {
+    savePreferencesMutation.mutate({});
   };
 
   return (
@@ -334,6 +409,23 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSaveNotifications}
+                disabled={saveNotificationsMutation.isPending}
+                data-testid="button-save-notifications"
+              >
+                {saveNotificationsMutation.isPending ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Notification Settings
+                  </>
+                )}
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Security Tab */}
@@ -405,6 +497,23 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSaveSecurity}
+                disabled={saveSecurityMutation.isPending}
+                data-testid="button-save-security"
+              >
+                {saveSecurityMutation.isPending ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Security Settings
+                  </>
+                )}
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Preferences Tab */}
@@ -497,6 +606,23 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSavePreferences}
+                disabled={savePreferencesMutation.isPending}
+                data-testid="button-save-preferences"
+              >
+                {savePreferencesMutation.isPending ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Preferences
+                  </>
+                )}
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

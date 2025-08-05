@@ -93,7 +93,7 @@ export default function AppHeader() {
               </div>
               <Input
                 type="text"
-                placeholder="Search leads..."
+                placeholder="Search..."
                 className="pl-10"
                 data-testid="search-input"
               />
