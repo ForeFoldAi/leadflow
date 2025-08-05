@@ -426,10 +426,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updates.phoneNumber) fieldsToUpdate.phoneNumber = updates.phoneNumber;
       if (updates.password) fieldsToUpdate.password = updates.password;
 
+      console.log("Fields to update:", fieldsToUpdate);
       const updatedUser = await storage.updateUser(user.id, fieldsToUpdate);
       if (!updatedUser) {
         return res.status(404).json({ error: "User not found" });
       }
+      console.log("Updated user:", updatedUser);
 
       const { password: _, ...userWithoutPassword } = updatedUser;
       res.json({ 
@@ -438,6 +440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Update profile error:", error);
+      console.error("Request body:", req.body);
       res.status(500).json({ error: "Internal server error" });
     }
   });

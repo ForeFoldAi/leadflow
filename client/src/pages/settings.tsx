@@ -169,8 +169,22 @@ export default function Settings() {
       // Update localStorage with new user data if returned
       if (data && data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
+        // Reset form with updated values instead of reloading page
+        form.reset({
+          name: data.user.name || "",
+          email: data.user.email || "",
+          role: data.user.role || "user",
+          customRole: data.user.customRole || "",
+          companyName: data.user.companyName || "",
+          companySize: data.user.companySize || "1-10",
+          industry: data.user.industry || "",
+          website: data.user.website || "",
+          phoneNumber: data.user.phoneNumber || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
       }
-      form.reset();
     },
     onError: (error: any) => {
       toast({
