@@ -171,6 +171,7 @@ export default function Settings() {
         localStorage.setItem("user", JSON.stringify(data.user));
         
         // Dispatch custom event to notify header of user data change
+        console.log("Settings: Dispatching userUpdated event with new data:", data.user);
         window.dispatchEvent(new CustomEvent("userUpdated"));
         
         // Reset form with updated values instead of reloading page
