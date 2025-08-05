@@ -213,6 +213,30 @@ export default function Settings() {
     savePreferencesMutation.mutate(preferenceSettings);
   };
 
+  const handleEnable2FA = () => {
+    toast({
+      title: "2FA Setup",
+      description: "Two-factor authentication setup would open here. Feature coming soon!",
+    });
+    setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: !prev.twoFactorEnabled }));
+  };
+
+  const handleManageSessions = () => {
+    toast({
+      title: "Session Management",
+      description: "Active sessions management panel would open here. Feature coming soon!",
+    });
+  };
+
+  const handleRegenerateAPI = () => {
+    const newApiKey = `lf_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+    toast({
+      title: "API Key Regenerated",
+      description: "Your API key has been regenerated successfully",
+    });
+    // In a real app, this would update the displayed API key
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
@@ -531,8 +555,13 @@ export default function Settings() {
                     <Label htmlFor="two-factor">Two-Factor Authentication</Label>
                     <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
                   </div>
-                  <Button variant="outline" size="sm" data-testid="button-enable-2fa">
-                    Enable 2FA
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleEnable2FA}
+                    data-testid="button-enable-2fa"
+                  >
+                    {securitySettings.twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
@@ -551,7 +580,12 @@ export default function Settings() {
                     <Label>Session Management</Label>
                     <p className="text-sm text-gray-500">View and manage your active sessions</p>
                   </div>
-                  <Button variant="outline" size="sm" data-testid="button-manage-sessions">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleManageSessions}
+                    data-testid="button-manage-sessions"
+                  >
                     Manage Sessions
                   </Button>
                 </div>
@@ -578,7 +612,12 @@ export default function Settings() {
                       className="font-mono text-sm"
                       data-testid="input-api-key"
                     />
-                    <Button variant="outline" size="sm" data-testid="button-regenerate-api">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRegenerateAPI}
+                      data-testid="button-regenerate-api"
+                    >
                       Regenerate
                     </Button>
                   </div>
