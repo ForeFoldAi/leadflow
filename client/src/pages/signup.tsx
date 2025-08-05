@@ -69,34 +69,33 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-2">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-4">
+        <div className="text-center mb-4">
+          <div className="mx-auto mb-2">
             <img 
               src="/forefold-logo.png" 
               alt="ForeFold AI Logo" 
-              className="h-16 w-16 mx-auto object-contain"
+              className="h-12 w-12 mx-auto object-contain"
             />
           </div>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
-            <p className="text-gray-600 mt-1">by ForeFoldAI</p>
+            <h1 className="text-2xl font-bold text-gray-900">LeadFlow</h1>
+            <p className="text-gray-600 text-sm">by ForeFoldAI</p>
           </div>
-          <p className="text-gray-500 mt-4 text-sm text-center">Create your account</p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Get Started</CardTitle>
-            <CardDescription className="text-center">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-center text-lg">Get Started</CardTitle>
+            <CardDescription className="text-center text-sm">
               Create your account to start managing leads
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="name" className="text-sm">Full Name</Label>
                 <Input
                   id="name"
                   type="text"
@@ -109,8 +108,8 @@ export default function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-1">
+                <Label htmlFor="email" className="text-sm">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -123,8 +122,8 @@ export default function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+              <div className="space-y-1">
+                <Label htmlFor="role" className="text-sm">Role</Label>
                 <Select onValueChange={(value) => form.setValue("role", value as "user" | "manager")}>
                   <SelectTrigger data-testid="select-role">
                     <SelectValue placeholder="Select your role" />
@@ -139,8 +138,8 @@ export default function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <div className="space-y-1">
+                <Label htmlFor="password" className="text-sm">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -169,8 +168,8 @@ export default function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="space-y-1">
+                <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -216,7 +215,7 @@ export default function Signup() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
                 <button
