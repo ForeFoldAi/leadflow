@@ -124,7 +124,7 @@ export default function Settings() {
         description: "Profile updated successfully",
       });
       // Update localStorage with new user data if returned
-      if (data.user) {
+      if (data && data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
       form.reset();
@@ -139,24 +139,73 @@ export default function Settings() {
   });
 
   const saveNotificationsMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // Save to localStorage for persistence
-      localStorage.setItem('notificationSettings', JSON.stringify(data));
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+    mutationFn: async (settings: any) => {
+      // Save notification settings to localStorage
+      localStorage.setItem("notificationSettings", JSON.stringify(settings));
+
+      // Handle push notification subscription/unsubscription
+      if (settings.pushNotifications && 'Notification' in window) {
+        // Request permission if not already granted
+        if (Notification.permission === 'default') {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            // Subscribe to push notifications
+            await apiRequest('POST', '/api/notifications/push/subscribe', {
+              userId: currentUser.id || currentUser.email,
+              subscription: { endpoint: 'browser-push', keys: {} }
+            });
+          } else {
+            throw new Error('Push notification permission denied');
+          }
+        }
+      } else if (!settings.pushNotifications && currentUser.id) {
+        // Unsubscribe from push notifications
+        await fetch(`/api/notifications/push/unsubscribe/${currentUser.id || currentUser.email}`, {
+          method: 'DELETE'
+        });
+      }
+
+      // Test email notification if enabled
+      if (settings.emailNotifications && currentUser.email) {
+        await apiRequest('POST', '/api/notifications/test', {
+          email: currentUser.email,
+          type: 'new_lead'
+        });
+      }
+
+      return settings;
     },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Notification preferences saved successfully",
-      });
+    onSuccess: (data) => {
+      if (data.emailNotifications && currentUser.email) {
+        toast({
+          title: "Success",
+          description: "Notification settings saved and test email sent successfully",
+        });
+      } else {
+        toast({
+          title: "Success", 
+          description: "Notification settings saved successfully",
+        });
+      }
     },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save notification preferences",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error.message === 'Push notification permission denied') {
+        toast({
+          title: "Push Notifications",
+          description: "Push notification permission denied. Please enable in browser settings.",
+          variant: "destructive",
+        });
+        // Reset push notifications state if permission denied
+        const currentSettings = JSON.parse(localStorage.getItem("notificationSettings") || "{}");
+        currentSettings.pushNotifications = false;
+        localStorage.setItem("notificationSettings", JSON.stringify(currentSettings));
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to save notification settings",
+          variant: "destructive",
+        });
+      }
     },
   });
 

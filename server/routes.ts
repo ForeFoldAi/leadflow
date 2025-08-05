@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertLeadSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import { notificationService } from "./notifications";
 
 // Helper function to get status labels
 function getStatusLabel(status: string): string {
@@ -140,6 +141,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertLeadSchema.parse(req.body);
       const lead = await storage.createLead(validatedData);
+      
+      // Send notification for new lead
+      try {
+        const users = await storage.getUsers();
+        for (const user of users) {
+          if (user.isActive) {
+            await notificationService.notifyNewLead(user.email, lead.name, lead.id);
+          }
+        }
+      } catch (notificationError) {
+        console.error("Error sending new lead notifications:", notificationError);
+      }
+      
       res.status(201).json(lead);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -157,10 +171,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/leads/:id", async (req, res) => {
     try {
       const validatedData = insertLeadSchema.partial().parse(req.body);
+      const originalLead = await storage.getLead(req.params.id);
       const lead = await storage.updateLead(req.params.id, validatedData);
       if (!lead) {
         return res.status(404).json({ message: "Lead not found" });
       }
+
+      // Send notifications for lead updates
+      try {
+        const users = await storage.getUsers();
+        const changes: string[] = [];
+        
+        // Detect what changed
+        if (originalLead) {
+          if (originalLead.leadStatus !== lead.leadStatus) {
+            changes.push(`Status changed from ${originalLead.leadStatus} to ${lead.leadStatus}`);
+            
+            // Special notification for conversions
+            if (lead.leadStatus === 'converted') {
+              for (const user of users) {
+                if (user.isActive) {
+                  await notificationService.notifyLeadConverted(user.email, lead.name, lead.id);
+                }
+              }
+            }
+          }
+          if (originalLead.nextFollowupDate !== lead.nextFollowupDate) {
+            changes.push(`Next follow-up date updated to ${lead.nextFollowupDate || 'Not set'}`);
+          }
+          if (originalLead.lastContactedBy !== lead.lastContactedBy) {
+            changes.push(`Last contacted by updated to ${lead.lastContactedBy || 'Not set'}`);
+          }
+        }
+
+        // Send update notifications if there are changes
+        if (changes.length > 0 && lead.leadStatus !== 'converted') {
+          for (const user of users) {
+            if (user.isActive) {
+              await notificationService.notifyLeadUpdate(user.email, lead.name, lead.id, changes);
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error("Error sending lead update notifications:", notificationError);
+      }
+
       res.json(lead);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -403,6 +458,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Analytics error:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Notification management routes
+  app.post("/api/notifications/push/subscribe", async (req, res) => {
+    try {
+      const { userId, subscription } = req.body;
+      if (!userId || !subscription) {
+        return res.status(400).json({ error: "User ID and subscription data required" });
+      }
+      
+      notificationService.subscribeToPush(userId, subscription);
+      res.json({ message: "Successfully subscribed to push notifications" });
+    } catch (error) {
+      console.error("Push subscription error:", error);
+      res.status(500).json({ error: "Failed to subscribe to push notifications" });
+    }
+  });
+
+  app.delete("/api/notifications/push/unsubscribe/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      notificationService.unsubscribeFromPush(userId);
+      res.json({ message: "Successfully unsubscribed from push notifications" });
+    } catch (error) {
+      console.error("Push unsubscribe error:", error);
+      res.status(500).json({ error: "Failed to unsubscribe from push notifications" });
+    }
+  });
+
+  // Test notification endpoint
+  app.post("/api/notifications/test", async (req, res) => {
+    try {
+      const { email, type } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      let success = false;
+      switch (type) {
+        case 'new_lead':
+          success = await notificationService.notifyNewLead(email, "Test Lead", "test-123");
+          break;
+        case 'lead_update':
+          success = await notificationService.notifyLeadUpdate(email, "Test Lead", "test-123", ["Status changed for testing"]);
+          break;
+        case 'lead_converted':
+          success = await notificationService.notifyLeadConverted(email, "Test Lead", "test-123");
+          break;
+        default:
+          return res.status(400).json({ error: "Invalid notification type" });
+      }
+
+      if (success) {
+        res.json({ message: "Test notification sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send test notification" });
+      }
+    } catch (error) {
+      console.error("Test notification error:", error);
+      res.status(500).json({ error: "Failed to send test notification" });
     }
   });
 
