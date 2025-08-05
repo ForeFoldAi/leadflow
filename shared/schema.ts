@@ -60,7 +60,15 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("user"), // "admin" | "user" | "manager"
+  role: text("role").notNull().default("user"), // "admin" | "user" | "manager" | "other"
+  customRole: text("custom_role"), // Used when role is "other"
+  companyName: text("company_name").notNull(),
+  companySize: text("company_size").notNull(),
+  industry: text("industry").notNull(),
+  website: text("website"),
+  phoneNumber: text("phone_number"),
+  subscriptionStatus: text("subscription_status").notNull().default("trial"), // "trial" | "active" | "cancelled" | "expired"
+  subscriptionPlan: text("subscription_plan").notNull().default("basic"), // "basic" | "professional" | "enterprise"
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
@@ -70,8 +78,16 @@ export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(1, "Name is required"),
-  role: z.enum(["admin", "user", "manager"]).default("user"),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+  role: z.enum(["admin", "user", "manager", "other"]).default("user"),
+  customRole: z.string().max(50, "Maximum 50 characters allowed").optional(),
+  companyName: z.string().min(1, "Company name is required"),
+  companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
+  industry: z.string().min(1, "Industry is required"),
+  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
+  phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number format").optional().or(z.literal("")),
+  subscriptionStatus: z.enum(["trial", "active", "cancelled", "expired"]).default("trial"),
+  subscriptionPlan: z.enum(["basic", "professional", "enterprise"]).default("basic"),
+}).omit({ id: true, createdAt: true, updatedAt: true, isActive: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
