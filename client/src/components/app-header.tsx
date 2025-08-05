@@ -18,7 +18,21 @@ export default function AppHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr || userStr === "undefined" || userStr === "null") {
+        return null;
+      }
+      return JSON.parse(userStr);
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      localStorage.removeItem("user");
+      return null;
+    }
+  };
+
+  const currentUser = getUserFromStorage();
 
   const handleLogout = () => {
     localStorage.removeItem("user");
