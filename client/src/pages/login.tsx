@@ -35,13 +35,18 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginForm) => apiRequest("POST", "/api/auth/login", data),
-    onSuccess: (response) => {
-      localStorage.setItem("user", JSON.stringify(response.user));
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-      setLocation("/");
+    onSuccess: (response: any) => {
+      if (response && response.user) {
+        localStorage.setItem("user", JSON.stringify(response.user));
+        toast({
+          title: "Success",
+          description: "Logged in successfully",
+        });
+        // Use setTimeout to ensure localStorage is set before redirect
+        setTimeout(() => {
+          setLocation("/");
+        }, 100);
+      }
     },
     onError: (error: any) => {
       toast({
