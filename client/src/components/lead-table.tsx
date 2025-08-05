@@ -45,14 +45,8 @@ interface LeadTableProps {
 export default function LeadTable({ filters, onFiltersChange, onEditLead, userPreferences, onImportLeads, onAddNewLead, exportFilters }: LeadTableProps) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [showInterestedColumn, setShowInterestedColumn] = useState(() => {
-    // Initialize based on user preferences for export notes setting
-    return userPreferences?.exportNotes || false;
-  });
-  const [showNotesColumn, setShowNotesColumn] = useState(() => {
-    // Initialize based on user preferences for export notes setting
-    return userPreferences?.exportNotes || false;
-  });
+  const [showInterestedColumn, setShowInterestedColumn] = useState(false);
+  const [showNotesColumn, setShowNotesColumn] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(() => 

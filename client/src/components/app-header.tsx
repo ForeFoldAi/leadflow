@@ -38,7 +38,6 @@ export default function AppHeader() {
   useEffect(() => {
     const loadUser = () => {
       const user = getUserFromStorage();
-      console.log("Header: Loading user data:", user);
       setCurrentUser(user);
     };
 
@@ -54,7 +53,6 @@ export default function AppHeader() {
 
     // Listen for custom events when user data is updated
     const handleUserUpdate = () => {
-      console.log("Header: Received userUpdated event, reloading user data...");
       loadUser();
     };
 
