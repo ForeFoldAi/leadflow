@@ -229,7 +229,7 @@ export default function LeadTable({ filters, onEditLead, userPreferences }: Lead
       <CardHeader className="px-6 py-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-lg font-semibold text-gray-900">Recent Leads</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-900">Leads View</CardTitle>
             <div className="flex items-center space-x-4 mt-2 text-xs">
               <div className="flex items-center space-x-1">
                 <div className="w-3 h-3 bg-red-50 border-l-2 border-red-400 rounded-sm"></div>

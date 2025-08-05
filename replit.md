@@ -37,6 +37,8 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
   - Export functionality for reports
   - Time-filtered analytics (7/30/90 days)
   - Real-time data integration from enhanced API endpoints
+- ✅ UI refinements: Removed metric cards from Dashboard, distributed action buttons appropriately
+- ✅ Lead table renamed from "Recent Leads" to "Leads View" for better clarity
 
 # User Preferences
 
