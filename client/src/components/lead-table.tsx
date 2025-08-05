@@ -90,6 +90,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leads/stats/summary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
       setDeletingId(null);
       toast({
         title: "Success",
