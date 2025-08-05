@@ -75,17 +75,17 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      new: { label: "New Lead", className: "bg-blue-100 text-blue-800" },
-      followup: { label: "Follow-up", className: "bg-yellow-100 text-yellow-800" },
-      qualified: { label: "Qualified", className: "bg-purple-100 text-purple-800" },
-      hot: { label: "Hot Lead", className: "bg-orange-100 text-orange-800" },
-      converted: { label: "Converted to Customer", className: "bg-green-100 text-green-800" },
-      lost: { label: "Lost", className: "bg-red-100 text-red-800" },
+      new: { label: "New Lead", className: "bg-blue-100 text-blue-800 border-blue-200" },
+      followup: { label: "Follow-up", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+      qualified: { label: "Qualified", className: "bg-purple-100 text-purple-800 border-purple-200" },
+      hot: { label: "Hot Lead", className: "bg-orange-100 text-orange-800 border-orange-200" },
+      converted: { label: "Converted", className: "bg-green-100 text-green-800 border-green-200" },
+      lost: { label: "Lost", className: "bg-red-100 text-red-800 border-red-200" },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
     return (
-      <Badge variant="secondary" className={config.className}>
+      <Badge variant="outline" className={`${config.className} font-medium px-2 py-1 text-xs rounded-full border`}>
         {config.label}
       </Badge>
     );
@@ -272,7 +272,9 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                       </div>
                     </TableCell>
                     <TableCell data-testid={`status-${lead.id}`}>
-                      {getStatusBadge(lead.leadStatus)}
+                      <div className="flex justify-start">
+                        {getStatusBadge(lead.leadStatus)}
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-${lead.id}`}>
                       {formatDate(lead.lastContactedDate)}
@@ -355,26 +357,39 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                     </TableCell>
                   </TableRow>
                   {expandedRows.has(lead.id) && (
-                    <TableRow className="bg-gray-50">
-                      <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10}>
-                        <div className="p-4 space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-gray-900">Personal Information</h4>
-                              <div className="text-sm text-gray-600">
-                                <p><span className="font-medium">Email:</span> {lead.email}</p>
-                                <p><span className="font-medium">Date of Birth:</span> {lead.dateOfBirth || "Not provided"}</p>
-                                <p><span className="font-medium">Location:</span> {lead.city}, {lead.state}, {lead.country}</p>
-                                <p><span className="font-medium">Pincode:</span> {lead.pincode}</p>
+                    <TableRow key={`expanded-${lead.id}`} className="bg-gray-50" data-testid={`expanded-row-${lead.id}`}>
+                      <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10} className="p-0 border-t">
+                        <div className="p-6 bg-gray-50">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-3">
+                              <h4 className="font-semibold text-gray-900 text-base border-b border-gray-200 pb-2">Personal Information</h4>
+                              <div className="text-sm text-gray-600 space-y-2">
+                                <p><span className="font-medium text-gray-800">Email:</span> <span className="ml-2">{lead.email}</span></p>
+                                <p><span className="font-medium text-gray-800">Date of Birth:</span> <span className="ml-2">{lead.dateOfBirth || "Not provided"}</span></p>
+                                <p><span className="font-medium text-gray-800">Location:</span> <span className="ml-2">{lead.city}, {lead.state}, {lead.country}</span></p>
+                                <p><span className="font-medium text-gray-800">Pincode:</span> <span className="ml-2">{lead.pincode}</span></p>
                               </div>
                             </div>
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-gray-900">Interest & Notes</h4>
-                              <div className="text-sm text-gray-600">
-                                <p><span className="font-medium">Interested In:</span></p>
-                                <p className="pl-2 italic">{lead.customerInterestedIn || "Not specified"}</p>
-                                <p><span className="font-medium">Additional Notes:</span></p>
-                                <p className="pl-2 italic">{lead.additionalNotes || "No additional notes"}</p>
+                            <div className="space-y-3">
+                              <h4 className="font-semibold text-gray-900 text-base border-b border-gray-200 pb-2">Lead Details</h4>
+                              <div className="text-sm text-gray-600 space-y-2">
+                                <p><span className="font-medium text-gray-800">Lead Status:</span> <span className="ml-2">{lead.leadStatus}</span></p>
+                                <p><span className="font-medium text-gray-800">Category:</span> <span className="ml-2">{getCategoryLabel(lead.customerCategory)}</span></p>
+                                <p><span className="font-medium text-gray-800">Company:</span> <span className="ml-2">{lead.companyName || "Not specified"}</span></p>
+                                <p><span className="font-medium text-gray-800">Designation:</span> <span className="ml-2">{lead.designation || "Not specified"}</span></p>
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <h4 className="font-semibold text-gray-900 text-base border-b border-gray-200 pb-2">Interest & Notes</h4>
+                              <div className="text-sm text-gray-600 space-y-2">
+                                <div>
+                                  <p className="font-medium text-gray-800 mb-1">Interested In:</p>
+                                  <p className="pl-2 italic text-gray-600">{lead.customerInterestedIn || "Not specified"}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800 mb-1">Additional Notes:</p>
+                                  <p className="pl-2 italic text-gray-600">{lead.additionalNotes || "No additional notes"}</p>
+                                </div>
                               </div>
                             </div>
                           </div>
