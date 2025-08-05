@@ -25,6 +25,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
+
+
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -42,10 +44,12 @@ export default function Login() {
           title: "Success",
           description: "Logged in successfully",
         });
-        // Use setTimeout to ensure localStorage is set before redirect
+        // Redirect using setLocation with a small delay
         setTimeout(() => {
           setLocation("/");
-        }, 100);
+          // Force page reload to ensure proper auth state
+          window.location.reload();
+        }, 200);
       }
     },
     onError: (error: any) => {
