@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLeadSchema } from "@shared/schema";
+import { insertLeadSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Helper function to get status labels
@@ -212,5 +212,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   const httpServer = createServer(app);
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          error: "Email and password are required" 
+        });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user || user.password !== password) {
+        return res.status(401).json({ 
+          error: "Invalid email or password" 
+        });
+      }
+
+      if (!user.isActive) {
+        return res.status(401).json({ 
+          error: "Account is deactivated" 
+        });
+      }
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ 
+        message: "Login successful", 
+        user: userWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ 
+          error: "User with this email already exists" 
+        });
+      }
+
+      const newUser = await storage.createUser(validatedData);
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = newUser;
+      res.status(201).json({ 
+        message: "User created successfully", 
+        user: userWithoutPassword 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error("Signup error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // User management routes
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/users/profile", async (req, res) => {
+    try {
+      const { email, currentPassword, newPassword, ...updates } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // If changing password, verify current password
+      if (newPassword) {
+        if (!currentPassword) {
+          return res.status(400).json({ error: "Current password is required to change password" });
+        }
+        if (user.password !== currentPassword) {
+          return res.status(401).json({ error: "Current password is incorrect" });
+        }
+        updates.password = newPassword;
+      }
+
+      const updatedUser = await storage.updateUser(user.id, updates);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json({ 
+        message: "Profile updated successfully", 
+        user: userWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Analytics routes
+  app.get("/api/analytics", async (req, res) => {
+    try {
+      const days = parseInt(req.query.days as string) || 30;
+      const leads = await storage.getLeads();
+      
+      // Calculate analytics data
+      const totalLeads = leads.length;
+      const convertedLeads = leads.filter(l => l.leadStatus === 'converted').length;
+      const hotLeads = leads.filter(l => l.leadStatus === 'hot').length;
+      const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads * 100) : 0;
+
+      const analytics = {
+        totalLeads,
+        convertedLeads,
+        hotLeads,
+        conversionRate: parseFloat(conversionRate.toFixed(2)),
+        timeRange: days,
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }

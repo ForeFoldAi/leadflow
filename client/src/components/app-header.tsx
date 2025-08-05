@@ -1,60 +1,161 @@
-import { Users, Bell, User } from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { Users, Search, BarChart3, Settings, LogOut, Menu, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AppHeader() {
+  const [, setLocation] = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    toast({
+      title: "Success",
+      description: "Logged out successfully",
+    });
+    setLocation("/login");
+  };
+
+  const navItems = [
+    { path: "/", label: "Dashboard", icon: Users },
+    { path: "/analytics", label: "Analytics", icon: BarChart3 },
+    { path: "/settings", label: "Settings", icon: Settings },
+  ];
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Users className="text-white text-sm" size={16} />
+          {/* Logo and Title */}
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="flex items-center">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-3">
+                  <h1 className="text-xl font-semibold text-gray-900">LeadFlow</h1>
+                  <p className="text-xs text-gray-500">Lead Management System</p>
+                </div>
               </div>
-              <h1 className="text-xl font-bold text-gray-900" data-testid="app-title">LeadFlow</h1>
             </div>
-            <nav className="hidden md:flex space-x-8">
-              <a 
-                href="#" 
-                className="text-primary font-medium border-b-2 border-primary pb-4"
-                data-testid="nav-dashboard"
-              >
-                Dashboard
-              </a>
-              <a 
-                href="#" 
-                className="text-gray-600 hover:text-gray-900 pb-4"
-                data-testid="nav-leads"
-              >
-                Leads
-              </a>
-              <a 
-                href="#" 
-                className="text-gray-600 hover:text-gray-900 pb-4"
-                data-testid="nav-analytics"
-              >
-                Analytics
-              </a>
-              <a 
-                href="#" 
-                className="text-gray-600 hover:text-gray-900 pb-4"
-                data-testid="nav-settings"
-              >
-                Settings
-              </a>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex ml-8 space-x-1">
+              {navItems.map((item) => (
+                <Button
+                  key={item.path}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation(item.path)}
+                  className="flex items-center space-x-2"
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Button>
+              ))}
             </nav>
           </div>
-          <div className="flex items-center space-x-4">
-            <button className="text-gray-600 hover:text-gray-900" data-testid="button-notifications">
-              <Bell size={18} />
-            </button>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="text-gray-600" size={16} />
+
+          {/* Search Bar */}
+          <div className="flex-1 max-w-lg mx-8 hidden md:block">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
-              <span className="text-sm font-medium text-gray-700" data-testid="text-username">John Smith</span>
+              <Input
+                type="text"
+                placeholder="Search leads..."
+                className="pl-10"
+                data-testid="search-input"
+              />
             </div>
           </div>
+
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              data-testid="mobile-menu-button"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+
+            {/* User dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full" data-testid="user-menu">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{currentUser.name || "User"}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {currentUser.email}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setLocation("/settings")} data-testid="menu-settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
+              {navItems.map((item) => (
+                <Button
+                  key={item.path}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setLocation(item.path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -1,4 +1,4 @@
-import { type Lead, type InsertLead } from "@shared/schema";
+import { type Lead, type InsertLead, type User, type InsertUser } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -14,14 +14,25 @@ export interface IStorage {
     category?: string;
     city?: string;
   }): Promise<Lead[]>;
+  
+  // User operations
+  getUsers(): Promise<User[]>;
+  getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private leads: Map<string, Lead>;
+  private users: Map<string, User>;
 
   constructor() {
     this.leads = new Map();
+    this.users = new Map();
     this.initializeSampleData();
+    this.initializeSampleUsers();
   }
 
   private initializeSampleData() {
@@ -225,6 +236,77 @@ export class MemStorage implements IStorage {
       if (filters.city && lead.city.toLowerCase() !== filters.city.toLowerCase()) return false;
       return true;
     });
+  }
+
+  private initializeSampleUsers() {
+    const sampleUsers = [
+      {
+        id: "user-1",
+        email: "admin@leadflow.com",
+        password: "admin123",
+        name: "Admin User",
+        role: "admin" as const,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "user-2",
+        email: "john.doe@leadflow.com",
+        password: "password123",
+        name: "John Doe",
+        role: "user" as const,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    for (const user of sampleUsers) {
+      this.users.set(user.id, user);
+    }
+  }
+
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const newUser: User = {
+      ...user,
+      id,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+
+    const updatedUser: User = {
+      ...user,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.users.delete(id);
   }
 }
 
