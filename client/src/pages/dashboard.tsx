@@ -97,15 +97,15 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Primary Leads View Section - Highlighted as main content */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Lead Management</h2>
-              <p className="mt-1 text-sm text-gray-600">Track and manage your sales leads efficiently</p>
+              <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Leads View</h2>
+              <p className="mt-1 text-sm text-gray-600">Comprehensive lead tracking and management</p>
             </div>
-            <div className="mt-4 sm:mt-0 flex space-x-3">
+            <div className="mt-3 sm:mt-0 flex space-x-3">
               <Button 
                 variant="outline"
                 onClick={handleImportLeads}
@@ -124,15 +124,22 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-        </div>
 
-        {/* Removed Stats Cards as requested */}
-        <LeadFilters filters={filters} onFiltersChange={setFilters} />
-        <LeadTable 
-          filters={filters} 
-          onEditLead={handleEditLead}
-          userPreferences={userPreferences}
-        />
+          <LeadFilters filters={filters} onFiltersChange={setFilters} />
+          <LeadTable 
+            filters={filters} 
+            onEditLead={handleEditLead}
+            userPreferences={userPreferences}
+          />
+        </div>
+        
+        {/* Secondary section for Lead Management reference */}
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-700">Lead Management</h3>
+            <p className="text-sm text-gray-500 mt-1">Access analytics and settings through navigation</p>
+          </div>
+        </div>
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
