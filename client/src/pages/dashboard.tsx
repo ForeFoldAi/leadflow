@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import AppHeader from "@/components/app-header";
-import StatsCards from "@/components/stats-cards";
 import LeadFilters from "@/components/lead-filters";
 import LeadTable from "@/components/lead-table";
 import LeadForm from "@/components/lead-form";
@@ -127,7 +126,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <StatsCards />
+        {/* Removed Stats Cards as requested */}
         <LeadFilters filters={filters} onFiltersChange={setFilters} />
         <LeadTable 
           filters={filters} 

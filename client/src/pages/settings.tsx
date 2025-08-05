@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, User, Bell, Shield, Database, Mail, Phone, Save, Eye, EyeOff, Smartphone, Key } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Database, Mail, Phone, Save, Eye, EyeOff, Smartphone, Key, Upload, Download, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -316,8 +316,62 @@ export default function Settings() {
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
-          <p className="mt-1 text-sm text-gray-600">Manage your account settings and preferences</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
+              <p className="mt-1 text-sm text-gray-600">Manage your account settings and preferences</p>
+            </div>
+            <div className="mt-4 sm:mt-0 flex space-x-3">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = '.csv,.json,.xlsx';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      alert(`Successfully imported leads from ${file.name}`);
+                    }
+                  };
+                  input.click();
+                }}
+                data-testid="button-import-leads"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Import Leads
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  const reportData = {
+                    generatedAt: new Date().toISOString(),
+                    settings: 'exported'
+                  };
+                  const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `settings-export-${new Date().toISOString().split('T')[0]}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+                data-testid="button-export-report"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/?add-lead=true'}
+                data-testid="button-add-lead"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Lead
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">

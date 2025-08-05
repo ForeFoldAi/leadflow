@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText, Clock, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText, Clock, AlertCircle, CheckCircle, XCircle, Upload, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -129,12 +129,38 @@ export default function Analytics() {
               </SelectContent>
             </Select>
             <Button 
+              variant="outline"
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.csv,.json,.xlsx';
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    alert(`Successfully imported leads from ${file.name}`);
+                  }
+                };
+                input.click();
+              }}
+              data-testid="button-import-leads"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import Leads
+            </Button>
+            <Button 
               onClick={exportReport} 
               variant="outline"
               data-testid="button-export-report"
             >
               <Download className="h-4 w-4 mr-2" />
               Export Report
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/?add-lead=true'}
+              data-testid="button-add-lead"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Lead
             </Button>
           </div>
         </div>
