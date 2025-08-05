@@ -54,6 +54,8 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
 - ✅ Fixed search functionality with proper debouncing to prevent screen flashing during text entry
 - ✅ Increased debounce delay to 800ms for smoother user experience while typing
 - ✅ Fixed eye symbol logic for column toggles: Eye shows when visible, EyeOff shows when hidden
+- ✅ Fixed future-dated Next Followup entries by updating sample data from 2024 to 2025 dates
+- ✅ Future follow-up dates now display properly with green styling (more than 7 days away)
 
 # User Preferences
 
