@@ -22,8 +22,38 @@ function ProtectedRoute({ component: Component, ...props }: any) {
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/signup" component={Signup} />
+      <Route path="/login">{() => {
+        // Check if already authenticated
+        try {
+          const userStr = localStorage.getItem("user");
+          if (userStr && userStr !== "null" && userStr !== "undefined") {
+            const user = JSON.parse(userStr);
+            if (user && user.id) {
+              window.location.href = "/";
+              return null;
+            }
+          }
+        } catch (error) {
+          localStorage.removeItem("user");
+        }
+        return <Login />;
+      }}</Route>
+      <Route path="/signup">{() => {
+        // Check if already authenticated
+        try {
+          const userStr = localStorage.getItem("user");
+          if (userStr && userStr !== "null" && userStr !== "undefined") {
+            const user = JSON.parse(userStr);
+            if (user && user.id) {
+              window.location.href = "/";
+              return null;
+            }
+          }
+        } catch (error) {
+          localStorage.removeItem("user");
+        }
+        return <Signup />;
+      }}</Route>
       <Route path="/" component={(props) => <ProtectedRoute component={Dashboard} {...props} />} />
       <Route path="/analytics" component={(props) => <ProtectedRoute component={Analytics} {...props} />} />
       <Route path="/settings" component={(props) => <ProtectedRoute component={Settings} {...props} />} />

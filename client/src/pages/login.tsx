@@ -44,12 +44,8 @@ export default function Login() {
           title: "Success",
           description: "Logged in successfully",
         });
-        // Redirect using setLocation with a small delay
-        setTimeout(() => {
-          setLocation("/");
-          // Force page reload to ensure proper auth state
-          window.location.reload();
-        }, 200);
+        // Force immediate redirect to dashboard
+        window.location.href = "/";
       }
     },
     onError: (error: any) => {
