@@ -172,15 +172,7 @@ export default function Login() {
               </p>
             </div>
 
-            <div className="mt-4">
-              <Alert>
-                <AlertDescription className="text-sm">
-                  <strong>Demo Credentials:</strong><br />
-                  Email: admin@leadflow.com<br />
-                  Password: admin123
-                </AlertDescription>
-              </Alert>
-            </div>
+
           </CardContent>
         </Card>
       </div>
