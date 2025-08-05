@@ -328,26 +328,62 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className={`${showInterestedColumn || showNotesColumn ? 'overflow-x-auto' : ''} w-full`}>
-          <Table className={`w-full ${!showInterestedColumn && !showNotesColumn ? 'table-fixed' : ''}`}>
+        <div className="w-full overflow-hidden">
+          <Table className="w-full table-fixed">
             <TableHeader>
               <TableRow className="bg-gray-50">
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16 text-center">Expand</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[18%]' : ''}`}>Lead</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[15%]' : ''}`}>Contact</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[15%]' : ''}`}>Company</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[10%]' : ''}`}>Status</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[12%]' : ''}`}>Last Contact</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[12%]' : ''}`}>Last Contacted By</TableHead>
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[10%]' : ''}`}>Next Followup</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[20%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[14%]' :
+                  'w-[16%]'
+                }`}>Lead</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[16%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[12%]' :
+                  'w-[14%]'
+                }`}>Contact</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[16%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[12%]' :
+                  'w-[14%]'
+                }`}>Company</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[12%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[8%]' :
+                  'w-[10%]'
+                }`}>Status</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[12%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[10%]' :
+                  'w-[11%]'
+                }`}>Last Contact</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[12%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[10%]' :
+                  'w-[11%]'
+                }`}>Last Contacted By</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[12%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[8%]' :
+                  'w-[10%]'
+                }`}>Next Followup</TableHead>
                 {showInterestedColumn && (
-                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Interested In</TableHead>
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">Customer Interested In</TableHead>
                 )}
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider text-center ${!showInterestedColumn && !showNotesColumn ? 'w-[8%]' : ''}`}>Channel</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider text-center ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[8%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[6%]' :
+                  'w-[7%]'
+                }`}>Channel</TableHead>
                 {showNotesColumn && (
-                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">Additional Notes</TableHead>
                 )}
-                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-[10%]' : ''}`}>Actions</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  !showInterestedColumn && !showNotesColumn ? 'w-[12%]' : 
+                  showInterestedColumn && showNotesColumn ? 'w-[8%]' :
+                  'w-[10%]'
+                }`}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
