@@ -512,6 +512,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                                 </span></p>
                                 <p><span className="font-medium text-gray-800">Company:</span> <span className="ml-2">{lead.companyName || "Not specified"}</span></p>
                                 <p><span className="font-medium text-gray-800">Designation:</span> <span className="ml-2">{lead.designation || "Not specified"}</span></p>
+                                <p><span className="font-medium text-gray-800">Created Date:</span> <span className="ml-2">{lead.createdAt ? format(new Date(lead.createdAt), 'MMM dd, yyyy') : "Not available"}</span></p>
                               </div>
                             </div>
                             <div className="space-y-3">
