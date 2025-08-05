@@ -85,11 +85,11 @@ export default function Login() {
       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4">
+          <div className="mx-auto mb-4 bg-white rounded-full p-2 shadow-lg">
             <img 
               src="/forefold-logo.png" 
               alt="ForeFold AI Logo" 
-              className="h-16 w-16 mx-auto object-contain"
+              className="h-12 w-12 mx-auto object-contain"
             />
           </div>
           <div className="text-center">

@@ -72,11 +72,11 @@ export default function Signup() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4">
+          <div className="mx-auto mb-4 bg-white rounded-full p-2 shadow-md">
             <img 
               src="/forefold-logo.png" 
               alt="ForeFold AI Logo" 
-              className="h-16 w-16 mx-auto object-contain"
+              className="h-12 w-12 mx-auto object-contain"
             />
           </div>
           <div className="text-center">
