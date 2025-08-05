@@ -37,6 +37,14 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
 
   const { data: leads, isLoading } = useQuery<Lead[]>({
     queryKey: ["/api/leads", queryParams.toString()],
+    queryFn: async () => {
+      const url = queryParams.toString() ? `/api/leads?${queryParams.toString()}` : '/api/leads';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch leads');
+      }
+      return response.json();
+    },
   });
 
   const deleteMutation = useMutation({
@@ -203,26 +211,26 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
+        <div className={`${showInterestedColumn || showNotesColumn ? 'overflow-x-auto' : ''}`}>
+          <Table className={`${!showInterestedColumn && !showNotesColumn ? 'table-fixed w-full' : ''}`}>
             <TableHeader>
               <TableRow className="bg-gray-50">
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-4">Expand</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Company</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contact</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted By</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Followup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Expand</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-1/6' : ''}`}>Lead</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-1/6' : ''}`}>Contact</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-1/6' : ''}`}>Company</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-20' : ''}`}>Status</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-24' : ''}`}>Last Contact</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-32' : ''}`}>Last Contacted By</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-24' : ''}`}>Next Followup</TableHead>
                 {showInterestedColumn && (
                   <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Interested In</TableHead>
                 )}
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Preferred Channel</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider text-center ${!showInterestedColumn && !showNotesColumn ? 'w-20' : ''}`}>Preferred Channel</TableHead>
                 {showNotesColumn && (
                   <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
                 )}
-                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</TableHead>
+                <TableHead className={`text-xs font-medium text-gray-500 uppercase tracking-wider ${!showInterestedColumn && !showNotesColumn ? 'w-20' : ''}`}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -243,21 +251,12 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                       </Button>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                            <span className="text-sm font-medium text-white" data-testid={`text-initials-${lead.id}`}>
-                              {getInitials(lead.name)}
-                            </span>
-                          </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900" data-testid={`text-name-${lead.id}`}>
+                          {lead.name}
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900" data-testid={`text-name-${lead.id}`}>
-                            {lead.name}
-                          </div>
-                          <div className="text-sm text-gray-500" data-testid={`text-category-${lead.id}`}>
-                            {getCategoryLabel(lead.customerCategory)}
-                          </div>
+                        <div className="text-sm text-gray-500" data-testid={`text-category-${lead.id}`}>
+                          {getCategoryLabel(lead.customerCategory)}
                         </div>
                       </div>
                     </TableCell>
@@ -297,11 +296,11 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="flex justify-center">
-                              {getCommunicationIcon(lead.preferredCommunicationChannel)}
+                              {getCommunicationIcon(lead.preferredCommunicationChannel || 'email')}
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            Preferred: {lead.preferredCommunicationChannel}
+                            Preferred: {lead.preferredCommunicationChannel || 'email'}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
