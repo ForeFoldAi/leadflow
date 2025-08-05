@@ -458,6 +458,13 @@ export default function LeadTable({ filters, onEditLead, userPreferences }: Lead
                               <div className="text-sm text-gray-600 space-y-2">
                                 <p><span className="font-medium text-gray-800">Lead Status:</span> <span className="ml-2">{lead.leadStatus}</span></p>
                                 <p><span className="font-medium text-gray-800">Category:</span> <span className="ml-2">{getCategoryLabel(lead.customerCategory)}</span></p>
+                                <p><span className="font-medium text-gray-800">Lead Source:</span> <span className="ml-2">
+                                  {lead.leadSource ? (
+                                    lead.leadSource === 'other' && lead.customLeadSource 
+                                      ? `Other (${lead.customLeadSource})`
+                                      : lead.leadSource.charAt(0).toUpperCase() + lead.leadSource.slice(1)
+                                  ) : "Not specified"}
+                                </span></p>
                                 <p><span className="font-medium text-gray-800">Company:</span> <span className="ml-2">{lead.companyName || "Not specified"}</span></p>
                                 <p><span className="font-medium text-gray-800">Designation:</span> <span className="ml-2">{lead.designation || "Not specified"}</span></p>
                               </div>

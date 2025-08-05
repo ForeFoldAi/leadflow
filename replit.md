@@ -20,6 +20,10 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
 - ✅ Test notification functionality for verifying email delivery
 - ✅ Automatic notifications for new leads, updates, and conversions
 - ✅ Notification history display showing recent email activity
+- ✅ Lead Source field added to Add New Lead form with dropdown options
+- ✅ Conditional custom text input for "Other" lead source option
+- ✅ Lead source information displayed in expanded lead details
+- ✅ Color-coded follow-up date system with visual indicators
 
 # User Preferences
 
