@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Download, FileText, Filter } from "lucide-react";
+import { Upload, FileText, Filter } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface ExportDialogProps {
@@ -71,7 +71,7 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" data-testid="button-export">
-          <Download className="mr-2 h-4 w-4" />
+          <Upload className="mr-2 h-4 w-4" />
           Export
         </Button>
       </DialogTrigger>
@@ -142,7 +142,7 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
               onClick={handleExport}
               data-testid="button-confirm-export"
             >
-              <Download className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-4 w-4" />
               Export Data
             </Button>
           </div>
