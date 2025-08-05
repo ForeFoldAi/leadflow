@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,6 +43,58 @@ export default function Settings() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
 
+  // Settings state management
+  const [notificationSettings, setNotificationSettings] = useState<{
+    newLeads: boolean;
+    followUps: boolean;
+    hotLeads: boolean;
+    conversions: boolean;
+    browserPush: boolean;
+    dailySummary: boolean;
+  }>(() => {
+    const saved = localStorage.getItem('notificationSettings');
+    return saved ? JSON.parse(saved) : {
+      newLeads: true,
+      followUps: true,
+      hotLeads: true,
+      conversions: true,
+      browserPush: false,
+      dailySummary: true
+    };
+  });
+
+  const [securitySettings, setSecuritySettings] = useState<{
+    twoFactorEnabled: boolean;
+    loginNotifications: boolean;
+    sessionTimeout: string;
+  }>(() => {
+    const saved = localStorage.getItem('securitySettings');
+    return saved ? JSON.parse(saved) : {
+      twoFactorEnabled: false,
+      loginNotifications: true,
+      sessionTimeout: '30'
+    };
+  });
+
+  const [preferenceSettings, setPreferenceSettings] = useState<{
+    defaultView: string;
+    itemsPerPage: string;
+    autoSave: boolean;
+    compactMode: boolean;
+    exportFormat: string;
+    exportNotes: boolean;
+  }>(() => {
+    const saved = localStorage.getItem('preferenceSettings');
+    return saved ? JSON.parse(saved) : {
+      defaultView: 'table',
+      itemsPerPage: '20',
+      autoSave: true,
+      compactMode: false,
+      exportFormat: 'csv',
+      exportNotes: true
+    };
+  });
+
   // Get current user data
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -81,7 +133,8 @@ export default function Settings() {
 
   const saveNotificationsMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Simulate API call for notifications settings
+      // Save to localStorage for persistence
+      localStorage.setItem('notificationSettings', JSON.stringify(data));
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { success: true };
     },
@@ -102,7 +155,8 @@ export default function Settings() {
 
   const saveSecurityMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Simulate API call for security settings
+      // Save to localStorage for persistence
+      localStorage.setItem('securitySettings', JSON.stringify(data));
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { success: true };
     },
@@ -123,7 +177,8 @@ export default function Settings() {
 
   const savePreferencesMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Simulate API call for preferences
+      // Save to localStorage for persistence
+      localStorage.setItem('preferenceSettings', JSON.stringify(data));
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { success: true };
     },
@@ -147,15 +202,15 @@ export default function Settings() {
   };
 
   const handleSaveNotifications = () => {
-    saveNotificationsMutation.mutate({});
+    saveNotificationsMutation.mutate(notificationSettings);
   };
 
   const handleSaveSecurity = () => {
-    saveSecurityMutation.mutate({});
+    saveSecurityMutation.mutate(securitySettings);
   };
 
   const handleSavePreferences = () => {
-    savePreferencesMutation.mutate({});
+    savePreferencesMutation.mutate(preferenceSettings);
   };
 
   return (
@@ -356,28 +411,48 @@ export default function Settings() {
                     <Label htmlFor="new-leads">New Lead Notifications</Label>
                     <p className="text-sm text-gray-500">Get notified when new leads are added</p>
                   </div>
-                  <Switch id="new-leads" defaultChecked data-testid="switch-new-leads" />
+                  <Switch 
+                    id="new-leads" 
+                    checked={notificationSettings.newLeads}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, newLeads: checked }))}
+                    data-testid="switch-new-leads" 
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="follow-ups">Follow-up Reminders</Label>
                     <p className="text-sm text-gray-500">Receive reminders for scheduled follow-ups</p>
                   </div>
-                  <Switch id="follow-ups" defaultChecked data-testid="switch-follow-ups" />
+                  <Switch 
+                    id="follow-ups" 
+                    checked={notificationSettings.followUps}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, followUps: checked }))}
+                    data-testid="switch-follow-ups" 
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="hot-leads">Hot Lead Alerts</Label>
                     <p className="text-sm text-gray-500">Get alerted when leads become hot prospects</p>
                   </div>
-                  <Switch id="hot-leads" defaultChecked data-testid="switch-hot-leads" />
+                  <Switch 
+                    id="hot-leads" 
+                    checked={notificationSettings.hotLeads}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, hotLeads: checked }))}
+                    data-testid="switch-hot-leads" 
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="conversions">Conversion Notifications</Label>
                     <p className="text-sm text-gray-500">Celebrate when leads convert to customers</p>
                   </div>
-                  <Switch id="conversions" defaultChecked data-testid="switch-conversions" />
+                  <Switch 
+                    id="conversions" 
+                    checked={notificationSettings.conversions}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, conversions: checked }))}
+                    data-testid="switch-conversions" 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -398,14 +473,24 @@ export default function Settings() {
                     <Label htmlFor="browser-push">Browser Notifications</Label>
                     <p className="text-sm text-gray-500">Show notifications in your browser</p>
                   </div>
-                  <Switch id="browser-push" data-testid="switch-browser-push" />
+                  <Switch 
+                    id="browser-push" 
+                    checked={notificationSettings.browserPush}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, browserPush: checked }))}
+                    data-testid="switch-browser-push" 
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="daily-summary">Daily Summary</Label>
                     <p className="text-sm text-gray-500">Daily digest of your lead activity</p>
                   </div>
-                  <Switch id="daily-summary" defaultChecked data-testid="switch-daily-summary" />
+                  <Switch 
+                    id="daily-summary" 
+                    checked={notificationSettings.dailySummary}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, dailySummary: checked }))}
+                    data-testid="switch-daily-summary" 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -455,7 +540,11 @@ export default function Settings() {
                     <Label>Login Notifications</Label>
                     <p className="text-sm text-gray-500">Get notified of new sign-ins to your account</p>
                   </div>
-                  <Switch defaultChecked data-testid="switch-login-notifications" />
+                  <Switch 
+                    checked={securitySettings.loginNotifications}
+                    onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, loginNotifications: checked }))}
+                    data-testid="switch-login-notifications" 
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -531,7 +620,11 @@ export default function Settings() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Default Lead View</Label>
-                  <Select defaultValue="table" data-testid="select-default-view">
+                  <Select 
+                    value={preferenceSettings.defaultView} 
+                    onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, defaultView: value }))}
+                    data-testid="select-default-view"
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -544,7 +637,11 @@ export default function Settings() {
                 </div>
                 <div className="space-y-2">
                   <Label>Items Per Page</Label>
-                  <Select defaultValue="20" data-testid="select-items-per-page">
+                  <Select 
+                    value={preferenceSettings.itemsPerPage} 
+                    onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, itemsPerPage: value }))}
+                    data-testid="select-items-per-page"
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -561,14 +658,22 @@ export default function Settings() {
                     <Label>Auto-save Changes</Label>
                     <p className="text-sm text-gray-500">Automatically save form changes</p>
                   </div>
-                  <Switch defaultChecked data-testid="switch-auto-save" />
+                  <Switch 
+                    checked={preferenceSettings.autoSave}
+                    onCheckedChange={(checked) => setPreferenceSettings(prev => ({ ...prev, autoSave: checked }))}
+                    data-testid="switch-auto-save" 
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Compact Mode</Label>
                     <p className="text-sm text-gray-500">Show more data in less space</p>
                   </div>
-                  <Switch data-testid="switch-compact-mode" />
+                  <Switch 
+                    checked={preferenceSettings.compactMode}
+                    onCheckedChange={(checked) => setPreferenceSettings(prev => ({ ...prev, compactMode: checked }))}
+                    data-testid="switch-compact-mode" 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -586,7 +691,11 @@ export default function Settings() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Default Export Format</Label>
-                  <Select defaultValue="csv" data-testid="select-export-format">
+                  <Select 
+                    value={preferenceSettings.exportFormat} 
+                    onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, exportFormat: value }))}
+                    data-testid="select-export-format"
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -602,7 +711,11 @@ export default function Settings() {
                     <Label>Include Notes in Export</Label>
                     <p className="text-sm text-gray-500">Add additional notes to exported data</p>
                   </div>
-                  <Switch defaultChecked data-testid="switch-export-notes" />
+                  <Switch 
+                    checked={preferenceSettings.exportNotes}
+                    onCheckedChange={(checked) => setPreferenceSettings(prev => ({ ...prev, exportNotes: checked }))}
+                    data-testid="switch-export-notes" 
+                  />
                 </div>
               </CardContent>
             </Card>
