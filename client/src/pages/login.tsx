@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, LogIn, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import backgroundImage from "@assets/Gemini_Generated_Image_br5r4ibr5r4ibr5r_1754413922041.png";
+import logoOnly from "@assets/Logo only_1754377025614.png";
 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -89,7 +90,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="mx-auto mb-4">
             <img 
-              src="/forefold-logo.png" 
+              src={logoOnly} 
               alt="ForeFold AI Logo" 
               className="h-16 w-16 mx-auto object-contain drop-shadow-lg"
             />
