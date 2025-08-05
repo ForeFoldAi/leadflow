@@ -70,8 +70,8 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" data-testid="button-export">
-          <Upload className="mr-2 h-4 w-4" />
+        <Button className="btn-impressive-action" data-testid="button-export">
+          <Upload className="mr-2 h-4 w-4 icon" />
           Export
         </Button>
       </DialogTrigger>
@@ -132,17 +132,18 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3">
             <Button 
-              variant="outline" 
+              className="btn-impressive-secondary"
               onClick={() => setIsOpen(false)}
               data-testid="button-cancel-export"
             >
               Cancel
             </Button>
             <Button 
+              className="btn-impressive-success"
               onClick={handleExport}
               data-testid="button-confirm-export"
             >
-              <Upload className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-4 w-4 icon" />
               Export Data
             </Button>
           </div>

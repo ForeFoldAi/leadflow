@@ -86,3 +86,88 @@
     background-color: var(--danger);
   }
 }
+
+@layer components {
+  /* Impressive Primary Button */
+  .btn-impressive-primary {
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white;
+    @apply bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800;
+    @apply rounded-lg shadow-lg transform transition-all duration-300 ease-in-out;
+    @apply hover:from-blue-700 hover:via-blue-800 hover:to-blue-900;
+    @apply hover:shadow-xl hover:scale-105 hover:-translate-y-0.5;
+    @apply focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50;
+    @apply active:scale-95 active:shadow-md;
+  }
+  
+  .btn-impressive-primary::before {
+    content: '';
+    @apply absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 to-blue-600;
+    @apply opacity-0 transition-opacity duration-300;
+    z-index: -1;
+  }
+  
+  .btn-impressive-primary:hover::before {
+    @apply opacity-20;
+  }
+
+  /* Impressive Secondary Button */
+  .btn-impressive-secondary {
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold;
+    @apply bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 text-gray-700;
+    @apply border border-gray-300 rounded-lg shadow-md transform transition-all duration-300 ease-in-out;
+    @apply hover:from-gray-200 hover:via-gray-300 hover:to-gray-200;
+    @apply hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 hover:text-gray-900;
+    @apply focus:outline-none focus:ring-4 focus:ring-gray-300 focus:ring-opacity-50;
+    @apply active:scale-95 active:shadow-sm;
+  }
+
+  /* Impressive Success Button */
+  .btn-impressive-success {
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white;
+    @apply bg-gradient-to-r from-green-600 via-green-700 to-green-800;
+    @apply rounded-lg shadow-lg transform transition-all duration-300 ease-in-out;
+    @apply hover:from-green-700 hover:via-green-800 hover:to-green-900;
+    @apply hover:shadow-xl hover:scale-105 hover:-translate-y-0.5;
+    @apply focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50;
+    @apply active:scale-95 active:shadow-md;
+  }
+
+  /* Impressive Danger Button */
+  .btn-impressive-danger {
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white;
+    @apply bg-gradient-to-r from-red-600 via-red-700 to-red-800;
+    @apply rounded-lg shadow-lg transform transition-all duration-300 ease-in-out;
+    @apply hover:from-red-700 hover:via-red-800 hover:to-red-900;
+    @apply hover:shadow-xl hover:scale-105 hover:-translate-y-0.5;
+    @apply focus:outline-none focus:ring-4 focus:ring-red-300 focus:ring-opacity-50;
+    @apply active:scale-95 active:shadow-md;
+  }
+
+  /* Impressive Action Button (Purple) */
+  .btn-impressive-action {
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white;
+    @apply bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800;
+    @apply rounded-lg shadow-lg transform transition-all duration-300 ease-in-out;
+    @apply hover:from-purple-700 hover:via-purple-800 hover:to-purple-900;
+    @apply hover:shadow-xl hover:scale-105 hover:-translate-y-0.5;
+    @apply focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50;
+    @apply active:scale-95 active:shadow-md;
+  }
+
+  /* Icon Animation */
+  .btn-impressive-primary .icon,
+  .btn-impressive-secondary .icon,
+  .btn-impressive-success .icon,
+  .btn-impressive-danger .icon,
+  .btn-impressive-action .icon {
+    @apply transition-transform duration-300;
+  }
+
+  .btn-impressive-primary:hover .icon,
+  .btn-impressive-secondary:hover .icon,
+  .btn-impressive-success:hover .icon,
+  .btn-impressive-danger:hover .icon,
+  .btn-impressive-action:hover .icon {
+    @apply scale-110;
+  }
+}

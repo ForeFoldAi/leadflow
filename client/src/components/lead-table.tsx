@@ -242,21 +242,22 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
           <div className="flex space-x-3">
             {onImportLeads && (
               <Button 
-                variant="outline"
+                className="btn-impressive-secondary"
                 onClick={onImportLeads}
                 data-testid="button-import-leads"
               >
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="mr-2 h-4 w-4 icon" />
                 Import Leads
               </Button>
             )}
             {exportFilters && <ExportDialog currentFilters={exportFilters} />}
             {onAddNewLead && (
               <Button 
+                className="btn-impressive-primary"
                 onClick={onAddNewLead}
                 data-testid="button-add-lead"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-4 w-4 icon" />
                 Add New Lead
               </Button>
             )}
@@ -447,22 +448,22 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
-                          variant="ghost"
+                          className="btn-impressive-secondary"
                           size="sm"
                           onClick={() => onEditLead(lead)}
                           data-testid={`button-edit-${lead.id}`}
                         >
-                          <Edit size={16} className="text-blue-600 hover:text-blue-800" />
+                          <Edit size={16} className="icon" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
-                              variant="ghost"
+                              className="btn-impressive-danger"
                               size="sm"
                               disabled={deleteMutation.isPending && deletingId === lead.id}
                               data-testid={`button-delete-${lead.id}`}
                             >
-                              <Trash2 size={16} className="text-red-500 hover:text-red-700" />
+                              <Trash2 size={16} className="icon" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -476,7 +477,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                               <AlertDialogCancel data-testid={`button-cancel-delete-${lead.id}`}>Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDelete(lead.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="btn-impressive-danger"
                                 data-testid={`button-confirm-delete-${lead.id}`}
                               >
                                 Delete
