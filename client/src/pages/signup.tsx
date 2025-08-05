@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import newLogo from "@assets/ChatGPT Image Aug 5, 2025, 10_54_30 PM_1754414686727.png";
+import backgroundImage from "@assets/Gemini_Generated_Image_br5r4ibr5r4ibr5r_1754413922041.png";
 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -91,26 +92,37 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-2">
-      <div className="w-full max-w-lg">
+    <div 
+      className="min-h-screen flex items-center justify-center p-2 relative"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Glassmorphism overlay */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+      
+      <div className="w-full max-w-lg relative z-10">
         <div className="text-center mb-4">
           <div className="mx-auto mb-2">
             <img 
               src={newLogo} 
               alt="ForeFold AI Logo" 
-              className="h-12 w-12 mx-auto object-contain"
+              className="h-12 w-12 mx-auto object-contain drop-shadow-lg"
             />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900">LeadFlow</h1>
-            <p className="text-gray-600 text-sm">by ForeFoldAI</p>
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">LeadFlow</h1>
+            <p className="text-white/90 text-sm drop-shadow-md">by ForeFoldAI</p>
           </div>
         </div>
 
-        <Card>
+        <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
           <CardHeader className="pb-3">
-            <CardTitle className="text-center text-lg">Get Started</CardTitle>
-            <CardDescription className="text-center text-sm">
+            <CardTitle className="text-center text-lg text-white">Get Started</CardTitle>
+            <CardDescription className="text-center text-sm text-white/90">
               Create your account to start managing leads
             </CardDescription>
           </CardHeader>
