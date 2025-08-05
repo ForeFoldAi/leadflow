@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,7 +22,13 @@ import NotificationDisplay from "@/components/notification-display";
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  role: z.enum(["admin", "user", "manager"]),
+  role: z.enum(["user", "manager", "other"], { required_error: "Please select a role" }),
+  customRole: z.string().optional(),
+  companyName: z.string().min(1, "Company name is required"),
+  companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
+  industry: z.string().min(1, "Industry is required"),
+  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
+  phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number format").optional().or(z.literal("")),
   currentPassword: z.string().optional(),
   newPassword: z.string().optional(),
   confirmPassword: z.string().optional(),
@@ -34,6 +40,14 @@ const profileSchema = z.object({
 }, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.role === "other" && (!data.customRole || data.customRole.trim() === "")) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please specify your role",
+  path: ["customRole"],
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -42,6 +56,7 @@ export default function Settings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>("user");
   const [apiKey, setApiKey] = useState(() => {
     const saved = localStorage.getItem('userApiKey');
     if (saved) return saved;
@@ -113,11 +128,27 @@ export default function Settings() {
       name: currentUser.name || "",
       email: currentUser.email || "",
       role: currentUser.role || "user",
+      customRole: currentUser.customRole || "",
+      companyName: currentUser.companyName || "",
+      companySize: currentUser.companySize || "1-10",
+      industry: currentUser.industry || "",
+      website: currentUser.website || "",
+      phoneNumber: currentUser.phoneNumber || "",
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
   });
+
+  // Update selectedRole when form role changes
+  React.useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.role) {
+        setSelectedRole(value.role);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileForm) => {
@@ -127,7 +158,7 @@ export default function Settings() {
       });
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Success",
         description: "Profile updated successfully",
@@ -350,48 +381,148 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter your full name"
-                        {...form.register("name")}
-                        data-testid="input-name"
-                      />
-                      {form.formState.errors.name && (
-                        <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        {...form.register("email")}
-                        data-testid="input-email"
-                      />
-                      {form.formState.errors.email && (
-                        <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
-                      )}
-                    </div>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm">Full Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="John Doe"
+                      {...form.register("name")}
+                      data-testid="input-name"
+                    />
+                    {form.formState.errors.name && (
+                      <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select value={form.watch("role")} onValueChange={(value) => form.setValue("role", value as any)}>
+                    <Label htmlFor="email" className="text-sm">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="john@example.com"
+                      {...form.register("email")}
+                      data-testid="input-email"
+                    />
+                    {form.formState.errors.email && (
+                      <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-sm">Role</Label>
+                    <Select onValueChange={(value) => {
+                      form.setValue("role", value as "user" | "manager" | "other");
+                      setSelectedRole(value);
+                      if (value !== "other") {
+                        form.setValue("customRole", "");
+                      }
+                    }}>
                       <SelectTrigger data-testid="select-role">
-                        <SelectValue />
+                        <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="user">Sales Representative</SelectItem>
+                        <SelectItem value="manager">Sales Manager</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                    {form.formState.errors.role && (
+                      <p className="text-sm text-red-600">{form.formState.errors.role.message}</p>
+                    )}
+                  </div>
+
+                  {selectedRole === "other" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="customRole" className="text-sm">Specify Role</Label>
+                      <Input
+                        id="customRole"
+                        type="text"
+                        placeholder="Enter your role"
+                        {...form.register("customRole")}
+                        data-testid="input-custom-role"
+                      />
+                      {form.formState.errors.customRole && (
+                        <p className="text-sm text-red-600">{form.formState.errors.customRole.message}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-sm">Company Name</Label>
+                    <Input
+                      id="companyName"
+                      type="text"
+                      placeholder="Acme Corporation"
+                      {...form.register("companyName")}
+                      data-testid="input-company-name"
+                    />
+                    {form.formState.errors.companyName && (
+                      <p className="text-sm text-red-600">{form.formState.errors.companyName.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companySize" className="text-sm">Company Size</Label>
+                    <Select onValueChange={(value) => form.setValue("companySize", value as any)}>
+                      <SelectTrigger data-testid="select-company-size">
+                        <SelectValue placeholder="Select company size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1-10">1-10 employees</SelectItem>
+                        <SelectItem value="11-50">11-50 employees</SelectItem>
+                        <SelectItem value="51-200">51-200 employees</SelectItem>
+                        <SelectItem value="201-500">201-500 employees</SelectItem>
+                        <SelectItem value="501-1000">501-1000 employees</SelectItem>
+                        <SelectItem value="1000+">1000+ employees</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.companySize && (
+                      <p className="text-sm text-red-600">{form.formState.errors.companySize.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="industry" className="text-sm">Industry</Label>
+                    <Input
+                      id="industry"
+                      type="text"
+                      placeholder="Technology, Healthcare, Finance, etc."
+                      {...form.register("industry")}
+                      data-testid="input-industry"
+                    />
+                    {form.formState.errors.industry && (
+                      <p className="text-sm text-red-600">{form.formState.errors.industry.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="website" className="text-sm">Website (Optional)</Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      placeholder="https://www.example.com"
+                      {...form.register("website")}
+                      data-testid="input-website"
+                    />
+                    {form.formState.errors.website && (
+                      <p className="text-sm text-red-600">{form.formState.errors.website.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber" className="text-sm">Phone Number (Optional)</Label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      {...form.register("phoneNumber")}
+                      data-testid="input-phone-number"
+                    />
+                    {form.formState.errors.phoneNumber && (
+                      <p className="text-sm text-red-600">{form.formState.errors.phoneNumber.message}</p>
+                    )}
                   </div>
 
                   <Separator />
