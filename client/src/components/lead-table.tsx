@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Edit, Phone, Mail, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Edit, Phone, Mail, Trash2, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Lead } from "@shared/schema";
@@ -21,6 +23,7 @@ interface LeadTableProps {
 
 export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
   const { toast } = useToast();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const queryParams = new URLSearchParams();
   if (filters.search) queryParams.append("search", filters.search);
@@ -37,12 +40,14 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leads/stats/summary"] });
+      setDeletingId(null);
       toast({
         title: "Success",
         description: "Lead deleted successfully",
       });
     },
     onError: () => {
+      setDeletingId(null);
       toast({
         title: "Error",
         description: "Failed to delete lead",
@@ -50,6 +55,11 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
       });
     },
   });
+
+  const handleDelete = (id: string) => {
+    setDeletingId(id);
+    deleteMutation.mutate(id);
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -71,6 +81,19 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
 
   const getCategoryLabel = (category: string) => {
     return category === "existing" ? "Existing Customer" : "Potential Customer";
+  };
+
+  const getCommunicationIcon = (channel: string) => {
+    switch (channel) {
+      case "phone":
+        return <Phone className="h-4 w-4" />;
+      case "email":
+        return <Mail className="h-4 w-4" />;
+      case "whatsapp":
+        return <MessageCircle className="h-4 w-4" />;
+      default:
+        return <Mail className="h-4 w-4" />;
+    }
   };
 
   const getInitials = (name: string) => {
@@ -135,7 +158,11 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Company</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contact</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted By</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Followup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Interested In</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Preferred Channel</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -179,8 +206,26 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                   <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-${lead.id}`}>
                     {formatDate(lead.lastContactedDate)}
                   </TableCell>
+                  <TableCell className="text-sm text-gray-500" data-testid={`text-last-contacted-by-${lead.id}`}>
+                    {lead.lastContactedBy || "-"}
+                  </TableCell>
                   <TableCell className="text-sm text-gray-500" data-testid={`text-next-followup-${lead.id}`}>
                     {formatDate(lead.nextFollowupDate)}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500" data-testid={`text-customer-interested-${lead.id}`}>
+                    <div className="max-w-xs truncate" title={lead.customerInterestedIn || ""}>
+                      {lead.customerInterestedIn || "-"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center" data-testid={`preferred-channel-${lead.id}`}>
+                    <div className="flex justify-center">
+                      {getCommunicationIcon(lead.preferredCommunicationChannel)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500" data-testid={`text-additional-notes-${lead.id}`}>
+                    <div className="max-w-xs truncate" title={lead.additionalNotes || ""}>
+                      {lead.additionalNotes || "-"}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -192,21 +237,37 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
                       >
                         <Edit size={16} className="text-primary" />
                       </Button>
-                      <Button variant="ghost" size="sm" data-testid={`button-phone-${lead.id}`}>
-                        <Phone size={16} className="text-gray-400" />
-                      </Button>
-                      <Button variant="ghost" size="sm" data-testid={`button-email-${lead.id}`}>
-                        <Mail size={16} className="text-gray-400" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(lead.id)}
-                        disabled={deleteMutation.isPending}
-                        data-testid={`button-delete-${lead.id}`}
-                      >
-                        <Trash2 size={16} className="text-red-400" />
-                      </Button>
+                      {getCommunicationIcon(lead.preferredCommunicationChannel)}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={deleteMutation.isPending && deletingId === lead.id}
+                            data-testid={`button-delete-${lead.id}`}
+                          >
+                            <Trash2 size={16} className="text-red-400" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{lead.name}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel data-testid={`button-cancel-delete-${lead.id}`}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(lead.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                              data-testid={`button-confirm-delete-${lead.id}`}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>

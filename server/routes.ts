@@ -18,6 +18,84 @@ function getStatusLabel(status: string): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Export leads as CSV - placed first to avoid route conflicts
+  app.get("/api/leads/export", async (req, res) => {
+    try {
+      const { search, status, category, city } = req.query;
+      
+      let leads;
+      if (search) {
+        leads = await storage.searchLeads(search as string);
+      } else if (status || category || city) {
+        leads = await storage.filterLeads({
+          status: status as string,
+          category: category as string,
+          city: city as string,
+        });
+      } else {
+        leads = await storage.getLeads();
+      }
+
+      // CSV Headers
+      const csvHeaders = [
+        "Name",
+        "Phone Number",
+        "Email",
+        "Date of Birth",
+        "City",
+        "State",
+        "Country",
+        "Pincode",
+        "Company Name",
+        "Designation",
+        "Customer Category",
+        "Last Contacted Date",
+        "Last Contacted By",
+        "Next Followup Date",
+        "Customer Interested In",
+        "Preferred Communication Channel",
+        "Lead Status",
+        "Additional Notes"
+      ];
+
+      // Convert leads to CSV format
+      const csvRows = leads.map(lead => [
+        `"${lead.name || ""}"`,
+        `"${lead.phoneNumber || ""}"`,
+        `"${lead.email || ""}"`,
+        `"${lead.dateOfBirth || ""}"`,
+        `"${lead.city || ""}"`,
+        `"${lead.state || ""}"`,
+        `"${lead.country || ""}"`,
+        `"${lead.pincode || ""}"`,
+        `"${lead.companyName || ""}"`,
+        `"${lead.designation || ""}"`,
+        `"${lead.customerCategory === "existing" ? "Existing Customer" : "Potential Customer"}"`,
+        `"${lead.lastContactedDate || ""}"`,
+        `"${lead.lastContactedBy || ""}"`,
+        `"${lead.nextFollowupDate || ""}"`,
+        `"${lead.customerInterestedIn || ""}"`,
+        `"${lead.preferredCommunicationChannel || ""}"`,
+        `"${getStatusLabel(lead.leadStatus)}"`,
+        `"${lead.additionalNotes || ""}"`
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [csvHeaders.join(","), ...csvRows.map(row => row.join(","))].join("\n");
+
+      // Set headers for file download
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `leads_export_${timestamp}.csv`;
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+      res.send(csvContent);
+    } catch (error) {
+      console.error("Error exporting leads:", error);
+      res.status(500).json({ message: "Failed to export leads" });
+    }
+  });
+
   // Get all leads
   app.get("/api/leads", async (req, res) => {
     try {
@@ -131,83 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Export leads as CSV
-  app.get("/api/leads/export", async (req, res) => {
-    try {
-      const { search, status, category, city } = req.query;
-      
-      let leads;
-      if (search) {
-        leads = await storage.searchLeads(search as string);
-      } else if (status || category || city) {
-        leads = await storage.filterLeads({
-          status: status as string,
-          category: category as string,
-          city: city as string,
-        });
-      } else {
-        leads = await storage.getLeads();
-      }
 
-      // CSV Headers
-      const csvHeaders = [
-        "Name",
-        "Phone Number",
-        "Email",
-        "Date of Birth",
-        "City",
-        "State",
-        "Country",
-        "Pincode",
-        "Company Name",
-        "Designation",
-        "Customer Category",
-        "Last Contacted Date",
-        "Last Contacted By",
-        "Next Followup Date",
-        "Customer Interested In",
-        "Preferred Communication Channel",
-        "Lead Status",
-        "Additional Notes"
-      ];
-
-      // Convert leads to CSV format
-      const csvRows = leads.map(lead => [
-        `"${lead.name || ""}"`,
-        `"${lead.phoneNumber || ""}"`,
-        `"${lead.email || ""}"`,
-        `"${lead.dateOfBirth || ""}"`,
-        `"${lead.city || ""}"`,
-        `"${lead.state || ""}"`,
-        `"${lead.country || ""}"`,
-        `"${lead.pincode || ""}"`,
-        `"${lead.companyName || ""}"`,
-        `"${lead.designation || ""}"`,
-        `"${lead.customerCategory === "existing" ? "Existing Customer" : "Potential Customer"}"`,
-        `"${lead.lastContactedDate || ""}"`,
-        `"${lead.lastContactedBy || ""}"`,
-        `"${lead.nextFollowupDate || ""}"`,
-        `"${lead.customerInterestedIn || ""}"`,
-        `"${lead.preferredCommunicationChannel || ""}"`,
-        `"${getStatusLabel(lead.leadStatus)}"`,
-        `"${lead.additionalNotes || ""}"`
-      ]);
-
-      // Combine headers and rows
-      const csvContent = [csvHeaders.join(","), ...csvRows.map(row => row.join(","))].join("\n");
-
-      // Set headers for file download
-      const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `leads_export_${timestamp}.csv`;
-      
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-      res.send(csvContent);
-    } catch (error) {
-      console.error("Error exporting leads:", error);
-      res.status(500).json({ message: "Failed to export leads" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
