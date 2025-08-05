@@ -4,9 +4,10 @@ import StatsCards from "@/components/stats-cards";
 import LeadFilters from "@/components/lead-filters";
 import LeadTable from "@/components/lead-table";
 import LeadForm from "@/components/lead-form";
+import ExportDialog from "@/components/export-dialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Download } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { Lead } from "@shared/schema";
 
 export default function Dashboard() {
@@ -29,10 +30,6 @@ export default function Dashboard() {
     setEditingLead(null);
   };
 
-  const handleExport = () => {
-    // TODO: Implement export functionality
-    console.log("Export functionality to be implemented");
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,14 +44,7 @@ export default function Dashboard() {
               <p className="mt-1 text-sm text-gray-600">Track and manage your sales leads efficiently</p>
             </div>
             <div className="mt-4 sm:mt-0 flex space-x-3">
-              <Button 
-                variant="outline" 
-                onClick={handleExport}
-                data-testid="button-export"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
+              <ExportDialog currentFilters={filters} />
               <Button 
                 onClick={() => setIsFormOpen(true)}
                 data-testid="button-add-lead"
