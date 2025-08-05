@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, LogIn, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import backgroundImage from "@assets/Gemini_Generated_Image_1p7qq81p7qq81p7q_1754413492894.png";
+import backgroundImage from "@assets/Gemini_Generated_Image_br5r4ibr5r4ibr5r_1754413922041.png";
 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
