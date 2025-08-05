@@ -1,0 +1,107 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cbd5e1;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bgGradient)"/>
+  
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#grid)" />
+  
+  <!-- Data visualization elements -->
+  <!-- Bar chart representation -->
+  <g transform="translate(100, 200)" opacity="0.15">
+    <rect x="0" y="100" width="40" height="200" fill="#3b82f6" rx="4"/>
+    <rect x="60" y="150" width="40" height="150" fill="#6366f1" rx="4"/>
+    <rect x="120" y="80" width="40" height="220" fill="#8b5cf6" rx="4"/>
+    <rect x="180" y="120" width="40" height="180" fill="#a855f7" rx="4"/>
+    <rect x="240" y="60" width="40" height="240" fill="#3b82f6" rx="4"/>
+  </g>
+  
+  <!-- Line chart representation -->
+  <g transform="translate(1500, 150)" opacity="0.12">
+    <path d="M0,250 Q50,200 100,180 T200,150 T300,120 T400,100" 
+          stroke="#3b82f6" stroke-width="3" fill="none"/>
+    <path d="M0,280 Q50,250 100,230 T200,200 T300,170 T400,140" 
+          stroke="#6366f1" stroke-width="3" fill="none"/>
+    <!-- Data points -->
+    <circle cx="0" cy="250" r="4" fill="#3b82f6"/>
+    <circle cx="100" cy="180" r="4" fill="#3b82f6"/>
+    <circle cx="200" cy="150" r="4" fill="#3b82f6"/>
+    <circle cx="300" cy="120" r="4" fill="#3b82f6"/>
+    <circle cx="400" cy="100" r="4" fill="#3b82f6"/>
+  </g>
+  
+  <!-- Pie chart representation -->
+  <g transform="translate(200, 700)" opacity="0.1">
+    <circle cx="80" cy="80" r="60" fill="#3b82f6"/>
+    <path d="M80,20 A60,60 0 0,1 138.4,110 L80,80 Z" fill="#6366f1"/>
+    <path d="M80,20 A60,60 0 0,0 21.6,110 L80,80 Z" fill="#8b5cf6"/>
+  </g>
+  
+  <!-- Lead management icons scattered -->
+  <g opacity="0.08">
+    <!-- User icons representing leads -->
+    <g transform="translate(800, 300)">
+      <circle cx="12" cy="8" r="3" fill="#3b82f6"/>
+      <path d="M12 14c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" fill="#3b82f6"/>
+    </g>
+    
+    <g transform="translate(1200, 500)">
+      <circle cx="12" cy="8" r="3" fill="#6366f1"/>
+      <path d="M12 14c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" fill="#6366f1"/>
+    </g>
+    
+    <!-- Target/conversion icons -->
+    <g transform="translate(600, 800)">
+      <circle cx="12" cy="12" r="10" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+      <circle cx="12" cy="12" r="6" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+      <circle cx="12" cy="12" r="2" fill="#8b5cf6"/>
+    </g>
+    
+    <!-- Analytics dashboard representation -->
+    <g transform="translate(1400, 700)">
+      <rect x="0" y="0" width="120" height="80" rx="8" stroke="#3b82f6" stroke-width="2" fill="none"/>
+      <rect x="10" y="15" width="30" height="20" fill="#3b82f6"/>
+      <rect x="45" y="20" width="25" height="15" fill="#6366f1"/>
+      <rect x="75" y="10" width="35" height="25" fill="#8b5cf6"/>
+      <line x1="10" y1="50" x2="110" y2="50" stroke="#3b82f6" stroke-width="1"/>
+      <line x1="10" y1="60" x2="90" y2="60" stroke="#6366f1" stroke-width="1"/>
+      <line x1="10" y1="70" x2="100" y2="70" stroke="#8b5cf6" stroke-width="1"/>
+    </g>
+  </g>
+  
+  <!-- Floating data elements -->
+  <g opacity="0.06">
+    <!-- Numbers representing metrics -->
+    <text x="400" y="400" fill="#3b82f6" font-family="Arial, sans-serif" font-size="24" font-weight="bold">1,247</text>
+    <text x="450" y="430" fill="#6366f1" font-family="Arial, sans-serif" font-size="16">Total Leads</text>
+    
+    <text x="1000" y="200" fill="#8b5cf6" font-family="Arial, sans-serif" font-size="24" font-weight="bold">85%</text>
+    <text x="1040" y="230" fill="#8b5cf6" font-family="Arial, sans-serif" font-size="16">Conversion</text>
+    
+    <text x="300" y="900" fill="#3b82f6" font-family="Arial, sans-serif" font-size="24" font-weight="bold">342</text>
+    <text x="340" y="930" fill="#3b82f6" font-family="Arial, sans-serif" font-size="16">Hot Leads</text>
+  </g>
+  
+  <!-- Subtle connecting lines between elements -->
+  <g opacity="0.05">
+    <path d="M400,400 Q600,300 800,300" stroke="#3b82f6" stroke-width="1" fill="none" stroke-dasharray="5,5"/>
+    <path d="M800,300 Q1000,250 1200,200" stroke="#6366f1" stroke-width="1" fill="none" stroke-dasharray="5,5"/>
+    <path d="M300,900 Q500,700 600,800" stroke="#8b5cf6" stroke-width="1" fill="none" stroke-dasharray="5,5"/>
+  </g>
+</svg>
