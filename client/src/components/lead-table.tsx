@@ -224,25 +224,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
     );
   }
 
-  if (!leads || leads.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Leads</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <p className="text-gray-500" data-testid="text-no-leads">No leads found</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Pagination logic
-  const totalPages = Math.ceil(leads.length / itemsPerPage);
+  // Pagination logic - handle empty leads array
+  const safeLeads = leads || [];
+  const totalPages = Math.ceil(safeLeads.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedLeads = leads.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedLeads = safeLeads.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <Card className="border border-gray-200 shadow-sm">
@@ -361,7 +347,14 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedLeads.map((lead: Lead) => (
+              {paginatedLeads.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10} className="text-center py-12">
+                    <p className="text-gray-500" data-testid="text-no-leads">No leads found</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedLeads.map((lead: Lead) => (
                 <React.Fragment key={lead.id}>
                   <TableRow className={`hover:bg-gray-50 ${isCompactMode ? 'h-12' : 'h-16'}`} data-testid={`row-lead-${lead.id}`}>
                     <TableCell className="text-center">
@@ -540,17 +533,18 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     </TableRow>
                   )}
                 </React.Fragment>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
         
         {/* Pagination Controls */}
-        {leads && leads.length > 0 && (
+        {safeLeads.length > 0 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-700">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, leads.length)} of {leads.length} leads
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, safeLeads.length)} of {safeLeads.length} leads
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Show:</span>
