@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppHeader from "@/components/app-header";
 import StatsCards from "@/components/stats-cards";
 import LeadFilters from "@/components/lead-filters";
@@ -19,6 +19,44 @@ export default function Dashboard() {
     category: "",
     city: "",
   });
+
+  // Load user preferences from localStorage
+  const [userPreferences, setUserPreferences] = useState(() => {
+    const saved = localStorage.getItem('preferenceSettings');
+    return saved ? JSON.parse(saved) : {
+      defaultView: 'table',
+      itemsPerPage: '20',
+      autoSave: true,
+      compactMode: false,
+      exportFormat: 'csv',
+      exportNotes: true
+    };
+  });
+
+  // Listen for preference changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem('preferenceSettings');
+      if (saved) {
+        setUserPreferences(JSON.parse(saved));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also listen for updates within the same tab
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem('preferenceSettings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setUserPreferences(parsed);
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleImportLeads = () => {
     const input = document.createElement('input');
@@ -91,7 +129,11 @@ export default function Dashboard() {
 
         <StatsCards />
         <LeadFilters filters={filters} onFiltersChange={setFilters} />
-        <LeadTable filters={filters} onEditLead={handleEditLead} />
+        <LeadTable 
+          filters={filters} 
+          onEditLead={handleEditLead}
+          userPreferences={userPreferences}
+        />
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff } from "lucide-react";
+import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Lead } from "@shared/schema";
@@ -20,14 +20,33 @@ interface LeadTableProps {
     city: string;
   };
   onEditLead: (lead: Lead) => void;
+  userPreferences?: {
+    defaultView: string;
+    itemsPerPage: string;
+    autoSave: boolean;
+    compactMode: boolean;
+    exportFormat: string;
+    exportNotes: boolean;
+  };
 }
 
-export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
+export default function LeadTable({ filters, onEditLead, userPreferences }: LeadTableProps) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [showInterestedColumn, setShowInterestedColumn] = useState(false);
-  const [showNotesColumn, setShowNotesColumn] = useState(false);
+  const [showInterestedColumn, setShowInterestedColumn] = useState(() => {
+    // Initialize based on user preferences for export notes setting
+    return userPreferences?.exportNotes || false;
+  });
+  const [showNotesColumn, setShowNotesColumn] = useState(() => {
+    // Initialize based on user preferences for export notes setting
+    return userPreferences?.exportNotes || false;
+  });
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Get items per page from user preferences
+  const itemsPerPage = parseInt(userPreferences?.itemsPerPage || '20');
+  const isCompactMode = userPreferences?.compactMode || false;
 
   const queryParams = new URLSearchParams();
   if (filters.search) queryParams.append("search", filters.search);
@@ -165,6 +184,11 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
     );
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(leads.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLeads = leads.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader className="px-6 py-4 border-b border-gray-200">
@@ -234,9 +258,9 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leads.map((lead: Lead) => (
+              {paginatedLeads.map((lead: Lead) => (
                 <React.Fragment key={lead.id}>
-                  <TableRow className="hover:bg-gray-50" data-testid={`row-lead-${lead.id}`}>
+                  <TableRow className={`hover:bg-gray-50 ${isCompactMode ? 'h-12' : 'h-16'}`} data-testid={`row-lead-${lead.id}`}>
                     <TableCell className="text-center">
                       <Button
                         variant="ghost"
@@ -402,6 +426,66 @@ export default function LeadTable({ filters, onEditLead }: LeadTableProps) {
             </TableBody>
           </Table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="text-sm text-gray-700">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, leads.length)} of {leads.length} leads
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                data-testid="button-prev-page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      data-testid={`button-page-${pageNum}`}
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                data-testid="button-next-page"
+              >
+                Next
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -17,6 +17,7 @@ import { Settings as SettingsIcon, User, Bell, Shield, Database, Mail, Phone, Sa
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import NotificationDisplay from "@/components/notification-display";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -41,6 +42,14 @@ export default function Settings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [apiKey, setApiKey] = useState(() => {
+    const saved = localStorage.getItem('userApiKey');
+    if (saved) return saved;
+    
+    const newKey = `lf_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+    localStorage.setItem('userApiKey', newKey);
+    return newKey;
+  });
   const { toast } = useToast();
 
   // Settings state management
@@ -293,11 +302,12 @@ export default function Settings() {
 
   const handleRegenerateAPI = () => {
     const newApiKey = `lf_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+    setApiKey(newApiKey);
+    localStorage.setItem('userApiKey', newApiKey);
     toast({
       title: "API Key Regenerated",
       description: "Your API key has been regenerated successfully",
     });
-    // In a real app, this would update the displayed API key
   };
 
   return (
@@ -482,6 +492,8 @@ export default function Settings() {
 
           {/* Notifications Tab */}  
           <TabsContent value="notifications" className="space-y-6">
+            <NotificationDisplay />
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -670,7 +682,7 @@ export default function Settings() {
                   <Label>API Key</Label>
                   <div className="flex gap-2">
                     <Input
-                      value="lf_xxxxxxxxxxxxxxxxxxxxxxxx"
+                      value={apiKey}
                       readOnly
                       className="font-mono text-sm"
                       data-testid="input-api-key"
