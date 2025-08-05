@@ -266,6 +266,16 @@ export class MemStorage implements IStorage {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        id: "user-3",
+        email: "kammara.suneel474@gmail.com",
+        password: "Ibmibm818818",
+        name: "Suneel Kammara",
+        role: "user" as const,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ];
 
     for (const user of sampleUsers) {
