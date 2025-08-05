@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff, ChevronLeft, ChevronRight as ChevronRightIcon, Upload, Plus, Download } from "lucide-react";
 import LeadFilters from "./lead-filters";
 import ExportDialog from "./export-dialog";
@@ -54,9 +55,16 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
   });
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(() => 
+    parseInt(userPreferences?.itemsPerPage || '20')
+  );
 
-  // Get items per page from user preferences
-  const itemsPerPage = parseInt(userPreferences?.itemsPerPage || '20');
+  // Handler for page size change
+  const handlePageSizeChange = (newSize: string) => {
+    setItemsPerPage(parseInt(newSize));
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
   const isCompactMode = userPreferences?.compactMode || false;
 
   const queryParams = new URLSearchParams();
@@ -537,10 +545,27 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
         </div>
         
         {/* Pagination Controls */}
-        {totalPages > 1 && (
+        {leads && leads.length > 0 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-            <div className="text-sm text-gray-700">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, leads.length)} of {leads.length} leads
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-700">
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, leads.length)} of {leads.length} leads
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show:</span>
+                <Select value={itemsPerPage.toString()} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger className="w-20 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-gray-600">per page</span>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button

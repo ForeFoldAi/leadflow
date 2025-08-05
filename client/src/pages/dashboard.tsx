@@ -97,19 +97,17 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Primary Leads View Section - Unified interface */}
-        <div className="space-y-4">
-          <LeadTable 
-            filters={filters} 
-            onFiltersChange={setFilters}
-            onEditLead={handleEditLead}
-            userPreferences={userPreferences}
-            onImportLeads={handleImportLeads}
-            onAddNewLead={() => setIsFormOpen(true)}
-            exportFilters={filters}
-          />
-        </div>
+        <LeadTable 
+          filters={filters} 
+          onFiltersChange={setFilters}
+          onEditLead={handleEditLead}
+          userPreferences={userPreferences}
+          onImportLeads={handleImportLeads}
+          onAddNewLead={() => setIsFormOpen(true)}
+          exportFilters={filters}
+        />
 
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
