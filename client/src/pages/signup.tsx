@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import newLogo from "@assets/ChatGPT Image Aug 5, 2025, 10_54_30 PM_1754414686727.png";
 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -95,7 +96,7 @@ export default function Signup() {
         <div className="text-center mb-4">
           <div className="mx-auto mb-2">
             <img 
-              src="/forefold-logo.png" 
+              src={newLogo} 
               alt="ForeFold AI Logo" 
               className="h-12 w-12 mx-auto object-contain"
             />
