@@ -48,6 +48,7 @@ LeadFlow is a comprehensive lead management application built as a full-stack we
 - ✅ Updated to clean "Logo only" version - blue spinning wheel without text for optimal visual impact
 - ✅ Removed bottom "Lead Management" text section from Dashboard for cleaner interface
 - ✅ Renamed "Dashboard" to "Leads" in navigation with UserCheck icon for better clarity
+- ✅ Removed "Leads View" title and subtitle text for minimalist, data-focused interface
 
 # User Preferences
 

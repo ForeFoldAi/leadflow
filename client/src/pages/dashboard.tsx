@@ -101,10 +101,6 @@ export default function Dashboard() {
         {/* Primary Leads View Section - Highlighted as main content */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Leads View</h2>
-              <p className="mt-1 text-sm text-gray-600">Comprehensive lead tracking and management</p>
-            </div>
             <div className="mt-3 sm:mt-0 flex space-x-3">
               <Button 
                 variant="outline"
