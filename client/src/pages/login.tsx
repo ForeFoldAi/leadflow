@@ -74,11 +74,16 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <Users className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-4">
+            <img 
+              src="/attached_assets/Revised ForeFold Logo_1754376248863.png" 
+              alt="ForeFold AI Logo" 
+              className="h-16 w-auto mx-auto"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">LeadFlow</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <p className="text-gray-600 mt-1">by ForeFoldAI</p>
+          <p className="text-gray-500 mt-2 text-sm">Sign in to your account</p>
         </div>
 
         <Card>
