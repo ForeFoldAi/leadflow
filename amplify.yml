@@ -1,23 +1,18 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - echo "Starting monorepo build for client..."
-        - cd client
-        - npm ci
-        - echo "Dependencies installed successfully"
-    build:
-      commands:
-        - cd client
-        - echo "Building client application..."
-        - npm run build   # this runs vite build
-        - echo "Build completed successfully"
-        - ls -la dist/    # check that dist exists
-  artifacts:
-    baseDirectory: client/dist   # <-- Vite uses dist
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - client/node_modules/**/*
+applications:
+  - appRoot: client
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
