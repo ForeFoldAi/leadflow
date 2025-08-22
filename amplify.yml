@@ -11,11 +11,11 @@ frontend:
       commands:
         - cd client
         - echo "Building client application..."
-        - npm run build
+        - npm run build   # this runs vite build
         - echo "Build completed successfully"
-        - ls -la dist/
+        - ls -la dist/    # check that dist exists
   artifacts:
-    baseDirectory: client/dist
+    baseDirectory: client/dist   # <-- Vite uses dist
     files:
       - '**/*'
   cache:
