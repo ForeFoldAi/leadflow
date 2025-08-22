@@ -6,21 +6,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Users, Target, DollarSign, Calendar, Filter, Download, FileText, Clock, AlertCircle, CheckCircle, XCircle, Plus } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Target, Calendar, Download, FileText, Clock, CheckCircle, XCircle, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { Loader } from "@/components/ui/loader";
+import { useLocation } from "wouter";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import LeadForm from "@/components/lead-form";
+import { apiRequest } from "@/lib/queryClient";
+import type { Lead } from "@shared/schema";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ff7675'];
 
-export default function Analytics() {
+interface AnalyticsProps {
+  onAddNewLead?: () => void;
+}
+
+export default function Analytics({ onAddNewLead }: AnalyticsProps) {
   const [timeRange, setTimeRange] = useState("30");
+  const [, setLocation] = useLocation();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
 
   // Fetch comprehensive analytics data
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["/api/analytics", timeRange],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics?days=${timeRange}`);
-      if (!response.ok) throw new Error('Failed to fetch analytics');
+      const response = await apiRequest("GET", `/api/analytics?days=${timeRange}`);
       return response.json();
     },
   });
@@ -29,9 +41,7 @@ export default function Analytics() {
     return (
       <div className="min-h-screen bg-gray-50">
         <AppHeader />
-        <div className="flex items-center justify-center h-96">
-          <div className="text-lg text-gray-600">Loading analytics...</div>
-        </div>
+        <Loader text="Loading analytics..." />
       </div>
     );
   }
@@ -133,158 +143,421 @@ export default function Analytics() {
               variant="outline"
               data-testid="button-export-report"
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Upload className="h-4 w-4 mr-2" />
               Export Report
             </Button>
             <Button 
-              onClick={() => window.location.href = '/?add-lead=true'}
+              className="btn-impressive-primary"
+              onClick={() => {
+                setEditingLead(null);
+                setIsFormOpen(true);
+              }}
               data-testid="button-add-lead"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4 icon" />
               Add New Lead
             </Button>
           </div>
         </div>
 
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Total Leads */}
-          <Card data-testid="card-total-leads">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                  <p className="text-3xl font-bold text-gray-900">{analytics.totalLeads}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-sm text-gray-600">Active leads in system</span>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Lead Management Overview */}
+        <div className="mb-6">
+          {/* Header */}
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Lead Management Overview</h1>
+            <p className="text-sm text-gray-600">Track and manage your sales pipeline with real-time insights</p>
+          </div>
 
-          {/* New Leads This Week */}
-          <Card data-testid="card-new-leads-week">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">New Leads (Week)</p>
-                  <p className="text-3xl font-bold text-gray-900">{analytics.newLeadsThisWeek}</p>
+          {/* Main Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Potential Customers Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <Users size={96} />
+                  </div>
                 </div>
-                <Target className="h-8 w-8 text-green-500" />
+                
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Potential Customers</h3>
+                  <div className="p-2 bg-blue-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <Users className="h-4 w-4 text-blue-600" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {(analytics.leadsByCategory?.potential || 0).toLocaleString()}
               </div>
-              <div className="mt-4 flex items-center">
-                <span className="text-sm text-gray-600">This month: {analytics.newLeadsThisMonth}</span>
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
+                      <TrendingUp size={10} />
+                      <span>12%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-blue-700">New This Week</span>
+                    <span className="text-xs font-bold text-blue-600">
+                      {(analytics.leadsByStatus?.new || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Follow-up Pending */}
-          <Card data-testid="card-followup-pending">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Follow-up Pending</p>
-                  <p className="text-3xl font-bold text-red-600">{analytics.followupPending}</p>
+            {/* Pending Follow-ups Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <Clock size={96} />
+                  </div>
                 </div>
-                <AlertCircle className="h-8 w-8 text-red-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <span className="text-sm text-red-600">Requires immediate attention</span>
-              </div>
-            </CardContent>
-          </Card>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Pending Follow-ups</h3>
+                  <div className="p-2 bg-amber-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <Clock className="h-4 w-4 text-amber-600" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {(analytics.followupPending || 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-red-600">
+                      <TrendingDown size={10} />
+                      <span>5%</span>
+                    </div>
+                      </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-amber-700">Due This Week</span>
+                    <span className="text-xs font-bold text-amber-600">
+                      {analytics.next7DaysFollowups?.filter((f: any) => {
+                        const date = new Date(f.nextFollowupDate);
+                        const today = new Date();
+                        const diffTime = date.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays >= 0 && diffDays <= 7;
+                      }).length || 0}
+                      </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Conversion Rate */}
-          <Card data-testid="card-conversion-rate">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                  <p className="text-3xl font-bold text-green-600">{analytics.conversionRate}%</p>
+            {/* Qualified Leads Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-purple-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <Target size={96} />
+                  </div>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-sm text-gray-600">{analytics.convertedLeads} converted</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Qualified Leads</h3>
+                  <div className="p-2 bg-purple-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <Target className="h-4 w-4 text-purple-600" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {(analytics.qualifiedLeads || 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
+                      <TrendingUp size={10} />
+                      <span>8%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-purple-700">Ready to Convert</span>
+                    <span className="text-xs font-bold text-purple-600">
+                      {(analytics.qualifiedLeads || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Second Row Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Qualified Leads */}
-          <Card data-testid="card-qualified-leads">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Qualified Leads</p>
-                  <p className="text-3xl font-bold text-yellow-600">{analytics.qualifiedLeads}</p>
+            {/* Hot Leads Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <TrendingUp size={96} />
+                  </div>
                 </div>
-                <Target className="h-8 w-8 text-yellow-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <span className="text-sm text-gray-600">Ready for conversion</span>
-              </div>
-            </CardContent>
-          </Card>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Hot Leads</h3>
+                  <div className="p-2 bg-orange-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <TrendingUp className="h-4 w-4 text-orange-600" />
+                  </div>
+                      </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {(analytics.hotLeads || 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
+                      <TrendingUp size={10} />
+                      <span>15%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-orange-700">High Priority</span>
+                    <span className="text-xs font-bold text-orange-600">
+                      {(analytics.hotLeads || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Hot Leads */}
-          <Card data-testid="card-hot-leads">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Hot Leads</p>
-                  <p className="text-3xl font-bold text-orange-600">{analytics.hotLeads}</p>
+            {/* Converted Customers Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <CheckCircle size={96} />
+                  </div>
                 </div>
-                <TrendingUp className="h-8 w-8 text-orange-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <span className="text-sm text-gray-600">High conversion potential</span>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Lost Leads */}
-          <Card data-testid="card-lost-leads">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Lost Leads</p>
-                  <p className="text-3xl font-bold text-red-600">{analytics.lostLeads}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Converted Customers</h3>
+                  <div className="p-2 bg-emerald-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                  </div>
                 </div>
-                <XCircle className="h-8 w-8 text-red-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <span className="text-sm text-gray-600">Did not convert</span>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Average Time to Convert */}
-          <Card data-testid="card-avg-time-convert">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Avg. Time to Convert</p>
-                  <p className="text-3xl font-bold text-blue-600">{analytics.averageTimeToConvert}</p>
-                  <p className="text-sm text-gray-500">days</p>
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {(analytics.convertedLeads || 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
+                      <TrendingUp size={10} />
+                      <span>22%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-emerald-700">This Month</span>
+                    <span className="text-xs font-bold text-emerald-600">
+                      {(analytics.convertedLeads || 0).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-                <Clock className="h-8 w-8 text-blue-500" />
-              </div>
-              <div className="mt-4 flex items-center">
-                <span className="text-sm text-gray-600">Process efficiency</span>
+              </CardContent>
+            </Card>
+
+            {/* Lost Opportunities Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-red-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <XCircle size={96} />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Lost Opportunities</h3>
+                  <div className="p-2 bg-red-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  </div>
+                      </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {(analytics.lostLeads || 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-red-600">
+                      <TrendingDown size={10} />
+                      <span>18%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-red-700">Closed Lost</span>
+                    <span className="text-xs font-bold text-red-600">
+                      {(analytics.lostLeads || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Conversion Rate Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-teal-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <TrendingUp size={96} />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Conversion Rate</h3>
+                  <div className="p-2 bg-teal-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <TrendingUp className="h-4 w-4 text-teal-600" />
+                  </div>
+                      </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {`${analytics.conversionRate || 0}%`}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
+                      <TrendingUp size={10} />
+                      <span>7%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-teal-700">Success Rate</span>
+                    <span className="text-xs font-bold text-teal-600">
+                      {`${analytics.conversionRate || 0}%`}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Avg. Conversion Time Card */}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-l-xl"></div>
+              <CardContent className="p-4 relative">
+                {/* Background pattern */}
+                <div className="absolute top-0 right-0 opacity-5">
+                  <div className="w-24 h-24 transform rotate-12 translate-x-6 -translate-y-6">
+                    <Clock size={96} />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-700 leading-tight">Avg. Conversion Time</h3>
+                  <div className="p-2 bg-indigo-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <Clock className="h-4 w-4 text-indigo-600" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="text-2xl font-bold text-gray-900 leading-none">
+                      {`${analytics.averageTimeToConvert || 0}`}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-red-600">
+                      <TrendingDown size={10} />
+                      <span>12%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-50">
+                    <span className="text-xs font-medium text-indigo-700">Days Average</span>
+                    <span className="text-xs font-bold text-indigo-600">
+                      {`${analytics.averageTimeToConvert || 0}d`}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Follow-up Timeline Card */}
+          <Card className="hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 rounded-l-xl"></div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">Follow-up Timeline</h3>
+                  <p className="text-sm text-gray-600">Manage your upcoming and overdue follow-ups</p>
+                </div>
+                <div className="p-3 bg-cyan-50 rounded-lg">
+                  <Calendar className="h-5 w-5 text-cyan-600" />
+                </div>
+                      </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Overdue */}
+                <div className="text-center group">
+                  <div className="bg-red-50 rounded-xl p-4 group-hover:bg-red-100 transition-colors duration-200">
+                    <div className="text-2xl font-bold text-red-600 mb-2">
+                        {analytics.next7DaysFollowups?.filter((f: any) => {
+                          const date = new Date(f.nextFollowupDate);
+                          return date < new Date();
+                        }).length || 0}
+                    </div>
+                    <div className="text-xs font-semibold text-red-700 mb-1">Overdue</div>
+                    <div className="text-xs text-red-600">Requires immediate attention</div>
+                  </div>
+                      </div>
+                
+                {/* Due Soon */}
+                <div className="text-center group">
+                  <div className="bg-amber-50 rounded-xl p-4 group-hover:bg-amber-100 transition-colors duration-200">
+                    <div className="text-2xl font-bold text-amber-600 mb-2">
+                        {analytics.next7DaysFollowups?.filter((f: any) => {
+                          const date = new Date(f.nextFollowupDate);
+                          const today = new Date();
+                          const diffTime = date.getTime() - today.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          return diffDays >= 0 && diffDays <= 7;
+                        }).length || 0}
+                    </div>
+                    <div className="text-xs font-semibold text-amber-700 mb-1">Due This Week</div>
+                    <div className="text-xs text-amber-600">Plan your outreach</div>
+                  </div>
+                      </div>
+                
+                {/* Future */}
+                <div className="text-center group">
+                  <div className="bg-blue-50 rounded-xl p-4 group-hover:bg-blue-100 transition-colors duration-200">
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                        {analytics.next7DaysFollowups?.filter((f: any) => {
+                          const date = new Date(f.nextFollowupDate);
+                          const today = new Date();
+                          const diffTime = date.getTime() - today.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          return diffDays > 7;
+                        }).length || 0}
+                    </div>
+                    <div className="text-xs font-semibold text-blue-700 mb-1">Future</div>
+                    <div className="text-xs text-blue-600">Scheduled ahead</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Lead Source Breakdown */}
           <Card data-testid="card-lead-source-chart">
             <CardHeader>
@@ -292,7 +565,7 @@ export default function Analytics() {
               <CardDescription>Where your leads are coming from</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -323,7 +596,7 @@ export default function Analytics() {
               <CardDescription>Current distribution of lead statuses</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={statusData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -343,14 +616,14 @@ export default function Analytics() {
         </div>
 
         {/* Monthly Trends */}
-        <div className="grid grid-cols-1 mb-8">
+        <div className="grid grid-cols-1 mb-6">
           <Card data-testid="card-monthly-trends">
             <CardHeader>
               <CardTitle>Monthly Trends</CardTitle>
               <CardDescription>Leads added and converted over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={analytics.monthlyTrends || []}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -379,52 +652,20 @@ export default function Analytics() {
           </Card>
         </div>
 
-        {/* Next 7 Days Follow-up Calendar */}
-        <div className="grid grid-cols-1 mb-8">
-          <Card data-testid="card-followup-calendar">
-            <CardHeader>
-              <CardTitle>Next 7 Days Follow-up Calendar</CardTitle>
-              <CardDescription>Upcoming follow-ups scheduled for the next week</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {analytics.next7DaysFollowups && analytics.next7DaysFollowups.length > 0 ? (
-                <div className="space-y-4">
-                  {analytics.next7DaysFollowups.map((followup: any) => (
-                    <div 
-                      key={followup.id} 
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                      data-testid={`followup-${followup.id}`}
-                    >
-                      <div className="flex items-center space-x-4">
-                        <Calendar className="h-5 w-5 text-blue-500" />
-                        <div>
-                          <p className="font-medium text-gray-900">{followup.name}</p>
-                          <p className="text-sm text-gray-600">{followup.companyName || 'No company'}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <Badge 
-                          variant={followup.leadStatus === 'hot' ? 'destructive' : 'secondary'}
-                        >
-                          {followup.leadStatus}
-                        </Badge>
-                        <span className="text-sm text-gray-600">
-                          {followup.nextFollowupDate ? format(new Date(followup.nextFollowupDate), 'MMM dd') : 'No date'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No follow-ups scheduled for the next 7 days</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+       
       </div>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <LeadForm 
+            lead={editingLead} 
+            onClose={() => {
+              setIsFormOpen(false);
+              setEditingLead(null);
+            }} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

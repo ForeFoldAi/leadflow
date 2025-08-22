@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { Loader } from "@/components/ui/loader";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -37,11 +38,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }, [setLocation]);
 
   if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Loader text="Checking authentication..." />;
   }
 
   if (!isAuthenticated) {

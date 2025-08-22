@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 interface ExportDialogProps {
   currentFilters: {
     search: string;
-    status: string;
+    status: string | string[];
     category: string;
     city: string;
   };
@@ -36,7 +36,13 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
       
       if (exportOptions.useCurrentFilters) {
         if (currentFilters.search) queryParams.append("search", currentFilters.search);
-        if (currentFilters.status && currentFilters.status !== "all") queryParams.append("status", currentFilters.status);
+        if (currentFilters.status) {
+          if (Array.isArray(currentFilters.status) && currentFilters.status.length > 0) {
+            currentFilters.status.forEach(status => queryParams.append("status", status));
+          } else if (typeof currentFilters.status === "string" && currentFilters.status !== "all") {
+            queryParams.append("status", currentFilters.status);
+          }
+        }
         if (currentFilters.category && currentFilters.category !== "all") queryParams.append("category", currentFilters.category);
         if (currentFilters.city && currentFilters.city !== "all") queryParams.append("city", currentFilters.city);
       }
@@ -60,7 +66,13 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
   const getFilterSummary = () => {
     const activeFilters = [];
     if (currentFilters.search) activeFilters.push(`Search: "${currentFilters.search}"`);
-    if (currentFilters.status) activeFilters.push(`Status: ${currentFilters.status}`);
+    if (currentFilters.status) {
+      if (Array.isArray(currentFilters.status) && currentFilters.status.length > 0) {
+        activeFilters.push(`Status: ${currentFilters.status.join(", ")}`);
+      } else if (typeof currentFilters.status === "string") {
+        activeFilters.push(`Status: ${currentFilters.status}`);
+      }
+    }
     if (currentFilters.category) activeFilters.push(`Category: ${currentFilters.category}`);
     if (currentFilters.city) activeFilters.push(`City: ${currentFilters.city}`);
     
@@ -95,6 +107,8 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="csv">CSV (Comma Separated Values)</SelectItem>
+                <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
+                <SelectItem value="json">JSON</SelectItem>
               </SelectContent>
             </Select>
           </div>

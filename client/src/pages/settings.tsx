@@ -18,6 +18,33 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import NotificationDisplay from "@/components/notification-display";
+import { ButtonLoader } from "@/components/ui/loader";
+
+// Custom URL validation function that accepts various formats
+const flexibleUrlSchema = z.string().refine((value) => {
+  if (!value || value === "") return true; // Allow empty strings
+  
+  // Remove leading/trailing whitespace
+  const trimmedValue = value.trim();
+  
+  // Basic URL patterns
+  const urlPatterns = [
+    // Full URLs with protocol
+    /^https?:\/\/[^\s/$.?#].[^\s]*$/i,
+    // URLs without protocol but with www
+    /^www\.[^\s/$.?#].[^\s]*$/i,
+    // URLs without protocol and www
+    /^[^\s/$.?#][^\s]*\.[a-z]{2,}$/i,
+    // URLs with subdomains
+    /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i,
+    // IP addresses
+    /^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?(\/.*)?$/i,
+  ];
+  
+  return urlPatterns.some(pattern => pattern.test(trimmedValue));
+}, {
+  message: "Please enter a valid website URL (e.g., example.com, www.example.com, https://example.com)"
+});
 
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -27,7 +54,7 @@ const profileSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
   companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
   industry: z.string().min(1, "Industry is required"),
-  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
+  website: flexibleUrlSchema.optional().or(z.literal("")),
   phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number format").optional().or(z.literal("")),
   currentPassword: z.string().optional(),
   newPassword: z.string().optional(),
@@ -68,6 +95,7 @@ export default function Settings() {
   const { toast } = useToast();
 
   // Settings state management
+  const [is2FAOperationInProgress, setIs2FAOperationInProgress] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<{
     newLeads: boolean;
     followUps: boolean;
@@ -75,29 +103,27 @@ export default function Settings() {
     conversions: boolean;
     browserPush: boolean;
     dailySummary: boolean;
-  }>(() => {
-    const saved = localStorage.getItem('notificationSettings');
-    return saved ? JSON.parse(saved) : {
-      newLeads: true,
-      followUps: true,
-      hotLeads: true,
-      conversions: true,
-      browserPush: false,
-      dailySummary: true
-    };
+    emailNotifications: boolean;
+  }>({
+    newLeads: true,
+    followUps: true,
+    hotLeads: true,
+    conversions: true,
+    browserPush: false,
+    dailySummary: true,
+    emailNotifications: true
   });
 
   const [securitySettings, setSecuritySettings] = useState<{
     twoFactorEnabled: boolean;
     loginNotifications: boolean;
     sessionTimeout: string;
-  }>(() => {
-    const saved = localStorage.getItem('securitySettings');
-    return saved ? JSON.parse(saved) : {
-      twoFactorEnabled: false,
-      loginNotifications: true,
-      sessionTimeout: '30'
-    };
+    apiKey: string;
+  }>({
+    twoFactorEnabled: false,
+    loginNotifications: true,
+    sessionTimeout: '30',
+    apiKey: ''
   });
 
   const [preferenceSettings, setPreferenceSettings] = useState<{
@@ -107,20 +133,65 @@ export default function Settings() {
     compactMode: boolean;
     exportFormat: string;
     exportNotes: boolean;
-  }>(() => {
-    const saved = localStorage.getItem('preferenceSettings');
-    return saved ? JSON.parse(saved) : {
-      defaultView: 'table',
-      itemsPerPage: '20',
-      autoSave: true,
-      compactMode: false,
-      exportFormat: 'csv',
-      exportNotes: true
-    };
+  }>({
+    defaultView: 'table',
+    itemsPerPage: '20',
+    autoSave: true,
+    compactMode: false,
+    exportFormat: 'csv',
+    exportNotes: true
   });
+
+
 
   // Get current user data
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  // Load settings from server
+  const { data: userPreferences } = useQuery({
+    queryKey: ['userPreferences', currentUser.id],
+    queryFn: async () => {
+      if (!currentUser.id) return null;
+      const response = await apiRequest('GET', `/api/user/preferences/${currentUser.id}`);
+      return response.json();
+    },
+    enabled: !!currentUser.id
+  });
+
+  const { data: userNotificationSettings } = useQuery({
+    queryKey: ['userNotificationSettings', currentUser.id],
+    queryFn: async () => {
+      if (!currentUser.id) return null;
+      const response = await apiRequest('GET', `/api/user/notifications/${currentUser.id}`);
+      return response.json();
+    },
+    enabled: !!currentUser.id
+  });
+
+  const { data: userSecuritySettings } = useQuery({
+    queryKey: ['userSecuritySettings', currentUser.id],
+    queryFn: async () => {
+      if (!currentUser.id) return null;
+      const response = await apiRequest('GET', `/api/user/security/${currentUser.id}`);
+      return response.json();
+    },
+    enabled: !!currentUser.id
+  });
+
+  // Update settings when data is loaded
+  React.useEffect(() => {
+    if (userPreferences) {
+      setPreferenceSettings(userPreferences);
+    }
+  }, [userPreferences]);
+
+  React.useEffect(() => {
+    if (userNotificationSettings) {
+      setNotificationSettings(userNotificationSettings);
+    }
+  }, [userNotificationSettings]);
+
+
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -169,8 +240,8 @@ export default function Settings() {
       }
       
       toast({
-        title: "Success",
-        description: "Profile updated successfully",
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
       });
       
       // Update localStorage with new user data if returned
@@ -206,9 +277,31 @@ export default function Settings() {
       }
     },
     onError: (error: any) => {
+      let errorMessage = "We couldn't update your profile. Please check your information and try again.";
+      
+      // Extract user-friendly message from error response
+      if (error?.message) {
+        // Remove HTTP status codes and technical details
+        let message = error.message.replace(/^\d+:\s*/, ''); // Remove status codes like "400: "
+        
+        // Remove JSON formatting if present
+        if (message.includes('{"error":') || message.includes('{"message":')) {
+          try {
+            const parsed = JSON.parse(message);
+            message = parsed.error || parsed.message || message;
+          } catch {
+            // If JSON parsing fails, use the original message
+          }
+        }
+        
+        if (!message.includes('Failed to fetch') && !message.includes('NetworkError')) {
+          errorMessage = message;
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
+        title: "Profile Update Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -216,53 +309,29 @@ export default function Settings() {
 
   const saveNotificationsMutation = useMutation({
     mutationFn: async (settings: any) => {
-      // Save notification settings to localStorage
-      localStorage.setItem("notificationSettings", JSON.stringify(settings));
-
+      if (!currentUser.id) throw new Error('User not authenticated');
+      
+      const response = await apiRequest('PUT', `/api/user/notifications/${currentUser.id}`, settings);
+      const data = await response.json();
+      
       // Handle push notification subscription/unsubscription
-      if (settings.pushNotifications && 'Notification' in window) {
-        // Request permission if not already granted
+      if (settings.browserPush && 'Notification' in window) {
         if (Notification.permission === 'default') {
           const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            // Subscribe to push notifications
-            await apiRequest('POST', '/api/notifications/push/subscribe', {
-              userId: currentUser.id || currentUser.email,
-              subscription: { endpoint: 'browser-push', keys: {} }
-            });
-          } else {
+          if (permission !== 'granted') {
             throw new Error('Push notification permission denied');
           }
         }
-      } else if (!settings.pushNotifications && currentUser.id) {
-        // Unsubscribe from push notifications
-        await fetch(`/api/notifications/push/unsubscribe/${currentUser.id || currentUser.email}`, {
-          method: 'DELETE'
-        });
       }
 
-      // Test email notification if enabled
-      if (settings.emailNotifications && currentUser.email) {
-        await apiRequest('POST', '/api/notifications/test', {
-          email: currentUser.email,
-          type: 'new_lead'
-        });
-      }
-
-      return settings;
+      return data;
     },
     onSuccess: (data) => {
-      if (data.emailNotifications && currentUser.email) {
-        toast({
-          title: "Success",
-          description: "Notification settings saved and test email sent successfully",
-        });
-      } else {
-        toast({
-          title: "Success", 
-          description: "Notification settings saved successfully",
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ['userNotificationSettings', currentUser.id] });
+      toast({
+        title: "Success",
+        description: "Notification settings saved successfully",
+      });
     },
     onError: (error: any) => {
       if (error.message === 'Push notification permission denied') {
@@ -271,10 +340,6 @@ export default function Settings() {
           description: "Push notification permission denied. Please enable in browser settings.",
           variant: "destructive",
         });
-        // Reset push notifications state if permission denied
-        const currentSettings = JSON.parse(localStorage.getItem("notificationSettings") || "{}");
-        currentSettings.pushNotifications = false;
-        localStorage.setItem("notificationSettings", JSON.stringify(currentSettings));
       } else {
         toast({
           title: "Error",
@@ -287,43 +352,97 @@ export default function Settings() {
 
   const saveSecurityMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Save to localStorage for persistence
-      localStorage.setItem('securitySettings', JSON.stringify(data));
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+      if (!currentUser.id) throw new Error('User not authenticated');
+      const response = await apiRequest('PUT', `/api/user/security/${currentUser.id}`, data);
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSecuritySettings', currentUser.id] });
       toast({
         title: "Success",
         description: "Security settings saved successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to save security settings",
+        description: error.message || "Failed to save security settings",
         variant: "destructive",
       });
     },
   });
 
+  const enable2FAMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser.id) throw new Error('User not authenticated');
+      setIs2FAOperationInProgress(true);
+      const response = await apiRequest('POST', '/api/auth/2fa/enable');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['userSecuritySettings', currentUser.id] });
+      toast({
+        title: "Success",
+        description: "Two-factor authentication enabled successfully!",
+      });
+      // Update local state
+      setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: true }));
+      setIs2FAOperationInProgress(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to enable two-factor authentication",
+        variant: "destructive",
+      });
+      setIs2FAOperationInProgress(false);
+    },
+  });
+
+  const disable2FAMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser.id) throw new Error('User not authenticated');
+      setIs2FAOperationInProgress(true);
+      const response = await apiRequest('POST', '/api/auth/2fa/disable');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['userSecuritySettings', currentUser.id] });
+      toast({
+        title: "Success",
+        description: "Two-factor authentication disabled successfully!",
+      });
+      // Update local state
+      setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: false }));
+      setIs2FAOperationInProgress(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to disable two-factor authentication",
+        variant: "destructive",
+      });
+      setIs2FAOperationInProgress(false);
+    },
+  });
+
   const savePreferencesMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Save to localStorage for persistence
-      localStorage.setItem('preferenceSettings', JSON.stringify(data));
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+      if (!currentUser.id) throw new Error('User not authenticated');
+      const response = await apiRequest('PUT', `/api/user/preferences/${currentUser.id}`, data);
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userPreferences', currentUser.id] });
       toast({
         title: "Success",
         description: "Preferences saved successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to save preferences",
+        description: error.message || "Failed to save preferences",
         variant: "destructive",
       });
     },
@@ -353,12 +472,22 @@ export default function Settings() {
   };
 
   const handleEnable2FA = () => {
-    toast({
-      title: "2FA Setup",
-      description: "Two-factor authentication setup would open here. Feature coming soon!",
-    });
-    setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: !prev.twoFactorEnabled }));
+    if (securitySettings.twoFactorEnabled) {
+      // Disable 2FA
+      disable2FAMutation.mutate();
+    } else {
+      // Enable 2FA
+      enable2FAMutation.mutate();
+    }
   };
+
+  // Update security settings when data is loaded, but only if no 2FA operations are pending
+  React.useEffect(() => {
+    if (userSecuritySettings && !is2FAOperationInProgress) {
+      setSecuritySettings(userSecuritySettings);
+      setApiKey(userSecuritySettings.apiKey);
+    }
+  }, [userSecuritySettings, is2FAOperationInProgress]);
 
   const handleManageSessions = () => {
     toast({
@@ -367,14 +496,99 @@ export default function Settings() {
     });
   };
 
+  const regenerateApiKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser.id) throw new Error('User not authenticated');
+      const response = await apiRequest('POST', `/api/user/security/${currentUser.id}/regenerate-api-key`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setApiKey(data.apiKey);
+      queryClient.invalidateQueries({ queryKey: ['userSecuritySettings', currentUser.id] });
+      toast({
+        title: "API Key Regenerated",
+        description: "Your API key has been regenerated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to regenerate API key",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportDataMutation = useMutation({
+    mutationFn: async (format: string) => {
+      if (!currentUser.id) throw new Error('User not authenticated');
+      const response = await apiRequest('GET', `/api/user/data/${currentUser.id}/export?format=${format}&includeNotes=${preferenceSettings.exportNotes}`);
+      
+      if (format === 'csv') {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `leads_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+      
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Export Successful",
+        description: "Your data has been exported successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to export data",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteAllLeadsMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser.id) throw new Error('User not authenticated');
+      const response = await apiRequest('DELETE', `/api/user/data/${currentUser.id}/leads`, {
+        confirm: 'DELETE_ALL_LEADS'
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/leads'] });
+      toast({
+        title: "Leads Deleted",
+        description: `${data.deletedCount} leads have been deleted successfully`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete leads",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleRegenerateAPI = () => {
-    const newApiKey = `lf_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-    setApiKey(newApiKey);
-    localStorage.setItem('userApiKey', newApiKey);
-    toast({
-      title: "API Key Regenerated",
-      description: "Your API key has been regenerated successfully",
-    });
+    regenerateApiKeyMutation.mutate();
+  };
+
+  const handleExportData = () => {
+    exportDataMutation.mutate(preferenceSettings.exportFormat);
+  };
+
+  const handleDeleteAllLeads = () => {
+    if (window.confirm('Are you sure you want to delete ALL your leads? This action cannot be undone.')) {
+      deleteAllLeadsMutation.mutate();
+    }
   };
 
   return (
@@ -388,7 +602,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -404,6 +618,10 @@ export default function Settings() {
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <SettingsIcon className="h-4 w-4" />
               Preferences
+            </TabsTrigger>
+            <TabsTrigger value="data" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Data
             </TabsTrigger>
           </TabsList>
 
@@ -801,9 +1019,19 @@ export default function Settings() {
                     variant="outline" 
                     size="sm" 
                     onClick={handleEnable2FA}
+                    disabled={enable2FAMutation.isPending || disable2FAMutation.isPending}
                     data-testid="button-enable-2fa"
                   >
-                    {securitySettings.twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
+                    {(enable2FAMutation.isPending || disable2FAMutation.isPending) ? (
+                      <>
+                        <ButtonLoader size={14} color="#6b7280" />
+                        <span className="ml-2">
+                          {securitySettings.twoFactorEnabled ? 'Disabling...' : 'Enabling...'}
+                        </span>
+                      </>
+                    ) : (
+                      securitySettings.twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'
+                    )}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
@@ -835,37 +1063,8 @@ export default function Settings() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Key className="h-5 w-5" />
-                  API Access
-                </CardTitle>
-                <CardDescription>
-                  Manage API keys and integrations
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>API Key</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={apiKey}
-                      readOnly
-                      className="font-mono text-sm"
-                      data-testid="input-api-key"
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleRegenerateAPI}
-                      data-testid="button-regenerate-api"
-                    >
-                      Regenerate
-                    </Button>
-                  </div>
-                  <p className="text-sm text-gray-500">Use this key to access the LeadFlow API</p>
-                </div>
-              </CardContent>
+              
+              
             </Card>
 
             <div className="flex justify-end">
@@ -895,7 +1094,7 @@ export default function Settings() {
                   Application Preferences
                 </CardTitle>
                 <CardDescription>
-                  Customize your LeadFlow experience
+                  Customize your LeadsFlow experience
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -959,6 +1158,28 @@ export default function Settings() {
               </CardContent>
             </Card>
 
+
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSavePreferences}
+                disabled={savePreferencesMutation.isPending}
+                data-testid="button-save-preferences"
+              >
+                {savePreferencesMutation.isPending ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Preferences
+                  </>
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Data Tab */}
+          <TabsContent value="data" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -982,8 +1203,8 @@ export default function Settings() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="csv">CSV</SelectItem>
-                      <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
-                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="xlsx">Excel</SelectItem>
+                      
                     </SelectContent>
                   </Select>
                 </div>
@@ -998,6 +1219,42 @@ export default function Settings() {
                     data-testid="switch-export-notes" 
                   />
                 </div>
+                
+                <Separator />
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Export All Data</Label>
+                      <p className="text-sm text-gray-500">Download all your leads as a file</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleExportData}
+                      disabled={exportDataMutation.isPending}
+                      data-testid="button-export-data"
+                    >
+                      {exportDataMutation.isPending ? "Exporting..." : "Export Data"}
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-red-600">Delete All Leads</Label>
+                      <p className="text-sm text-red-500">Permanently delete all your leads</p>
+                    </div>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={handleDeleteAllLeads}
+                      disabled={deleteAllLeadsMutation.isPending}
+                      data-testid="button-delete-all-leads"
+                    >
+                      {deleteAllLeadsMutation.isPending ? "Deleting..." : "Delete All"}
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -1005,14 +1262,14 @@ export default function Settings() {
               <Button
                 onClick={handleSavePreferences}
                 disabled={savePreferencesMutation.isPending}
-                data-testid="button-save-preferences"
+                data-testid="button-save-data-preferences"
               >
                 {savePreferencesMutation.isPending ? (
                   "Saving..."
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Preferences
+                    Save Data Preferences
                   </>
                 )}
               </Button>

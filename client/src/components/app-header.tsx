@@ -90,7 +90,7 @@ export default function AppHeader() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <img 
-                    src="/new-forefold-logo.png" 
+                    src="/logo.png" 
                     alt="ForeFold AI Logo" 
                     className="h-12 w-12 object-contain filter drop-shadow-lg"
                   />
@@ -98,7 +98,7 @@ export default function AppHeader() {
                 </div>
                 <div className="flex flex-col">
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
-                    LeadFlow
+                    LeadsFlow
                   </h1>
                   <p className="text-sm text-slate-400 font-medium tracking-wide">
                     powered by <span className="text-purple-400">ForeFoldAI</span>

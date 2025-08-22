@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthGuard from "@/components/auth-guard";
+
 import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
