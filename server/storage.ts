@@ -24,7 +24,7 @@ import {
   notificationLogs,
   userSessions,
   passwordResets
-} from "@shared/schema";
+} from "./shared/schema.js";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;

@@ -2,13 +2,13 @@ import type { Express } from "express";
 import express from "express";
 import path from "path";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertLeadSchema, insertUserSchema } from "@shared/schema";
+import { storage } from "./storage.js";
+import { insertLeadSchema, insertUserSchema } from "./shared/schema.js";
 import { z } from "zod";
-import { notificationService } from "./notifications";
-import { MigrationUtility } from "./migration-utility";
-import { authenticateUser, requireAuth } from "./auth-middleware";
-import { twoFactorAuthService } from "./two-factor-auth";
+import { notificationService } from "./notifications.js";
+import { MigrationUtility } from "./migration-utility.js";
+import { authenticateUser, requireAuth } from "./auth-middleware.js";
+import { twoFactorAuthService } from "./two-factor-auth.js";
 
 // Helper function to get status labels
 function getStatusLabel(status: string): string {

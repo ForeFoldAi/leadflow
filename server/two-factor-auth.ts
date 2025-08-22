@@ -1,4 +1,4 @@
-import { notificationService } from './notifications';
+import { notificationService } from './notifications.js';
 import crypto from 'crypto';
 
 export interface TwoFactorSession {
