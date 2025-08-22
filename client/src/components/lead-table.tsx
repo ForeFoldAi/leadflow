@@ -17,7 +17,7 @@ import ImportDialog from "./import-dialog";
 import { InlineLoader } from "./ui/loader";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Lead } from "@shared/schema";
+import type { Lead } from "./shared/schema";
 import { format } from "date-fns";
 
 interface LeadTableProps {

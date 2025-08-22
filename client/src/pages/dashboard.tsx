@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Upload } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
 import { apiRequest } from "@/lib/queryClient";
-import type { Lead } from "@shared/schema";
+import type { Lead } from "./shared/schema";
 
 export default function Dashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);

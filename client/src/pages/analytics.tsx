@@ -14,7 +14,7 @@ import { useLocation } from "wouter";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import LeadForm from "@/components/lead-form";
 import { apiRequest } from "@/lib/queryClient";
-import type { Lead } from "@shared/schema";
+import type { Lead } from "./shared/schema";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ff7675'];
 

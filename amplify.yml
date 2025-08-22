@@ -3,12 +3,17 @@ frontend:
   phases:
     preBuild:
       commands:
+        - echo "Starting monorepo build for client..."
         - cd client
         - npm ci
+        - echo "Dependencies installed successfully"
     build:
       commands:
         - cd client
+        - echo "Building client application..."
         - npm run build
+        - echo "Build completed successfully"
+        - ls -la dist/
   artifacts:
     baseDirectory: client/dist
     files:

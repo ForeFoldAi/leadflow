@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ButtonLoader } from "@/components/ui/loader";
 import Papa from "papaparse";
 import { apiRequest } from "@/lib/queryClient";
-import type { InsertLead } from "@shared/schema";
+import type { InsertLead } from "./shared/schema";
 
 interface ImportDialogProps {
   onImportSuccess?: () => void;

@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Edit,Phone , Mail, Trash2, MessageCircle, MoreHorizontal, Building, User, Calendar, MapPin, ChevronRight, ChevronDown, PhoneCall } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Lead } from "@shared/schema";
+import type { Lead } from "./shared/schema";
 import { format } from "date-fns";
 
 interface LeadListProps {
