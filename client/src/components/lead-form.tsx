@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { ButtonLoader } from "@/components/ui/loader";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { insertLeadSchema, type Lead, type InsertLead } from "./shared/schema";
+import { insertLeadSchema, type Lead, type InsertLead } from "../../shared/schema";
 import { User, MapPin, Building, MessageSquare } from "lucide-react";
 import { useState } from "react";
 

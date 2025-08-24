@@ -1,4 +1,4 @@
-import { type Lead, type InsertLead, type User, type InsertUser, type UserPreferences, type InsertUserPreferences, type NotificationSettings, type InsertNotificationSettings, type SecuritySettings, type InsertSecuritySettings, type NotificationLog, type InsertNotificationLog, type UserSession, type InsertUserSession, type PasswordReset, type InsertPasswordReset } from "@shared/schema";
+import { type Lead, type InsertLead, type User, type InsertUser, type UserPreferences, type InsertUserPreferences, type NotificationSettings, type InsertNotificationSettings, type SecuritySettings, type InsertSecuritySettings, type NotificationLog, type InsertNotificationLog, type UserSession, type InsertUserSession, type PasswordReset, type InsertPasswordReset } from "./shared/schema";
 export interface IStorage {
     getLeads(userId?: string): Promise<Lead[]>;
     getLead(id: string, userId?: string): Promise<Lead | undefined>;
