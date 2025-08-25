@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const apiRequest = async (method: string, endpoint: string, data?: any) => {
   // Build full URL using environment variable
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-  const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+  const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl.replace(/\/$/, '')}${endpoint}`;
 
   const response = await fetch(fullUrl, {
     method,

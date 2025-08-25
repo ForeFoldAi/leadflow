@@ -136,7 +136,7 @@ resource "aws_ecs_task_definition" "app" {
         },
         {
           name  = "JWT_SECRET"
-          value = "your-jwt-secret-change-in-production"
+          value = "c55671afa6ad446ab8a9cf14fac5fa3464e29e4ddbea8af48cf0a4f9c45f2db1645d3158218aed7ee6d8878e3f0637dfba1fb87e4fa0ba739bdd97021d3edc01"
         },
         {
           name  = "CORS_ORIGIN"

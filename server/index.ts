@@ -24,6 +24,7 @@ const corsOptions = {
     const allowedOrigins = [
       process.env.CORS_ORIGIN,
       process.env.FRONTEND_URL,
+      'https://leadflow-rho.vercel.app', // Add your Vercel frontend URL
       ...(process.env.DEV_ORIGINS ? process.env.DEV_ORIGINS.split(',') : []),
       ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [])
     ].filter((origin): origin is string => Boolean(origin));

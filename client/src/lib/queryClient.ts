@@ -37,7 +37,7 @@ export async function apiRequest(
 
   // Build full URL using environment variable
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl.replace(/\/$/, '')}${url}`;
 
   // Prepare headers
   const headers: Record<string, string> = {};
@@ -95,7 +95,7 @@ export const getQueryFn: <T>(options: {
     // Build full URL using environment variable
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
     const url = queryKey.join("/") as string;
-    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl.replace(/\/$/, '')}${url}`;
 
     const res = await fetch(fullUrl, {
       headers,
