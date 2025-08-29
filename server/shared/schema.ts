@@ -110,17 +110,79 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 });
 
+// Name validation for users - only letters, spaces, and dots
+const userNameSchema = z.string()
+  .min(1, "Name is required")
+  .min(2, "Name must be at least 2 characters")
+  .max(50, "Name must be less than 50 characters")
+  .regex(/^[a-zA-Z\s.]+$/, "Name can only contain letters, spaces, and dots")
+  .refine((value) => {
+    // Check if name contains at least one letter
+    return /[a-zA-Z]/.test(value);
+  }, {
+    message: "Name must contain at least one letter"
+  });
+
+// Phone number validation for users - exactly 10 digits with +91 country code
+const userPhoneSchema = z.string()
+  .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits with +91 country code (e.g., +911234567890)")
+  .optional()
+  .or(z.literal(""));
+
+// Company name validation for users - characters and numbers but not full numbers
+const userCompanyNameSchema = z.string()
+  .min(1, "Company name is required")
+  .min(2, "Company name must be at least 2 characters")
+  .max(100, "Company name must be less than 100 characters")
+  .refine((value) => {
+    // Must contain at least one letter
+    if (!/[a-zA-Z]/.test(value)) {
+      return false;
+    }
+    // Cannot be all numbers
+    if (/^\d+$/.test(value)) {
+      return false;
+    }
+    // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
+    return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
+  }, {
+    message: "Company name must contain letters and can include numbers, but cannot be all numbers"
+  });
+
+// Password strength validation for users
+const userPasswordSchema = z.string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password must be less than 128 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+  .refine((value) => {
+    // Check for common passwords (basic check)
+    const commonPasswords = [
+      'password', '123456', '123456789', 'qwerty', 'abc123', 'password123',
+      'admin', 'letmein', 'welcome', 'monkey', 'dragon', 'master'
+    ];
+    return !commonPasswords.includes(value.toLowerCase());
+  }, {
+    message: "Password is too common. Please choose a more secure password"
+  });
+
 export const insertUserSchema = createInsertSchema(users, {
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(1, "Name is required"),
+  email: z.string()
+    .min(1, "Email is required")
+    .email("Invalid email address")
+    .max(254, "Email must be less than 254 characters")
+    .toLowerCase(),
+  password: userPasswordSchema,
+  name: userNameSchema,
   role: z.enum(["admin", "user", "manager", "other"]).default("user"),
   customRole: z.string().max(50, "Maximum 50 characters allowed").optional(),
-  companyName: z.string().min(1, "Company name is required"),
+  companyName: userCompanyNameSchema,
   companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
   industry: z.string().min(1, "Industry is required"),
   website: flexibleUrlSchema.optional().or(z.literal("")),
-  phoneNumber: z.string().regex(/^(\+91[\s\-]?)?[6-9]\d{9}$|^\+?[\d\s\-\(\)]+$/, "Please enter a valid Indian phone number (e.g., +91 9876543210 or 9876543210)").optional().or(z.literal("")),
+  phoneNumber: userPhoneSchema,
   subscriptionStatus: z.enum(["trial", "active", "cancelled", "expired"]).default("trial"),
   subscriptionPlan: z.enum(["basic", "professional", "enterprise"]).default("basic"),
 }).omit({ id: true, createdAt: true, updatedAt: true, isActive: true });
