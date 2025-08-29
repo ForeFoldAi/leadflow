@@ -198,9 +198,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.leadsByCategory?.potential || 0).toLocaleString()}
               </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
-                      <TrendingUp size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>12%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Week</span>
                     </div>
                   </div>
                   
@@ -237,9 +236,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.followupPending || 0).toLocaleString()}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-red-600">
-                      <TrendingDown size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>5%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Week</span>
                     </div>
                       </div>
                   
@@ -282,9 +280,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.qualifiedLeads || 0).toLocaleString()}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
-                      <TrendingUp size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>8%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Week</span>
                     </div>
                   </div>
                   
@@ -321,9 +318,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.hotLeads || 0).toLocaleString()}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
-                      <TrendingUp size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>15%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Week</span>
                     </div>
                   </div>
                   
@@ -360,9 +356,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.convertedLeads || 0).toLocaleString()}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
-                      <TrendingUp size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>22%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Month</span>
                     </div>
                   </div>
                   
@@ -399,9 +394,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.lostLeads || 0).toLocaleString()}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-red-600">
-                      <TrendingDown size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>18%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Month</span>
                     </div>
                   </div>
                   
@@ -438,9 +432,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {`${analytics.conversionRate || 0}%`}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
-                      <TrendingUp size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>7%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>This Month</span>
                     </div>
                   </div>
                   
@@ -477,9 +470,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {`${analytics.averageTimeToConvert || 0}`}
                     </div>
-                    <div className="flex items-center space-x-1 text-xs font-medium text-red-600">
-                      <TrendingDown size={8} className="sm:w-2.5 sm:h-2.5" />
-                      <span>12%</span>
+                    <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
+                      <span>Average</span>
                     </div>
                   </div>
                   

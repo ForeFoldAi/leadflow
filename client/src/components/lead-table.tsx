@@ -317,13 +317,13 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader className="px-2 sm:px-3 md:px-6 py-2 sm:py-3 md:py-4 border-b border-gray-200">
-        {/* Mobile-Optimized Header */}
+        {/* Desktop-Optimized Header */}
         <div className="space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
-          {/* Title */}
-          <CardTitle className="text-xl sm:text-2xl font-semibold text-gray-900">Leads View</CardTitle>
+          {/* Title - Made Bold */}
+          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">Leads View</CardTitle>
           
-          {/* Action Buttons - Horizontal Grid Layout */}
-          <div className="grid w-full grid-cols-3 gap-2 sm:gap-3">
+          {/* Action Buttons - Smaller Size on Right Side */}
+          <div className="flex gap-2 sm:gap-3">
             <ImportDialog onImportSuccess={() => {
               console.log("ImportDialog onImportSuccess called - invalidating queries");
               // Invalidate all leads-related queries
@@ -337,11 +337,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             {exportFilters && <ExportDialog currentFilters={exportFilters} />}
             {onAddNewLead && (
               <Button 
-                className="btn-impressive-primary text-sm sm:text-base whitespace-nowrap flex-shrink-0 px-3 py-3 sm:px-4 sm:py-3 w-full"
+                className="btn-impressive-primary text-xs sm:text-sm whitespace-nowrap flex-shrink-0 px-2 py-2 sm:px-3 sm:py-2"
                 onClick={onAddNewLead}
                 data-testid="button-add-lead"
               >
-                <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 icon" />
+                <Plus className="mr-1 h-3 w-3 sm:h-4 sm:w-4 icon" />
                 <span>Add Lead</span>
               </Button>
             )}

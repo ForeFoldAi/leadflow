@@ -164,14 +164,14 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
         </div>
       </div>
 
-      {/* Filters - Horizontal on Mobile */}
-      <div className="flex flex-row flex-wrap gap-2 sm:gap-3">
+      {/* Filters - Horizontal Layout for Desktop, Stacked for Mobile */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         {/* Multi-select Status Filter with Checkboxes */}
         <Popover open={isStatusPopoverOpen} onOpenChange={setIsStatusPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="justify-between text-left font-normal h-10 text-xs sm:text-sm flex-1 sm:flex-none min-w-[120px]"
+              className="justify-between text-left font-normal h-10 text-xs sm:text-sm w-full sm:w-auto sm:min-w-[140px]"
               data-testid="status-filter-trigger"
             >
               <span className="truncate">{getStatusDisplayText()}</span>
@@ -252,7 +252,7 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
         </Popover>
 
         <Select value={filters.category || "all"} onValueChange={(value) => updateFilter("category", value)}>
-          <SelectTrigger className="h-10 text-xs sm:text-sm flex-1 sm:flex-none min-w-[120px]" data-testid="select-category">
+          <SelectTrigger className="h-10 text-xs sm:text-sm w-full sm:w-auto sm:min-w-[140px]" data-testid="select-category">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
@@ -263,7 +263,7 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
         </Select>
 
         <Select value={filters.city || "all"} onValueChange={(value) => updateFilter("city", value)}>
-          <SelectTrigger className="h-10 text-xs sm:text-sm flex-1 sm:flex-none min-w-[120px]" data-testid="select-city">
+          <SelectTrigger className="h-10 text-xs sm:text-sm w-full sm:w-auto sm:min-w-[140px]" data-testid="select-city">
             <SelectValue placeholder="All Cities" />
           </SelectTrigger>
           <SelectContent>

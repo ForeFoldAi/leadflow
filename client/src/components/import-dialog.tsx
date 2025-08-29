@@ -341,8 +341,8 @@ export default function ImportDialog({ onImportSuccess }: ImportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="btn-impressive-secondary text-sm sm:text-base whitespace-nowrap flex-shrink-0 px-3 py-3 sm:px-4 sm:py-3 w-full" data-testid="button-import-leads">
-          <Download className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 icon" />
+        <Button className="btn-impressive-secondary text-xs sm:text-sm whitespace-nowrap flex-shrink-0 px-2 py-2 sm:px-3 sm:py-2" data-testid="button-import-leads">
+          <Download className="mr-1 h-3 w-3 sm:h-4 sm:w-4 icon" />
           <span>Import</span>
         </Button>
       </DialogTrigger>
