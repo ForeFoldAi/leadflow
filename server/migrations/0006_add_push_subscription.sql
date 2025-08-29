@@ -1,0 +1,1 @@
+ALTER TABLE "notification_settings" ADD COLUMN "push_subscription" jsonb; 

@@ -112,17 +112,31 @@ export class SqlStorage implements IStorage {
       ssl: {
         rejectUnauthorized: false // Required for AWS RDS
       },
-      // Additional connection options for better reliability
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
-      query_timeout: 30000, // Query timeout of 30 seconds
-      statement_timeout: 30000, // Statement timeout of 30 seconds
+      // Production-optimized connection options
+      max: process.env.NODE_ENV === 'production' ? 50 : 20, // More connections in production
+      idleTimeoutMillis: process.env.NODE_ENV === 'production' ? 60000 : 30000, // Longer idle timeout in production
+      connectionTimeoutMillis: process.env.NODE_ENV === 'production' ? 15000 : 10000, // Longer connection timeout in production
+      query_timeout: process.env.NODE_ENV === 'production' ? 60000 : 30000, // Longer query timeout in production
+      statement_timeout: process.env.NODE_ENV === 'production' ? 60000 : 30000, // Longer statement timeout in production
+      // Production-specific optimizations
+      ...(process.env.NODE_ENV === 'production' && {
+        application_name: 'leadflow-server',
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10000
+      })
     });
     
-    // Handle pool errors
+    // Handle pool errors with production-specific logging
     this.pool.on('error', (err: any) => {
-      console.error('Unexpected error on idle client', err);
+      if (process.env.NODE_ENV === 'production') {
+        console.error('Database pool error:', {
+          message: err.message,
+          code: err.code,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        console.error('Unexpected error on idle client', err);
+      }
     });
     
     this.db = drizzle(this.pool);
@@ -680,7 +694,12 @@ export class SqlStorage implements IStorage {
       console.error("Error fetching security settings:", error);
       
       // If the error is due to missing columns, return a default object
-      if (error instanceof Error && error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+      if (error instanceof Error && error.message && (
+        error.message.includes('column') && error.message.includes('does not exist') ||
+        error.message.includes('two_factor_method') ||
+        error.message.includes('two_factor_secret') ||
+        error.message.includes('two_factor_backup_codes')
+      )) {
         console.log("Security settings table missing 2FA columns, returning default object");
         return {
           id: 'default',
@@ -705,11 +724,24 @@ export class SqlStorage implements IStorage {
 
   async createSecuritySettings(settings: InsertSecuritySettings): Promise<SecuritySettings> {
     try {
+      // Filter out columns that might not exist in the database yet
+      const safeSettings: any = {};
+      const allowedColumns = [
+        'userId', 'twoFactorEnabled', 'loginNotifications', 'sessionTimeout', 'apiKey', 
+        'lastPasswordChange', 'lastTwoFactorSetup'
+      ];
+      
+      Object.keys(settings).forEach(key => {
+        if (allowedColumns.includes(key)) {
+          safeSettings[key] = (settings as any)[key];
+        }
+      });
+      
       const result = await this.db
         .insert(securitySettings)
         .values({
-          ...settings,
-          lastPasswordChange: settings.lastPasswordChange ? new Date(settings.lastPasswordChange) : null
+          ...safeSettings,
+          lastPasswordChange: safeSettings.lastPasswordChange ? new Date(safeSettings.lastPasswordChange) : null
         })
         .returning();
       return result[0];
@@ -717,7 +749,12 @@ export class SqlStorage implements IStorage {
       console.error("Error creating security settings:", error);
       
       // If the error is due to missing columns, return a mock created object
-      if (error instanceof Error && error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+      if (error instanceof Error && error.message && (
+        error.message.includes('column') && error.message.includes('does not exist') ||
+        error.message.includes('two_factor_method') ||
+        error.message.includes('two_factor_secret') ||
+        error.message.includes('two_factor_backup_codes')
+      )) {
         console.log("Security settings table missing 2FA columns, returning mock created object");
         return {
           id: 'mock',
@@ -743,13 +780,38 @@ export class SqlStorage implements IStorage {
   async updateSecuritySettings(userId: string, settings: Partial<InsertSecuritySettings>): Promise<SecuritySettings | undefined> {
     try {
       const updateData: any = { ...settings };
+      
+      // Handle date fields properly
       if (settings.lastPasswordChange) {
-        updateData.lastPasswordChange = new Date(settings.lastPasswordChange);
+        updateData.lastPasswordChange = new Date(settings.lastPasswordChange).toISOString();
       }
+      if (settings.lastTwoFactorSetup) {
+        updateData.lastTwoFactorSetup = new Date(settings.lastTwoFactorSetup).toISOString();
+      }
+      
+      // Remove undefined values to prevent database errors
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+      
+      // Filter out columns that might not exist in the database yet
+      const safeUpdateData: any = {};
+      const allowedColumns = [
+        'twoFactorEnabled', 'loginNotifications', 'sessionTimeout', 'apiKey', 
+        'lastPasswordChange', 'lastTwoFactorSetup', 'updatedAt'
+      ];
+      
+      Object.keys(updateData).forEach(key => {
+        if (allowedColumns.includes(key)) {
+          safeUpdateData[key] = updateData[key];
+        }
+      });
       
       const result = await this.db
         .update(securitySettings)
-        .set(updateData)
+        .set(safeUpdateData)
         .where(eq(securitySettings.userId, userId))
         .returning();
       return result[0];
@@ -757,7 +819,12 @@ export class SqlStorage implements IStorage {
       console.error("Error updating security settings:", error);
       
       // If the error is due to missing columns, return a mock updated object
-      if (error instanceof Error && error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+      if (error instanceof Error && error.message && (
+        error.message.includes('column') && error.message.includes('does not exist') ||
+        error.message.includes('two_factor_method') ||
+        error.message.includes('two_factor_secret') ||
+        error.message.includes('two_factor_backup_codes')
+      )) {
         console.log("Security settings table missing 2FA columns, returning mock updated object");
         return {
           id: 'mock',
@@ -783,6 +850,25 @@ export class SqlStorage implements IStorage {
   generateApiKey(): string {
     const apiKey = crypto.randomBytes(32).toString('hex');
     return apiKey;
+  }
+
+  // Production health check method
+  async healthCheck(): Promise<{ status: string; timestamp: string; database: string }> {
+    try {
+      // Test database connection
+      await this.pool.query('SELECT 1');
+      return {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        database: 'connected'
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        database: 'disconnected'
+      };
+    }
   }
 
   // Notification Logs operations

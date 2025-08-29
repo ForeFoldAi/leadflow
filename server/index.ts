@@ -3,6 +3,32 @@ import { registerRoutes } from "./routes.js";
 import { config } from "dotenv";
 import cors from "cors";
 import session from "express-session";
+import { storage } from "./storage.js";
+
+// Import session store for production
+let sessionStore: any;
+if (process.env.NODE_ENV === 'production') {
+  try {
+    const pgSession = require('connect-pg-simple')(session);
+    sessionStore = new pgSession({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      },
+      tableName: 'user_sessions'
+    });
+  } catch (error) {
+    console.warn('Failed to initialize PostgreSQL session store, falling back to MemoryStore');
+    sessionStore = undefined;
+  }
+}
+
+// Simple rate limiting for production
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per window
 
 // Simple logging function
 function log(message: string) {
@@ -12,6 +38,23 @@ function log(message: string) {
 
 // Load environment variables from .env file
 config();
+
+// Validate required environment variables for production
+if (process.env.NODE_ENV === 'production') {
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'SESSION_SECRET',
+    'CORS_ORIGIN',
+    'FRONTEND_URL'
+  ];
+  
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.error('Missing required environment variables for production:', missingVars);
+    process.exit(1);
+  }
+}
 
 const app = express();
 
@@ -43,7 +86,45 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Configure session middleware
+// Security headers and rate limiting for production
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (process.env.NODE_ENV === 'production') {
+    // Security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    
+    // HSTS header for HTTPS
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    
+    // Rate limiting
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    const now = Date.now();
+    const clientData = rateLimitMap.get(clientIP);
+    
+    if (!clientData || now > clientData.resetTime) {
+      rateLimitMap.set(clientIP, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    } else if (clientData.count >= RATE_LIMIT_MAX_REQUESTS) {
+      return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+    } else {
+      clientData.count++;
+    }
+    
+    // Clean up old entries
+    if (Math.random() < 0.01) { // 1% chance to clean up
+      for (const [ip, data] of rateLimitMap.entries()) {
+        if (now > data.resetTime) {
+          rateLimitMap.delete(ip);
+        }
+      }
+    }
+  }
+  next();
+});
+
+// Configure session middleware with production optimizations
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev-secret',
   name: process.env.SESSION_NAME || 'leadconnect-session',
@@ -53,8 +134,11 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax'
-  }
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    domain: process.env.NODE_ENV === 'production' ? '.leadsflowforefoldai.com' : undefined
+  },
+  // Production session store configuration
+  store: sessionStore
 }));
 
 // Configure body parsers with larger limits for file uploads and imports
@@ -76,15 +160,28 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+      
+      // Production logging - be more selective about what we log
+      if (process.env.NODE_ENV === 'production') {
+        // Only log errors and important operations in production
+        if (res.statusCode >= 400 || path.includes('/auth') || path.includes('/leads')) {
+          if (capturedJsonResponse && res.statusCode >= 400) {
+            logLine += ` :: Error: ${JSON.stringify(capturedJsonResponse)}`;
+          }
+          log(logLine);
+        }
+      } else {
+        // Development logging - more verbose
+        if (capturedJsonResponse) {
+          logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        }
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
+        if (logLine.length > 80) {
+          logLine = logLine.slice(0, 79) + "…";
+        }
 
-      log(logLine);
+        log(logLine);
+      }
     }
   });
 
@@ -93,6 +190,28 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Health check endpoint for production monitoring
+  app.get('/health', async (req: Request, res: Response) => {
+    try {
+      const dbHealth = await storage.healthCheck();
+      res.status(200).json({ 
+        status: dbHealth.status, 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        uptime: process.uptime(),
+        database: dbHealth.database
+      });
+    } catch (error) {
+      res.status(503).json({ 
+        status: 'unhealthy', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        uptime: process.uptime(),
+        database: 'error'
+      });
+    }
+  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Express error handler:', err);
@@ -110,8 +229,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       });
     }
     
+    // Production error handling - don't expose internal errors
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const message = process.env.NODE_ENV === 'production' 
+      ? (status === 500 ? "Internal Server Error" : err.message || "An error occurred")
+      : err.message || "Internal Server Error";
 
     res.status(status).json({ error: message });
   });
@@ -124,7 +246,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '3000', 10);
-  server.listen(port, () => {
-    log(`serving on port ${port}`);
+  server.listen(port, '0.0.0.0', () => {
+    log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
+    log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    log(`Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
   });
 })();

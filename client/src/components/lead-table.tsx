@@ -316,11 +316,14 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
   return (
     <Card className="border border-gray-200 shadow-sm">
-      <CardHeader className="px-3 md:px-6 py-3 md:py-4 border-b border-gray-200">
-        {/* Action Buttons Row */}
-        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <CardTitle className="text-base md:text-lg font-semibold text-gray-900">Leads View</CardTitle>
-          <div className="flex flex-row flex-wrap gap-2 sm:gap-3">
+      <CardHeader className="px-2 sm:px-3 md:px-6 py-2 sm:py-3 md:py-4 border-b border-gray-200">
+        {/* Mobile-Optimized Header */}
+        <div className="space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+          {/* Title */}
+          <CardTitle className="text-xl sm:text-2xl font-semibold text-gray-900">Leads View</CardTitle>
+          
+          {/* Action Buttons - Horizontal Grid Layout */}
+          <div className="grid w-full grid-cols-3 gap-2 sm:gap-3">
             <ImportDialog onImportSuccess={() => {
               console.log("ImportDialog onImportSuccess called - invalidating queries");
               // Invalidate all leads-related queries
@@ -334,13 +337,12 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             {exportFilters && <ExportDialog currentFilters={exportFilters} />}
             {onAddNewLead && (
               <Button 
-                className="btn-impressive-primary text-xs sm:text-sm min-w-fit"
+                className="btn-impressive-primary text-sm sm:text-base whitespace-nowrap flex-shrink-0 px-3 py-3 sm:px-4 sm:py-3 w-full"
                 onClick={onAddNewLead}
                 data-testid="button-add-lead"
               >
-                <Plus className="mr-1 h-3 w-3 sm:h-4 sm:w-4 icon" />
-                <span className="hidden xs:inline">Add New Lead</span>
-                <span className="xs:hidden">Add Lead</span>
+                <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 icon" />
+                <span>Add Lead</span>
               </Button>
             )}
           </div>
@@ -348,33 +350,36 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
         {/* Filters Row */}
         {onFiltersChange && (
-          <div className="mb-3 md:mb-4">
+          <div className="mt-4 sm:mt-6">
             <LeadFilters filters={filters} onFiltersChange={onFiltersChange} />
           </div>
         )}
 
-        {/* Legend and Column Toggles Row */}
-        <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
-          <div className="flex flex-col space-y-2">
-            <div className="text-xs md:text-sm font-medium text-gray-700">Next Followup Date</div>
-            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs">
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-red-100 border-l-4 border-red-500 rounded-sm shadow-sm"></div>
+        {/* Mobile-Optimized Controls Row */}
+        <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+          {/* Legend - Mobile Compact */}
+          <div className="space-y-3">
+            <div className="text-sm sm:text-base font-medium text-gray-700">Next Followup Date</div>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-red-100 border-l-4 border-red-500 rounded-sm shadow-sm"></div>
                 <span className="text-red-800 font-medium">Overdue</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-sm shadow-sm"></div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-yellow-100 border-l-4 border-yellow-500 rounded-sm shadow-sm"></div>
                 <span className="text-yellow-800 font-medium">Due Soon</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-green-100 border-l-4 border-green-500 rounded-sm shadow-sm"></div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-green-100 border-l-4 border-green-500 rounded-sm shadow-sm"></div>
                 <span className="text-green-800 font-medium">Future</span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          
+          {/* View Controls - Mobile Optimized */}
+          <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3">
             {/* View Mode Toggle */}
-            <div className="flex items-center space-x-1 border border-gray-200 rounded-md p-1">
+            <div className="flex items-center justify-center sm:justify-start border border-gray-200 rounded-lg p-1 bg-gray-50">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -382,9 +387,9 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       variant={currentView === 'table' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setCurrentView('table')}
-                      className="h-6 md:h-7 px-1 md:px-2"
+                      className="h-8 sm:h-9 px-3 sm:px-4 rounded-md"
                     >
-                      <TableIcon className="h-3 w-3" />
+                      <TableIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -399,9 +404,9 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       variant={currentView === 'grid' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setCurrentView('grid')}
-                      className="h-6 md:h-7 px-1 md:px-2"
+                      className="h-8 sm:h-9 px-3 sm:px-4 rounded-md"
                     >
-                      <Grid3X3 className="h-3 w-3" />
+                      <Grid3X3 className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -416,9 +421,9 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       variant={currentView === 'list' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setCurrentView('list')}
-                      className="h-6 md:h-7 px-1 md:px-2"
+                      className="h-8 sm:h-9 px-3 sm:px-4 rounded-md"
                     >
-                      <List className="h-3 w-3" />
+                      <List className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -430,46 +435,27 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             
             {/* Column Toggles - Only show for table view */}
             {currentView === 'table' && (
-              <div className="flex flex-row space-x-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowInterestedColumn(!showInterestedColumn)}
-                        data-testid="toggle-interested-column"
-                        className="text-xs h-7 md:h-8 flex-1 sm:flex-none"
-                      >
-                        {showInterestedColumn ? <Eye className="h-3 w-3 md:h-4 md:w-4" /> : <EyeOff className="h-3 w-3 md:h-4 md:w-4" />}
-                        <span className="hidden sm:inline ml-1">Interested In</span>
-                        <span className="sm:hidden ml-1">Interest</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {showInterestedColumn ? "Hide" : "Show"} Customer Interested In column
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowNotesColumn(!showNotesColumn)}
-                        data-testid="toggle-notes-column"
-                        className="text-xs h-7 md:h-8 flex-1 sm:flex-none"
-                      >
-                        {showNotesColumn ? <Eye className="h-3 w-3 md:h-4 md:w-4" /> : <EyeOff className="h-3 w-3 md:h-4 md:w-4" />}
-                        <span className="ml-1">Notes</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {showNotesColumn ? "Hide" : "Show"} Additional Notes column
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowInterestedColumn(!showInterestedColumn)}
+                  data-testid="toggle-interested-column"
+                  className="h-8 sm:h-9 px-3 sm:px-4 text-sm rounded-lg border-gray-300"
+                >
+                  {showInterestedColumn ? <Eye className="mr-2 h-4 w-4" /> : <EyeOff className="mr-2 h-4 w-4" />}
+                  <span>Interest</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowNotesColumn(!showNotesColumn)}
+                  data-testid="toggle-notes-column"
+                  className="h-8 sm:h-9 px-3 sm:px-4 text-sm rounded-lg border-gray-300"
+                >
+                  {showNotesColumn ? <Eye className="mr-2 h-4 w-4" /> : <EyeOff className="mr-2 h-4 w-4" />}
+                  <span>Notes</span>
+                </Button>
               </div>
             )}
           </div>

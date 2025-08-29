@@ -197,7 +197,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.leadsByCategory?.potential || 0).toLocaleString()}
-                    </div>
+              </div>
                     <div className="flex items-center space-x-1 text-xs font-medium text-green-600">
                       <TrendingUp size={8} className="sm:w-2.5 sm:h-2.5" />
                       <span>12%</span>
@@ -241,7 +241,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <TrendingDown size={8} className="sm:w-2.5 sm:h-2.5" />
                       <span>5%</span>
                     </div>
-                  </div>
+                      </div>
                   
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-amber-700">Due This Week</span>
@@ -253,7 +253,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                         return diffDays >= 0 && diffDays <= 7;
                       }).length || 0}
-                    </span>
+                      </span>
                   </div>
                 </div>
               </CardContent>
@@ -314,7 +314,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                   <div className="p-1.5 sm:p-2 bg-orange-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
                   </div>
-                </div>
+                      </div>
                 
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
@@ -392,7 +392,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                   <div className="p-1.5 sm:p-2 bg-red-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                   </div>
-                </div>
+                      </div>
                 
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
@@ -431,7 +431,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                   <div className="p-1.5 sm:p-2 bg-teal-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-teal-600" />
                   </div>
-                </div>
+                      </div>
                 
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
@@ -506,51 +506,51 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                 <div className="p-2 sm:p-3 bg-cyan-50 rounded-lg">
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
                 </div>
-              </div>
+                      </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {/* Overdue */}
                 <div className="text-center group">
                   <div className="bg-red-50 rounded-xl p-3 sm:p-4 group-hover:bg-red-100 transition-colors duration-200">
                     <div className="text-xl sm:text-2xl font-bold text-red-600 mb-1 sm:mb-2">
-                      {analytics.next7DaysFollowups?.filter((f: any) => {
-                        const date = new Date(f.nextFollowupDate);
-                        return date < new Date();
-                      }).length || 0}
+                        {analytics.next7DaysFollowups?.filter((f: any) => {
+                          const date = new Date(f.nextFollowupDate);
+                          return date < new Date();
+                        }).length || 0}
                     </div>
                     <div className="text-xs font-semibold text-red-700 mb-1">Overdue</div>
                     <div className="text-xs text-red-600">Requires immediate attention</div>
                   </div>
-                </div>
+                      </div>
                 
                 {/* Due Soon */}
                 <div className="text-center group">
                   <div className="bg-amber-50 rounded-xl p-3 sm:p-4 group-hover:bg-amber-100 transition-colors duration-200">
                     <div className="text-xl sm:text-2xl font-bold text-amber-600 mb-1 sm:mb-2">
-                      {analytics.next7DaysFollowups?.filter((f: any) => {
-                        const date = new Date(f.nextFollowupDate);
-                        const today = new Date();
-                        const diffTime = date.getTime() - today.getTime();
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        return diffDays >= 0 && diffDays <= 7;
-                      }).length || 0}
+                        {analytics.next7DaysFollowups?.filter((f: any) => {
+                          const date = new Date(f.nextFollowupDate);
+                          const today = new Date();
+                          const diffTime = date.getTime() - today.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          return diffDays >= 0 && diffDays <= 7;
+                        }).length || 0}
                     </div>
                     <div className="text-xs font-semibold text-amber-700 mb-1">Due This Week</div>
                     <div className="text-xs text-amber-600">Plan your outreach</div>
                   </div>
-                </div>
+                      </div>
                 
                 {/* Future */}
                 <div className="text-center group">
                   <div className="bg-blue-50 rounded-xl p-3 sm:p-4 group-hover:bg-blue-100 transition-colors duration-200">
                     <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1 sm:mb-2">
-                      {analytics.next7DaysFollowups?.filter((f: any) => {
-                        const date = new Date(f.nextFollowupDate);
-                        const today = new Date();
-                        const diffTime = date.getTime() - today.getTime();
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        return diffDays > 7;
-                      }).length || 0}
+                        {analytics.next7DaysFollowups?.filter((f: any) => {
+                          const date = new Date(f.nextFollowupDate);
+                          const today = new Date();
+                          const diffTime = date.getTime() - today.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          return diffDays > 7;
+                        }).length || 0}
                     </div>
                     <div className="text-xs font-semibold text-blue-700 mb-1">Future</div>
                     <div className="text-xs text-blue-600">Scheduled ahead</div>

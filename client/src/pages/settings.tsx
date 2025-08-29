@@ -595,33 +595,33 @@ export default function Settings() {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
-          <p className="mt-1 text-sm text-gray-600">Manage your account settings and preferences</p>
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
+          <p className="mt-1 text-xs sm:text-sm text-gray-600">Manage your account settings and preferences</p>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Profile
+        <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-5 gap-1 sm:gap-2">
+            <TabsTrigger value="profile" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
+              <User className="h-4 w-4 sm:h-4 sm:w-4" />
+              <span className="text-center">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notifications
+            <TabsTrigger value="notifications" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
+              <Bell className="h-4 w-4 sm:h-4 sm:w-4" />
+              <span className="text-center">Notif</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Security
+            <TabsTrigger value="security" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
+              <Shield className="h-4 w-4 sm:h-4 sm:w-4" />
+              <span className="text-center">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
-              <SettingsIcon className="h-4 w-4" />
-              Preferences
+            <TabsTrigger value="preferences" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
+              <SettingsIcon className="h-4 w-4 sm:h-4 sm:w-4" />
+              <span className="text-center">Prefs</span>
             </TabsTrigger>
-            <TabsTrigger value="data" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Data
+            <TabsTrigger value="data" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
+              <Database className="h-4 w-4 sm:h-4 sm:w-4" />
+              <span className="text-center">Data</span>
             </TabsTrigger>
           </TabsList>
 
@@ -634,38 +634,40 @@ export default function Settings() {
                   Update your account details and password
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm">Full Name</Label>
+              <CardContent className="p-4 sm:p-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="name" className="text-xs sm:text-sm">Full Name</Label>
                     <Input
                       id="name"
                       type="text"
                       placeholder="John Doe"
+                      className="text-sm sm:text-base"
                       {...form.register("name")}
                       data-testid="input-name"
                     />
                     {form.formState.errors.name && (
-                      <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.name.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm">Email</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="john@example.com"
+                      className="text-sm sm:text-base"
                       {...form.register("email")}
                       data-testid="input-email"
                     />
                     {form.formState.errors.email && (
-                      <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.email.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm">Role</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="role" className="text-xs sm:text-sm">Role</Label>
                     <Select value={form.watch("role")} onValueChange={(value) => {
                       form.setValue("role", value as "user" | "manager" | "other");
                       setSelectedRole(value);
@@ -673,7 +675,7 @@ export default function Settings() {
                         form.setValue("customRole", "");
                       }
                     }}>
-                      <SelectTrigger data-testid="select-role">
+                      <SelectTrigger className="text-sm sm:text-base" data-testid="select-role">
                         <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
                       <SelectContent>
@@ -683,44 +685,46 @@ export default function Settings() {
                       </SelectContent>
                     </Select>
                     {form.formState.errors.role && (
-                      <p className="text-sm text-red-600">{form.formState.errors.role.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.role.message}</p>
                     )}
                   </div>
 
                   {selectedRole === "other" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="customRole" className="text-sm">Specify Role</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="customRole" className="text-xs sm:text-sm">Specify Role</Label>
                       <Input
                         id="customRole"
                         type="text"
                         placeholder="Enter your role"
+                        className="text-sm sm:text-base"
                         {...form.register("customRole")}
                         data-testid="input-custom-role"
                       />
                       {form.formState.errors.customRole && (
-                        <p className="text-sm text-red-600">{form.formState.errors.customRole.message}</p>
+                        <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.customRole.message}</p>
                       )}
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName" className="text-sm">Company Name</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="companyName" className="text-xs sm:text-sm">Company Name</Label>
                     <Input
                       id="companyName"
                       type="text"
                       placeholder="Acme Corporation"
+                      className="text-sm sm:text-base"
                       {...form.register("companyName")}
                       data-testid="input-company-name"
                     />
                     {form.formState.errors.companyName && (
-                      <p className="text-sm text-red-600">{form.formState.errors.companyName.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.companyName.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="companySize" className="text-sm">Company Size</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="companySize" className="text-xs sm:text-sm">Company Size</Label>
                     <Select value={form.watch("companySize")} onValueChange={(value) => form.setValue("companySize", value as any)}>
-                      <SelectTrigger data-testid="select-company-size">
+                      <SelectTrigger className="text-sm sm:text-base" data-testid="select-company-size">
                         <SelectValue placeholder="Select company size" />
                       </SelectTrigger>
                       <SelectContent>
@@ -733,64 +737,68 @@ export default function Settings() {
                       </SelectContent>
                     </Select>
                     {form.formState.errors.companySize && (
-                      <p className="text-sm text-red-600">{form.formState.errors.companySize.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.companySize.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="industry" className="text-sm">Industry</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="industry" className="text-xs sm:text-sm">Industry</Label>
                     <Input
                       id="industry"
                       type="text"
                       placeholder="Technology, Healthcare, Finance, etc."
+                      className="text-sm sm:text-base"
                       {...form.register("industry")}
                       data-testid="input-industry"
                     />
                     {form.formState.errors.industry && (
-                      <p className="text-sm text-red-600">{form.formState.errors.industry.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.industry.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="website" className="text-sm">Website (Optional)</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="website" className="text-xs sm:text-sm">Website (Optional)</Label>
                     <Input
                       id="website"
                       type="url"
                       placeholder="https://www.example.com"
+                      className="text-sm sm:text-base"
                       {...form.register("website")}
                       data-testid="input-website"
                     />
                     {form.formState.errors.website && (
-                      <p className="text-sm text-red-600">{form.formState.errors.website.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.website.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumber" className="text-sm">Phone Number (Optional)</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="phoneNumber" className="text-xs sm:text-sm">Phone Number (Optional)</Label>
                     <Input
                       id="phoneNumber"
                       type="tel"
                       placeholder="+1 (555) 123-4567"
+                      className="text-sm sm:text-base"
                       {...form.register("phoneNumber")}
                       data-testid="input-phone-number"
                     />
                     {form.formState.errors.phoneNumber && (
-                      <p className="text-sm text-red-600">{form.formState.errors.phoneNumber.message}</p>
+                      <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.phoneNumber.message}</p>
                     )}
                   </div>
 
                   <Separator />
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Change Password</h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    <h3 className="text-base sm:text-lg font-medium">Change Password</h3>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="currentPassword">Current Password</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="currentPassword" className="text-xs sm:text-sm">Current Password</Label>
                       <div className="relative">
                         <Input
                           id="currentPassword"
                           type={showCurrentPassword ? "text" : "password"}
                           placeholder="Enter current password"
+                          className="text-sm sm:text-base"
                           {...form.register("currentPassword")}
                           data-testid="input-current-password"
                         />
@@ -798,21 +806,22 @@ export default function Settings() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute right-0 top-0 h-full px-2 sm:px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         >
-                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showCurrentPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                         </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="newPassword" className="text-xs sm:text-sm">New Password</Label>
                       <div className="relative">
                         <Input
                           id="newPassword"
                           type={showNewPassword ? "text" : "password"}
                           placeholder="Enter new password"
+                          className="text-sm sm:text-base"
                           {...form.register("newPassword")}
                           data-testid="input-new-password"
                         />
@@ -820,21 +829,22 @@ export default function Settings() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute right-0 top-0 h-full px-2 sm:px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowNewPassword(!showNewPassword)}
                         >
-                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showNewPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                         </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">Confirm Password</Label>
                       <div className="relative">
                         <Input
                           id="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirm new password"
+                          className="text-sm sm:text-base"
                           {...form.register("confirmPassword")}
                           data-testid="input-confirm-password"
                         />
@@ -842,14 +852,14 @@ export default function Settings() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute right-0 top-0 h-full px-2 sm:px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showConfirmPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                         </Button>
                       </div>
                       {form.formState.errors.confirmPassword && (
-                        <p className="text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
+                        <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
                       )}
                     </div>
                   </div>
@@ -858,13 +868,14 @@ export default function Settings() {
                     <Button
                       type="submit"
                       disabled={updateProfileMutation.isPending}
+                      className="text-xs sm:text-sm px-3 sm:px-4 py-2"
                       data-testid="button-save-profile"
                     >
                       {updateProfileMutation.isPending ? (
                         "Saving..."
                       ) : (
                         <>
-                          <Save className="mr-2 h-4 w-4" />
+                          <Save className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                           Save Changes
                         </>
                       )}
@@ -876,7 +887,7 @@ export default function Settings() {
           </TabsContent>
 
           {/* Notifications Tab */}  
-          <TabsContent value="notifications" className="space-y-6">
+          <TabsContent value="notifications" className="space-y-4 sm:space-y-6">
             <NotificationDisplay />
             
             <Card>
@@ -889,11 +900,11 @@ export default function Settings() {
                   Choose which email notifications you'd like to receive
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="new-leads">New Lead Notifications</Label>
-                    <p className="text-sm text-gray-500">Get notified when new leads are added</p>
+                    <Label htmlFor="new-leads" className="text-xs sm:text-sm">New Lead Notifications</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Get notified when new leads are added</p>
                   </div>
                   <Switch 
                     id="new-leads" 
@@ -904,8 +915,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="follow-ups">Follow-up Reminders</Label>
-                    <p className="text-sm text-gray-500">Receive reminders for scheduled follow-ups</p>
+                    <Label htmlFor="follow-ups" className="text-xs sm:text-sm">Follow-up Reminders</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Receive reminders for scheduled follow-ups</p>
                   </div>
                   <Switch 
                     id="follow-ups" 
@@ -916,8 +927,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="hot-leads">Hot Lead Alerts</Label>
-                    <p className="text-sm text-gray-500">Get alerted when leads become hot prospects</p>
+                    <Label htmlFor="hot-leads" className="text-xs sm:text-sm">Hot Lead Alerts</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Get alerted when leads become hot prospects</p>
                   </div>
                   <Switch 
                     id="hot-leads" 
@@ -928,8 +939,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="conversions">Conversion Notifications</Label>
-                    <p className="text-sm text-gray-500">Celebrate when leads convert to customers</p>
+                    <Label htmlFor="conversions" className="text-xs sm:text-sm">Conversion Notifications</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Celebrate when leads convert to customers</p>
                   </div>
                   <Switch 
                     id="conversions" 
@@ -951,11 +962,11 @@ export default function Settings() {
                   Configure browser and mobile push notifications
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="browser-push">Browser Notifications</Label>
-                    <p className="text-sm text-gray-500">Show notifications in your browser</p>
+                    <Label htmlFor="browser-push" className="text-xs sm:text-sm">Browser Notifications</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Show notifications in your browser</p>
                   </div>
                   <Switch 
                     id="browser-push" 
@@ -966,8 +977,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="daily-summary">Daily Summary</Label>
-                    <p className="text-sm text-gray-500">Daily digest of your lead activity</p>
+                    <Label htmlFor="daily-summary" className="text-xs sm:text-sm">Daily Summary</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Daily digest of your lead activity</p>
                   </div>
                   <Switch 
                     id="daily-summary" 
@@ -983,13 +994,14 @@ export default function Settings() {
               <Button
                 onClick={handleSaveNotifications}
                 disabled={saveNotificationsMutation.isPending}
+                className="text-xs sm:text-sm px-3 sm:px-4 py-2"
                 data-testid="button-save-notifications"
               >
                 {saveNotificationsMutation.isPending ? (
                   "Saving..."
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Save Notification Settings
                   </>
                 )}
@@ -998,7 +1010,7 @@ export default function Settings() {
           </TabsContent>
 
           {/* Security Tab */}
-          <TabsContent value="security" className="space-y-6">
+          <TabsContent value="security" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1009,23 +1021,24 @@ export default function Settings() {
                   Manage your account security settings
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="two-factor">Two-Factor Authentication</Label>
-                    <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
+                    <Label htmlFor="two-factor" className="text-xs sm:text-sm">Two-Factor Authentication</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Add an extra layer of security to your account</p>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={handleEnable2FA}
                     disabled={enable2FAMutation.isPending || disable2FAMutation.isPending}
+                    className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                     data-testid="button-enable-2fa"
                   >
                     {(enable2FAMutation.isPending || disable2FAMutation.isPending) ? (
                       <>
-                        <ButtonLoader size={14} color="#6b7280" />
-                        <span className="ml-2">
+                        <ButtonLoader size={12} color="#6b7280" />
+                        <span className="ml-1 sm:ml-2 text-xs sm:text-sm">
                           {securitySettings.twoFactorEnabled ? 'Disabling...' : 'Enabling...'}
                         </span>
                       </>
@@ -1036,8 +1049,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Login Notifications</Label>
-                    <p className="text-sm text-gray-500">Get notified of new sign-ins to your account</p>
+                    <Label className="text-xs sm:text-sm">Login Notifications</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Get notified of new sign-ins to your account</p>
                   </div>
                   <Switch 
                     checked={securitySettings.loginNotifications}
@@ -1047,13 +1060,14 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Session Management</Label>
-                    <p className="text-sm text-gray-500">View and manage your active sessions</p>
+                    <Label className="text-xs sm:text-sm">Session Management</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">View and manage your active sessions</p>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={handleManageSessions}
+                    className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                     data-testid="button-manage-sessions"
                   >
                     Manage Sessions
@@ -1071,13 +1085,14 @@ export default function Settings() {
               <Button
                 onClick={handleSaveSecurity}
                 disabled={saveSecurityMutation.isPending}
+                className="text-xs sm:text-sm px-3 sm:px-4 py-2"
                 data-testid="button-save-security"
               >
                 {saveSecurityMutation.isPending ? (
                   "Saving..."
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Save Security Settings
                   </>
                 )}
@@ -1086,7 +1101,7 @@ export default function Settings() {
           </TabsContent>
 
           {/* Preferences Tab */}
-          <TabsContent value="preferences" className="space-y-6">
+          <TabsContent value="preferences" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1097,15 +1112,15 @@ export default function Settings() {
                   Customize your LeadsFlow experience
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Default Lead View</Label>
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm">Default Lead View</Label>
                   <Select 
                     value={preferenceSettings.defaultView} 
                     onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, defaultView: value }))}
                     data-testid="select-default-view"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1115,14 +1130,14 @@ export default function Settings() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Items Per Page</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm">Items Per Page</Label>
                   <Select 
                     value={preferenceSettings.itemsPerPage} 
                     onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, itemsPerPage: value }))}
                     data-testid="select-items-per-page"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1135,8 +1150,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Auto-save Changes</Label>
-                    <p className="text-sm text-gray-500">Automatically save form changes</p>
+                    <Label className="text-xs sm:text-sm">Auto-save Changes</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Automatically save form changes</p>
                   </div>
                   <Switch 
                     checked={preferenceSettings.autoSave}
@@ -1146,8 +1161,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Compact Mode</Label>
-                    <p className="text-sm text-gray-500">Show more data in less space</p>
+                    <Label className="text-xs sm:text-sm">Compact Mode</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Show more data in less space</p>
                   </div>
                   <Switch 
                     checked={preferenceSettings.compactMode}
@@ -1164,13 +1179,14 @@ export default function Settings() {
               <Button
                 onClick={handleSavePreferences}
                 disabled={savePreferencesMutation.isPending}
+                className="text-xs sm:text-sm px-3 sm:px-4 py-2"
                 data-testid="button-save-preferences"
               >
                 {savePreferencesMutation.isPending ? (
                   "Saving..."
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Save Preferences
                   </>
                 )}
@@ -1179,7 +1195,7 @@ export default function Settings() {
           </TabsContent>
 
           {/* Data Tab */}
-          <TabsContent value="data" className="space-y-6">
+          <TabsContent value="data" className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1190,15 +1206,15 @@ export default function Settings() {
                   Manage your data and exports
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Default Export Format</Label>
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm">Default Export Format</Label>
                   <Select 
                     value={preferenceSettings.exportFormat} 
                     onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, exportFormat: value }))}
                     data-testid="select-export-format"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1210,8 +1226,8 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Include Notes in Export</Label>
-                    <p className="text-sm text-gray-500">Add additional notes to exported data</p>
+                    <Label className="text-xs sm:text-sm">Include Notes in Export</Label>
+                    <p className="text-xs sm:text-sm text-gray-500">Add additional notes to exported data</p>
                   </div>
                   <Switch 
                     checked={preferenceSettings.exportNotes}
@@ -1222,17 +1238,18 @@ export default function Settings() {
                 
                 <Separator />
                 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label>Export All Data</Label>
-                      <p className="text-sm text-gray-500">Download all your leads as a file</p>
+                      <Label className="text-xs sm:text-sm">Export All Data</Label>
+                      <p className="text-xs sm:text-sm text-gray-500">Download all your leads as a file</p>
                     </div>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={handleExportData}
                       disabled={exportDataMutation.isPending}
+                      className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                       data-testid="button-export-data"
                     >
                       {exportDataMutation.isPending ? "Exporting..." : "Export Data"}
@@ -1241,14 +1258,15 @@ export default function Settings() {
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-red-600">Delete All Leads</Label>
-                      <p className="text-sm text-red-500">Permanently delete all your leads</p>
+                      <Label className="text-xs sm:text-sm text-red-600">Delete All Leads</Label>
+                      <p className="text-xs sm:text-sm text-red-500">Permanently delete all your leads</p>
                     </div>
                     <Button 
                       variant="destructive" 
                       size="sm" 
                       onClick={handleDeleteAllLeads}
                       disabled={deleteAllLeadsMutation.isPending}
+                      className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                       data-testid="button-delete-all-leads"
                     >
                       {deleteAllLeadsMutation.isPending ? "Deleting..." : "Delete All"}
@@ -1262,13 +1280,14 @@ export default function Settings() {
               <Button
                 onClick={handleSavePreferences}
                 disabled={savePreferencesMutation.isPending}
+                className="text-xs sm:text-sm px-3 sm:px-4 py-2"
                 data-testid="button-save-data-preferences"
               >
                 {savePreferencesMutation.isPending ? (
                   "Saving..."
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Save Data Preferences
                   </>
                 )}
