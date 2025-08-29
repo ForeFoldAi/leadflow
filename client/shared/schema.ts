@@ -59,32 +59,156 @@ export const leads = pgTable("leads", {
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
+// Name validation - only letters, spaces, and dots
+const leadNameSchema = z.string()
+  .min(1, "Name is required")
+  .min(2, "Name must be at least 2 characters")
+  .max(50, "Name must be less than 50 characters")
+  .regex(/^[a-zA-Z\s.]+$/, "Name can only contain letters, spaces, and dots")
+  .refine((value) => {
+    // Check if name contains at least one letter
+    return /[a-zA-Z]/.test(value);
+  }, {
+    message: "Name must contain at least one letter"
+  });
+
+// Phone number validation - exactly 10 digits with +91 country code
+const leadPhoneSchema = z.string()
+  .min(1, "Phone number is required")
+  .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits with +91 country code (e.g., +911234567890)");
+
+// Company name validation - characters and numbers but not full numbers
+const leadCompanyNameSchema = z.string()
+  .max(100, "Company name must be less than 100 characters")
+  .refine((value) => {
+    if (!value || value.trim() === "") return true; // Allow empty
+    // Must contain at least one letter
+    if (!/[a-zA-Z]/.test(value)) {
+      return false;
+    }
+    // Cannot be all numbers
+    if (/^\d+$/.test(value)) {
+      return false;
+    }
+    // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
+    return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
+  }, {
+    message: "Company name must contain letters and can include numbers, but cannot be all numbers"
+  })
+  .optional()
+  .or(z.literal(""));
+
+// Pincode validation - 6 digits for Indian pincodes
+const pincodeSchema = z.string()
+  .regex(/^\d{6}$/, "Pincode must be exactly 6 digits")
+  .optional()
+  .or(z.literal(""));
+
+// Date validation - must be a valid date and not in the future
+const dateSchema = z.string()
+  .refine((value) => {
+    if (!value || value.trim() === "") return true; // Allow empty
+    const date = new Date(value);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+    return !isNaN(date.getTime()) && date <= today;
+  }, {
+    message: "Date cannot be in the future"
+  })
+  .optional()
+  .or(z.literal(""));
+
+// Future date validation - must be a valid date and in the future
+const futureDateSchema = z.string()
+  .refine((value) => {
+    if (!value || value.trim() === "") return true; // Allow empty
+    const date = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    return !isNaN(date.getTime()) && date >= today;
+  }, {
+    message: "Follow-up date must be today or in the future"
+  })
+  .optional()
+  .or(z.literal(""));
+
 export const insertLeadSchema = createInsertSchema(leads, {
   userId: z.string().optional(), // Will be set automatically based on authenticated user
-  name: z.string().min(1, "Name is required"),
-  phoneNumber: z.string().min(1, "Phone number is required").regex(/^(\+91[\s\-]?)?[6-9]\d{9}$|^\+?[\d\s\-\(\)]+$/, "Please enter a valid Indian phone number (e.g., +91 9876543210 or 9876543210)"),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  dateOfBirth: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
-  pincode: z.string().optional(),
-  companyName: z.string().optional(),
-  designation: z.string().optional(),
+  name: leadNameSchema,
+  phoneNumber: leadPhoneSchema,
+  email: z.string()
+    .email("Invalid email address")
+    .max(254, "Email must be less than 254 characters")
+    .toLowerCase()
+    .optional()
+    .or(z.literal("")),
+  dateOfBirth: dateSchema,
+  city: z.string()
+    .max(50, "City must be less than 50 characters")
+    .regex(/^[a-zA-Z\s]+$/, "City can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  state: z.string()
+    .max(50, "State must be less than 50 characters")
+    .regex(/^[a-zA-Z\s]+$/, "State can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  country: z.string()
+    .max(50, "Country must be less than 50 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Country can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  pincode: pincodeSchema,
+  companyName: leadCompanyNameSchema,
+  designation: z.string()
+    .max(50, "Designation must be less than 50 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Designation can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
   customerCategory: z.enum(["existing", "potential"], { required_error: "Customer category is required" }),
-  lastContactedDate: z.string().optional(),
-  lastContactedBy: z.string().max(50, "Maximum 50 characters allowed").optional(),
-  nextFollowupDate: z.string().optional(),
-  customerInterestedIn: z.string().max(100, "Maximum 100 characters allowed").optional(),
+  lastContactedDate: dateSchema,
+  lastContactedBy: z.string()
+    .max(50, "Maximum 50 characters allowed")
+    .regex(/^[a-zA-Z\s]+$/, "Can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  nextFollowupDate: futureDateSchema,
+  customerInterestedIn: z.string()
+    .max(100, "Maximum 100 characters allowed")
+    .optional()
+    .or(z.literal("")),
   preferredCommunicationChannel: z.enum(["email", "phone", "whatsapp", "sms", "in-person", "linkedin", "other"]).optional(),
-  customCommunicationChannel: z.string().max(50, "Maximum 50 characters allowed").optional(),
+  customCommunicationChannel: z.string()
+    .max(50, "Maximum 50 characters allowed")
+    .regex(/^[a-zA-Z\s]+$/, "Can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
   leadSource: z.enum(["website", "referral", "linkedin", "facebook", "twitter", "campaign", "instagram", "generated_by", "on_field", "other"], { required_error: "Lead source is required" }),
-  customLeadSource: z.string().max(50, "Maximum 50 characters allowed").optional(),
-  customReferralSource: z.string().max(50, "Maximum 50 characters allowed").optional(),
-  customGeneratedBy: z.string().max(50, "Maximum 50 characters allowed").optional(),
+  customLeadSource: z.string()
+    .max(50, "Maximum 50 characters allowed")
+    .regex(/^[a-zA-Z\s]+$/, "Can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  customReferralSource: z.string()
+    .max(50, "Maximum 50 characters allowed")
+    .regex(/^[a-zA-Z\s]+$/, "Can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  customGeneratedBy: z.string()
+    .max(50, "Maximum 50 characters allowed")
+    .regex(/^[a-zA-Z\s]+$/, "Can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
   leadStatus: z.enum(["new", "followup", "qualified", "hot", "converted", "lost"], { required_error: "Lead status is required" }),
-  leadCreatedBy: z.string().max(50, "Maximum 50 characters allowed").optional(),
-  additionalNotes: z.string().max(100, "Maximum 100 characters allowed").optional(),
+  leadCreatedBy: z.string()
+    .max(50, "Maximum 50 characters allowed")
+    .regex(/^[a-zA-Z\s]+$/, "Can only contain letters and spaces")
+    .optional()
+    .or(z.literal("")),
+  additionalNotes: z.string()
+    .max(100, "Maximum 100 characters allowed")
+    .optional()
+    .or(z.literal("")),
 }).omit({ id: true, createdAt: true });
 
 export type InsertLead = z.infer<typeof insertLeadSchema>;

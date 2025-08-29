@@ -202,6 +202,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       <Input placeholder="Enter full name" {...field} data-testid="input-name" />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">Only letters, spaces, and dots are allowed</p>
                   </FormItem>
                 )}
               />
@@ -215,9 +216,10 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       Phone Number <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 (555) 123-4567" {...field} data-testid="input-phone" />
+                      <Input placeholder="+911234567890" {...field} data-testid="input-phone" />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">Format: +91 followed by 10 digits</p>
                   </FormItem>
                 )}
               />
@@ -388,9 +390,10 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                   <FormItem>
                     <FormLabel className="text-xs">Pincode/Zipcode</FormLabel>
                     <FormControl>
-                      <Input placeholder="12345" {...field} data-testid="input-pincode" />
+                      <Input placeholder="123456" {...field} data-testid="input-pincode" />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">6 digits for Indian pincodes</p>
                   </FormItem>
                 )}
               />
@@ -416,6 +419,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       <Input placeholder="Enter company name" {...field} data-testid="input-company" />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">Can contain letters, numbers, and business characters</p>
                   </FormItem>
                 )}
               />
@@ -540,6 +544,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       <Input type="date" {...field} data-testid="input-last-contacted-date" />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">Cannot be in the future</p>
                   </FormItem>
                 )}
               />
@@ -580,6 +585,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       <Input type="date" {...field} data-testid="input-next-followup-date" />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">Must be today or in the future</p>
                   </FormItem>
                 )}
               />

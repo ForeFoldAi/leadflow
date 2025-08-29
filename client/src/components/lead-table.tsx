@@ -320,7 +320,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
         {/* Action Buttons Row */}
         <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <CardTitle className="text-base md:text-lg font-semibold text-gray-900">Leads View</CardTitle>
-          <div className="flex flex-row space-x-2 sm:space-x-3">
+          <div className="flex flex-row flex-wrap gap-2 sm:gap-3">
             <ImportDialog onImportSuccess={() => {
               console.log("ImportDialog onImportSuccess called - invalidating queries");
               // Invalidate all leads-related queries
@@ -334,7 +334,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             {exportFilters && <ExportDialog currentFilters={exportFilters} />}
             {onAddNewLead && (
               <Button 
-                className="btn-impressive-primary text-xs sm:text-sm flex-1 sm:flex-none"
+                className="btn-impressive-primary text-xs sm:text-sm min-w-fit"
                 onClick={onAddNewLead}
                 data-testid="button-add-lead"
               >
