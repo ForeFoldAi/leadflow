@@ -134,7 +134,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen flex overflow-hidden">
       {/* Left Side - Hero Section */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <div 
@@ -156,62 +156,62 @@ export default function Login() {
           <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-indigo-200/25 rounded-full blur-md animate-ping"></div>
         </div>
         
-        <div className="relative z-10 flex flex-col justify-center px-12 py-8 text-gray-800 h-screen">
+        <div className="relative z-10 flex flex-col justify-center px-12 py-8 text-gray-800 h-full">
           {/* Logo and Brand */}
-          <div className="mb-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="flex justify-center mb-4">
-                                  <div className="relative">
-                    <img 
-                      src="/logo.png" 
-                      alt="ForeFold AI Logo" 
-                      className="h-20 w-20 transition-transform duration-300 hover:scale-110 drop-shadow-lg"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-0 hover:opacity-10 transition-opacity duration-300 blur-xl"></div>
-                  </div>
+          <div className="mb-4 animate-fade-in">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-3">
+                <div className="relative">
+                  <img 
+                    src="/logo.png" 
+                    alt="ForeFold AI Logo" 
+                    className="h-16 w-16 transition-transform duration-300 hover:scale-110 drop-shadow-lg"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-0 hover:opacity-10 transition-opacity duration-300 blur-xl"></div>
+                </div>
               </div>
               <div>
-                <h1 className="text-6xl font-bold mb-2 drop-shadow-sm bg-gradient-to-r from-gray-800 to-blue-700 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold mb-1 drop-shadow-sm bg-gradient-to-r from-gray-800 to-blue-700 bg-clip-text text-transparent">
                   LeadsFlow
                 </h1>
-                <p className="text-xl text-gray-600 drop-shadow-sm font-medium">
+                <p className="text-lg text-gray-600 drop-shadow-sm font-medium">
                   powered by <span className="text-purple-600 font-semibold">ForeFold AI</span>
                 </p>
               </div>
             </div>
             
             {/* Feature Highlights */}
-            <div className="space-y-3 mb-6">
-              <h2 className="text-xl font-bold mb-3 text-gray-700 drop-shadow-sm">
+            <div className="space-y-2 mb-4">
+              <h2 className="text-lg font-bold mb-2 text-gray-700 drop-shadow-sm">
                 Transform Your Lead Management
               </h2>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <Target className="h-5 w-5 text-white" />
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3 p-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
+                  <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                    <Target className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-gray-800">Onboard Potential Clients</h3>
+                    <h3 className="text-sm font-semibold text-gray-800">Onboard Potential Clients</h3>
                     <p className="text-gray-600 text-xs">Streamline client acquisition process</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
-                  <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <TrendingUp className="h-5 w-5 text-white" />
+                <div className="flex items-center space-x-3 p-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
+                  <div className="p-1.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                    <TrendingUp className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-gray-800">Generate Quality Leads</h3>
+                    <h3 className="text-sm font-semibold text-gray-800">Generate Quality Leads</h3>
                     <p className="text-gray-600 text-xs">AI-powered lead generation strategies</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
-                  <div className="p-2 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <Sparkles className="h-5 w-5 text-white" />
+                <div className="flex items-center space-x-3 p-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
+                  <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-md">
+                    <Sparkles className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-gray-800">Convert to Customers</h3>
+                    <h3 className="text-sm font-semibold text-gray-800">Convert to Customers</h3>
                     <p className="text-gray-600 text-xs">Intelligent conversion optimization</p>
                   </div>
                 </div>
@@ -221,23 +221,23 @@ export default function Login() {
           
           {/* What is LeadsFlow Section */}
           <div className="mt-auto animate-fade-in-up">
-            <div className="bg-white/70 backdrop-blur-md rounded-xl p-6 border border-gray-200/50 shadow-lg hover:bg-white/80 transition-all duration-300">
-              <div className="flex items-center mb-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg mr-3 shadow-md">
-                  <Shield className="h-4 w-4 text-white" />
+            <div className="bg-white/70 backdrop-blur-md rounded-xl p-4 border border-gray-200/50 shadow-lg hover:bg-white/80 transition-all duration-300">
+              <div className="flex items-center mb-2">
+                <div className="p-1.5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg mr-2 shadow-md">
+                  <Shield className="h-3 w-3 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-800">What is LeadsFlow?</h3>
+                <h3 className="text-base font-bold text-gray-800">What is LeadsFlow?</h3>
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-gray-600 text-xs leading-relaxed">
                 LeadsFlow is an <span className="text-purple-600 font-semibold">AI-powered lead management platform</span> that helps businesses 
                 onboard potential clients, generate quality leads, and convert them into 
                 paying customers through intelligent automation and insights.
               </p>
-              <div className="mt-3 flex items-center space-x-2">
+              <div className="mt-2 flex items-center space-x-2">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                 </div>
                 <span className="text-xs text-green-600 font-medium">AI-Powered & Secure</span>
               </div>
@@ -247,32 +247,32 @@ export default function Login() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 bg-gray-50 overflow-hidden">
+        <div className="w-full max-w-sm sm:max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-8">
+          <div className="lg:hidden text-center mb-6">
             <img 
               src="/logo.png" 
               alt="ForeFold AI Logo" 
-              className="h-16 w-16 mx-auto mb-4 drop-shadow-lg"
+              className="h-12 w-12 mx-auto mb-3 drop-shadow-lg"
             />
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">LeadsFlow</h1>
-            <p className="text-gray-600">powered by ForeFold AI</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">LeadsFlow</h1>
+            <p className="text-sm text-gray-600">powered by ForeFold AI</p>
           </div>
 
           <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl font-bold text-gray-900">
+            <CardHeader className="text-center pb-3">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
                 Welcome to Unlock Potential Customers
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-sm text-gray-600">
                 Sign in to access your lead management dashboard
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-6">
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-2">
+            <CardContent className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                     Email Address
                   </Label>
@@ -280,16 +280,16 @@ export default function Login() {
                     id="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     {...form.register("email")}
                     data-testid="input-email"
                   />
                   {form.formState.errors.email && (
-                    <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+                    <p className="text-xs text-red-600">{form.formState.errors.email.message}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                     Password
                   </Label>
@@ -298,7 +298,7 @@ export default function Login() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 pr-12"
+                      className="h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500 pr-10"
                       {...form.register("password")}
                       data-testid="input-password"
                     />
@@ -306,19 +306,19 @@ export default function Login() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-2 py-1 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                       data-testid="button-toggle-password"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
+                        <EyeOff className="h-3 w-3 text-gray-400" />
                       ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
+                        <Eye className="h-3 w-3 text-gray-400" />
                       )}
                     </Button>
                   </div>
                   {form.formState.errors.password && (
-                    <p className="text-sm text-red-600">{form.formState.errors.password.message}</p>
+                    <p className="text-xs text-red-600">{form.formState.errors.password.message}</p>
                   )}
                 </div>
 
@@ -326,7 +326,7 @@ export default function Login() {
                   <ForgotPasswordDialog>
                     <button
                       type="button"
-                      className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
+                      className="text-xs text-blue-600 hover:text-blue-500 font-medium transition-colors"
                     >
                       Forgot Password?
                     </button>
@@ -335,26 +335,26 @@ export default function Login() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="w-full h-10 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                   disabled={loginMutation.isPending}
                   data-testid="button-login"
                 >
                   {loginMutation.isPending ? (
                     <div className="flex items-center justify-center">
-                      <ButtonLoader size={16} color="#ffffff" />
-                      <span className="ml-2">Signing in...</span>
+                      <ButtonLoader size={14} color="#ffffff" />
+                      <span className="ml-2 text-sm">Signing in...</span>
                     </div>
                   ) : (
                     <>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
+                      <LogIn className="mr-2 h-3 w-3" />
+                      <span className="text-sm">Sign In</span>
                     </>
                   )}
                 </Button>
               </form>
 
               <div className="text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-xs text-gray-600">
                   Don't have an account?{" "}
                   <button
                     onClick={() => setLocation("/signup")}
@@ -369,9 +369,8 @@ export default function Login() {
           </Card>
 
           {/* Footer */}
-          <div className="mt-8 text-center space-y-2">
-            
-            <div className="text-xs text-gray-400 space-y-1">
+          <div className="mt-4 text-center space-y-1">
+            <div className="text-xs text-gray-400 space-y-0.5">
               <p>© 2024 ForeFold Consulting Services LLP. All rights reserved.</p>
               <p>ForeFold, LeadsFlow, and related trademarks are owned by ForeFold Consulting Services LLP.</p>
             </div>

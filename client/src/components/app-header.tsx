@@ -82,33 +82,33 @@ export default function AppHeader() {
 
   return (
     <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo, Brand and Welcome Section */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 md:space-x-6">
             <div className="flex-shrink-0">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 md:space-x-4">
                 <div className="relative">
                   <img 
                     src="/logo.png" 
                     alt="ForeFold AI Logo" 
-                    className="h-12 w-12 object-contain filter drop-shadow-lg"
+                    className="h-8 w-8 md:h-12 md:w-12 object-contain filter drop-shadow-lg"
                   />
                   <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl"></div>
                 </div>
                 <div className="flex flex-col">
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
+                  <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
                     LeadsFlow
                   </h1>
-                  <p className="text-sm text-slate-400 font-medium tracking-wide">
+                  <p className="text-xs md:text-sm text-slate-400 font-medium tracking-wide hidden sm:block">
                     powered by <span className="text-purple-400">ForeFoldAI</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Welcome Section */}
-            <div className="hidden md:flex flex-col border-l border-slate-600 pl-6">
+            {/* Welcome Section - Hidden on mobile */}
+            <div className="hidden lg:flex flex-col border-l border-slate-600 pl-6">
               <p className="text-slate-300 text-sm font-medium">Welcome,</p>
               <p className="text-white text-base font-semibold">
                 {currentUser?.companyName || currentUser?.name || "User"}
@@ -117,7 +117,7 @@ export default function AppHeader() {
           </div>
 
           {/* Right side - Navigation and User Menu */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 md:space-x-6">
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-2">
               {navItems.map((item) => (
@@ -136,19 +136,19 @@ export default function AppHeader() {
             </nav>
 
             {/* User Menu */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               {/* Mobile menu button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden text-slate-300 hover:text-white hover:bg-slate-700/50"
+                className="md:hidden text-slate-300 hover:text-white hover:bg-slate-700/50 p-2"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 data-testid="mobile-menu-button"
               >
-                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
 
-              {/* User Profile Section */}
+              {/* User Profile Section - Desktop */}
               <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">{currentUser?.name || "User"}</p>
@@ -193,9 +193,9 @@ export default function AppHeader() {
               <div className="md:hidden">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-slate-600" data-testid="mobile-user-menu">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full border border-slate-600 p-0" data-testid="mobile-user-menu">
+                      <Avatar className="h-7 w-7">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-xs">
                           {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
                         </AvatarFallback>
                       </Avatar>
@@ -230,12 +230,12 @@ export default function AppHeader() {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden">
-            <div className="px-4 pt-4 pb-4 space-y-2 border-t border-slate-700 bg-slate-800/30">
+            <div className="px-3 pt-3 pb-4 space-y-1 border-t border-slate-700 bg-slate-800/30">
               {navItems.map((item) => (
                 <Button
                   key={item.path}
                   variant="ghost"
-                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors py-3"
                   onClick={() => {
                     setLocation(item.path);
                     setIsMobileMenuOpen(false);
@@ -243,7 +243,7 @@ export default function AppHeader() {
                   data-testid={`mobile-nav-${item.label.toLowerCase()}`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium text-base">{item.label}</span>
                 </Button>
               ))}
             </div>

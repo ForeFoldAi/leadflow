@@ -82,9 +82,10 @@ export default function ExportDialog({ currentFilters }: ExportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="btn-impressive-action" data-testid="button-export">
-          <Upload className="mr-2 h-4 w-4 icon" />
-          Export
+        <Button className="btn-impressive-action text-xs sm:text-sm flex-1 sm:flex-none" data-testid="button-export">
+          <Upload className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 icon" />
+          <span className="hidden xs:inline">Export</span>
+          <span className="xs:hidden">Export</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

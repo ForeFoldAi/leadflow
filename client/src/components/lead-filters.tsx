@@ -143,8 +143,9 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
   }, []);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+      {/* Search Bar - Full Width */}
+      <div className="mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
           <Input
@@ -161,17 +162,20 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
             autoCapitalize="off"
           />
         </div>
+      </div>
 
+      {/* Filters - Horizontal on Mobile */}
+      <div className="flex flex-row flex-wrap gap-2 sm:gap-3">
         {/* Multi-select Status Filter with Checkboxes */}
         <Popover open={isStatusPopoverOpen} onOpenChange={setIsStatusPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="justify-between text-left font-normal h-12"
+              className="justify-between text-left font-normal h-10 text-xs sm:text-sm flex-1 sm:flex-none min-w-[120px]"
               data-testid="status-filter-trigger"
             >
               <span className="truncate">{getStatusDisplayText()}</span>
-              <ChevronDown className="h-4 w-4 opacity-50" />
+              <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
@@ -248,7 +252,7 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
         </Popover>
 
         <Select value={filters.category || "all"} onValueChange={(value) => updateFilter("category", value)}>
-          <SelectTrigger data-testid="select-category">
+          <SelectTrigger className="h-10 text-xs sm:text-sm flex-1 sm:flex-none min-w-[120px]" data-testid="select-category">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
@@ -259,7 +263,7 @@ export default function LeadFilters({ filters, onFiltersChange }: LeadFiltersPro
         </Select>
 
         <Select value={filters.city || "all"} onValueChange={(value) => updateFilter("city", value)}>
-          <SelectTrigger data-testid="select-city">
+          <SelectTrigger className="h-10 text-xs sm:text-sm flex-1 sm:flex-none min-w-[120px]" data-testid="select-city">
             <SelectValue placeholder="All Cities" />
           </SelectTrigger>
           <SelectContent>

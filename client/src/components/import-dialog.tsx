@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ButtonLoader } from "@/components/ui/loader";
 import Papa from "papaparse";
 import { apiRequest } from "@/lib/queryClient";
-import type { InsertLead } from "./shared/schema";
+import type { InsertLead } from "../../shared/schema";
 
 interface ImportDialogProps {
   onImportSuccess?: () => void;
@@ -341,9 +341,10 @@ export default function ImportDialog({ onImportSuccess }: ImportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="btn-impressive-secondary" data-testid="button-import-leads">
-          <Download className="mr-2 h-4 w-4 icon" />
-          Import Leads
+        <Button className="btn-impressive-secondary text-xs sm:text-sm flex-1 sm:flex-none" data-testid="button-import-leads">
+          <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 icon" />
+          <span className="hidden xs:inline">Import Leads</span>
+          <span className="xs:hidden">Import</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

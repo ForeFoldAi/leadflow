@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, UserPlus, Users, Sparkles, Target, TrendingUp, Shield, Building, Globe, CheckCircle, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Users, Sparkles, Target, TrendingUp, Shield, Building, Globe, CheckCircle, ArrowRight, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ButtonLoader } from "@/components/ui/loader";
 import newLogo from "@assets/ChatGPT Image Aug 5, 2025, 10_54_30 PM_1754414686727.png";
@@ -43,19 +43,81 @@ const flexibleUrlSchema = z.string().refine((value) => {
   message: "Please enter a valid website URL (e.g., example.com, www.example.com, https://example.com)"
 });
 
+// Name validation - only letters, spaces, and dots
+const nameSchema = z.string()
+  .min(1, "Name is required")
+  .min(2, "Name must be at least 2 characters")
+  .max(50, "Name must be less than 50 characters")
+  .regex(/^[a-zA-Z\s.]+$/, "Name can only contain letters, spaces, and dots")
+  .refine((value) => {
+    // Check if name contains at least one letter
+    return /[a-zA-Z]/.test(value);
+  }, {
+    message: "Name must contain at least one letter"
+  });
+
+// Phone number validation - exactly 10 digits with +91 country code
+const phoneSchema = z.string()
+  .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits with +91 country code (e.g., +911234567890)")
+  .optional()
+  .or(z.literal(""));
+
+// Company name validation - characters and numbers but not full numbers
+const companyNameSchema = z.string()
+  .min(1, "Company name is required")
+  .min(2, "Company name must be at least 2 characters")
+  .max(100, "Company name must be less than 100 characters")
+  .refine((value) => {
+    // Must contain at least one letter
+    if (!/[a-zA-Z]/.test(value)) {
+      return false;
+    }
+    // Cannot be all numbers
+    if (/^\d+$/.test(value)) {
+      return false;
+    }
+    // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
+    return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
+  }, {
+    message: "Company name must contain letters and can include numbers, but cannot be all numbers"
+  });
+
+// Password strength validation
+const passwordSchema = z.string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password must be less than 128 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+  .refine((value) => {
+    // Check for common passwords (basic check)
+    const commonPasswords = [
+      'password', '123456', '123456789', 'qwerty', 'abc123', 'password123',
+      'admin', 'letmein', 'welcome', 'monkey', 'dragon', 'master'
+    ];
+    return !commonPasswords.includes(value.toLowerCase());
+  }, {
+    message: "Password is too common. Please choose a more secure password"
+  });
+
 const signupSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: nameSchema,
+  email: z.string()
+    .min(1, "Email is required")
+    .email("Invalid email address")
+    .max(254, "Email must be less than 254 characters")
+    .toLowerCase(),
+  password: passwordSchema,
   confirmPassword: z.string().min(1, "Please confirm your password"),
   role: z.enum(["user", "manager", "other"], { required_error: "Please select a role" }),
   customRole: z.string().optional(),
-  companyName: z.string().min(1, "Company name is required"),
+  companyName: companyNameSchema,
   companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
   industry: z.string().min(1, "Industry is required"),
   customIndustry: z.string().optional(),
   website: flexibleUrlSchema.optional().or(z.literal("")),
-  phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number format").optional().or(z.literal("")),
+  phoneNumber: phoneSchema,
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -78,6 +140,107 @@ const signupSchema = z.object({
 });
 
 type SignupForm = z.infer<typeof signupSchema>;
+
+// Password strength indicator component
+const PasswordStrengthIndicator = ({ password }: { password: string }) => {
+  const getStrength = (password: string) => {
+    let score = 0;
+    let feedback: string[] = [];
+
+    if (password.length >= 8) score++;
+    else feedback.push("At least 8 characters");
+
+    if (/[A-Z]/.test(password)) score++;
+    else feedback.push("One uppercase letter");
+
+    if (/[a-z]/.test(password)) score++;
+    else feedback.push("One lowercase letter");
+
+    if (/[0-9]/.test(password)) score++;
+    else feedback.push("One number");
+
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    else feedback.push("One special character");
+
+    if (password.length >= 12) score++;
+    else feedback.push("12+ characters for better security");
+
+    return { score, feedback };
+  };
+
+  const { score, feedback } = getStrength(password);
+  const percentage = (score / 6) * 100;
+
+  const getColor = (percentage: number) => {
+    if (percentage < 50) return "bg-red-500";
+    if (percentage < 75) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
+  const getText = (percentage: number) => {
+    if (percentage < 50) return "Weak";
+    if (percentage < 75) return "Fair";
+    return "Strong";
+  };
+
+  if (!password) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-gray-600">Password strength:</span>
+        <span className={`font-medium ${percentage >= 75 ? 'text-green-600' : percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+          {getText(percentage)}
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div 
+          className={`h-2 rounded-full transition-all duration-300 ${getColor(percentage)}`}
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+      {feedback.length > 0 && (
+        <div className="text-xs text-gray-500 space-y-1">
+          <p className="font-medium">Requirements:</p>
+          <ul className="list-disc list-inside space-y-0.5">
+            {feedback.map((item, index) => (
+              <li key={index} className="flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1 text-red-400" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Password match indicator component
+const PasswordMatchIndicator = ({ password, confirmPassword }: { password: string; confirmPassword: string }) => {
+  if (!password || !confirmPassword) return null;
+
+  const isMatch = password === confirmPassword;
+  const isConfirming = confirmPassword.length > 0;
+
+  if (!isConfirming) return null;
+
+  return (
+    <div className="flex items-center space-x-2 text-xs">
+      {isMatch ? (
+        <>
+          <CheckCircle className="h-4 w-4 text-green-500" />
+          <span className="text-green-600 font-medium">Passwords match</span>
+        </>
+      ) : (
+        <>
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <span className="text-red-600 font-medium">Passwords don't match</span>
+        </>
+      )}
+    </div>
+  );
+};
 
 export default function Signup() {
   const [, setLocation] = useLocation();
@@ -149,6 +312,10 @@ export default function Signup() {
     const { confirmPassword, ...signupData } = data;
     signupMutation.mutate(signupData);
   };
+
+  // Watch password and confirmPassword for real-time validation
+  const password = form.watch("password");
+  const confirmPassword = form.watch("confirmPassword");
 
   return (
     <div 
@@ -223,8 +390,12 @@ export default function Signup() {
                   data-testid="input-name"
                 />
                 {form.formState.errors.name && (
-                  <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.name.message}
+                  </p>
                 )}
+                <p className="text-xs text-gray-500">Only letters, spaces, and dots are allowed</p>
               </div>
 
               <div className="space-y-2">
@@ -240,7 +411,10 @@ export default function Signup() {
                   data-testid="input-email"
                 />
                 {form.formState.errors.email && (
-                  <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -267,7 +441,10 @@ export default function Signup() {
                   </SelectContent>
                 </Select>
                 {form.formState.errors.role && (
-                  <p className="text-sm text-red-600">{form.formState.errors.role.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.role.message}
+                  </p>
                 )}
               </div>
 
@@ -285,7 +462,10 @@ export default function Signup() {
                     data-testid="input-custom-role"
                   />
                   {form.formState.errors.customRole && (
-                    <p className="text-sm text-red-600">{form.formState.errors.customRole.message}</p>
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {form.formState.errors.customRole.message}
+                    </p>
                   )}
                 </div>
               )}
@@ -297,14 +477,18 @@ export default function Signup() {
                 <Input
                   id="phoneNumber"
                   type="tel"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+911234567890"
                   className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                   {...form.register("phoneNumber")}
                   data-testid="input-phone-number"
                 />
                 {form.formState.errors.phoneNumber && (
-                  <p className="text-sm text-red-600">{form.formState.errors.phoneNumber.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.phoneNumber.message}
+                  </p>
                 )}
+                <p className="text-xs text-gray-500">Format: +91 followed by 10 digits (e.g., +911234567890)</p>
               </div>
             </div>
           </div>
@@ -329,8 +513,12 @@ export default function Signup() {
                   data-testid="input-company-name"
                 />
                 {form.formState.errors.companyName && (
-                  <p className="text-sm text-red-600">{form.formState.errors.companyName.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.companyName.message}
+                  </p>
                 )}
+                <p className="text-xs text-gray-500">Can contain letters, numbers, spaces, dots, hyphens, and common business characters</p>
               </div>
 
               <div className="space-y-2">
@@ -351,7 +539,10 @@ export default function Signup() {
                   </SelectContent>
                 </Select>
                 {form.formState.errors.companySize && (
-                  <p className="text-sm text-red-600">{form.formState.errors.companySize.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.companySize.message}
+                  </p>
                 )}
               </div>
 
@@ -399,7 +590,10 @@ export default function Signup() {
                   </SelectContent>
                 </Select>
                 {form.formState.errors.industry && (
-                  <p className="text-sm text-red-600">{form.formState.errors.industry.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.industry.message}
+                  </p>
                 )}
               </div>
 
@@ -417,7 +611,10 @@ export default function Signup() {
                     data-testid="input-custom-industry"
                   />
                   {form.formState.errors.customIndustry && (
-                    <p className="text-sm text-red-600">{form.formState.errors.customIndustry.message}</p>
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {form.formState.errors.customIndustry.message}
+                    </p>
                   )}
                 </div>
               )}
@@ -435,7 +632,10 @@ export default function Signup() {
                   data-testid="input-website"
                 />
                 {form.formState.errors.website && (
-                  <p className="text-sm text-red-600">{form.formState.errors.website.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.website.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -477,8 +677,12 @@ export default function Signup() {
                   </Button>
                 </div>
                 {form.formState.errors.password && (
-                  <p className="text-sm text-red-600">{form.formState.errors.password.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.password.message}
+                  </p>
                 )}
+                <PasswordStrengthIndicator password={password} />
               </div>
 
               <div className="space-y-2">
@@ -510,8 +714,12 @@ export default function Signup() {
                   </Button>
                 </div>
                 {form.formState.errors.confirmPassword && (
-                  <p className="text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
+                  <p className="text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {form.formState.errors.confirmPassword.message}
+                  </p>
                 )}
+                <PasswordMatchIndicator password={password} confirmPassword={confirmPassword} />
               </div>
             </div>
               </div>

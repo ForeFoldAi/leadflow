@@ -128,11 +128,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
   // Get sort icon
   const getSortIcon = (key: string) => {
     if (sortConfig.key !== key) {
-      return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+      return <ArrowUpDown className="h-3 w-3 md:h-4 md:w-4 text-gray-400" />;
     }
     return sortConfig.direction === 'asc' ? 
-      <ArrowUp className="h-4 w-4 text-gray-900" /> : 
-      <ArrowDown className="h-4 w-4 text-gray-900" />;
+      <ArrowUp className="h-3 w-3 md:h-4 md:w-4 text-gray-900" /> : 
+      <ArrowDown className="h-3 w-3 md:h-4 md:w-4 text-gray-900" />;
   };
 
   // Fetch leads data
@@ -289,20 +289,20 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
   const getCommunicationIcon = (channel: string | null) => {
     switch (channel) {
-      case 'email': return <Mail className="h-4 w-4" />;
-      case 'phone': return <Phone className="h-4 w-4" />;
-      case 'whatsapp': return <MessageCircle className="h-4 w-4" />;
-      case 'sms': return <MessageCircle className="h-4 w-4" />;
-      case 'in-person': return <User className="h-4 w-4" />;
-      case 'linkedin': return <MessageCircle className="h-4 w-4" />;
-      default: return <Mail className="h-4 w-4" />;
+      case 'email': return <Mail className="h-3 w-3 md:h-4 md:w-4" />;
+      case 'phone': return <Phone className="h-3 w-3 md:h-4 md:w-4" />;
+      case 'whatsapp': return <MessageCircle className="h-3 w-3 md:h-4 md:w-4" />;
+      case 'sms': return <MessageCircle className="h-3 w-3 md:h-4 md:w-4" />;
+      case 'in-person': return <User className="h-3 w-3 md:h-4 md:w-4" />;
+      case 'linkedin': return <MessageCircle className="h-3 w-3 md:h-4 md:w-4" />;
+      default: return <Mail className="h-3 w-3 md:h-4 md:w-4" />;
     }
   };
 
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <InlineLoader text="Loading leads..." />
         </CardContent>
       </Card>
@@ -316,11 +316,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
   return (
     <Card className="border border-gray-200 shadow-sm">
-      <CardHeader className="px-6 py-4 border-b border-gray-200">
+      <CardHeader className="px-3 md:px-6 py-3 md:py-4 border-b border-gray-200">
         {/* Action Buttons Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-          <CardTitle className="text-lg font-semibold text-gray-900 mb-3 sm:mb-0">Leads View</CardTitle>
-          <div className="flex space-x-3">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <CardTitle className="text-base md:text-lg font-semibold text-gray-900">Leads View</CardTitle>
+          <div className="flex flex-row space-x-2 sm:space-x-3">
             <ImportDialog onImportSuccess={() => {
               console.log("ImportDialog onImportSuccess called - invalidating queries");
               // Invalidate all leads-related queries
@@ -334,12 +334,13 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             {exportFilters && <ExportDialog currentFilters={exportFilters} />}
             {onAddNewLead && (
               <Button 
-                className="btn-impressive-primary"
+                className="btn-impressive-primary text-xs sm:text-sm flex-1 sm:flex-none"
                 onClick={onAddNewLead}
                 data-testid="button-add-lead"
               >
-                <Plus className="mr-2 h-4 w-4 icon" />
-                Add New Lead
+                <Plus className="mr-1 h-3 w-3 sm:h-4 sm:w-4 icon" />
+                <span className="hidden xs:inline">Add New Lead</span>
+                <span className="xs:hidden">Add Lead</span>
               </Button>
             )}
           </div>
@@ -347,31 +348,31 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
         {/* Filters Row */}
         {onFiltersChange && (
-          <div className="mb-4">
+          <div className="mb-3 md:mb-4">
             <LeadFilters filters={filters} onFiltersChange={onFiltersChange} />
           </div>
         )}
 
         {/* Legend and Column Toggles Row */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
           <div className="flex flex-col space-y-2">
-            <div className="text-sm font-medium text-gray-700">Next Followup Date</div>
-            <div className="flex items-center space-x-4 text-xs">
+            <div className="text-xs md:text-sm font-medium text-gray-700">Next Followup Date</div>
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs">
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-red-100 border-l-4 border-red-500 rounded-sm shadow-sm"></div>
+                <div className="w-3 h-3 md:w-4 md:h-4 bg-red-100 border-l-4 border-red-500 rounded-sm shadow-sm"></div>
                 <span className="text-red-800 font-medium">Overdue</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-sm shadow-sm"></div>
+                <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-sm shadow-sm"></div>
                 <span className="text-yellow-800 font-medium">Due Soon</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-green-100 border-l-4 border-green-500 rounded-sm shadow-sm"></div>
+                <div className="w-3 h-3 md:w-4 md:h-4 bg-green-100 border-l-4 border-green-500 rounded-sm shadow-sm"></div>
                 <span className="text-green-800 font-medium">Future</span>
               </div>
             </div>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             {/* View Mode Toggle */}
             <div className="flex items-center space-x-1 border border-gray-200 rounded-md p-1">
               <TooltipProvider>
@@ -381,7 +382,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       variant={currentView === 'table' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setCurrentView('table')}
-                      className="h-7 px-2"
+                      className="h-6 md:h-7 px-1 md:px-2"
                     >
                       <TableIcon className="h-3 w-3" />
                     </Button>
@@ -398,7 +399,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       variant={currentView === 'grid' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setCurrentView('grid')}
-                      className="h-7 px-2"
+                      className="h-6 md:h-7 px-1 md:px-2"
                     >
                       <Grid3X3 className="h-3 w-3" />
                     </Button>
@@ -415,7 +416,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       variant={currentView === 'list' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setCurrentView('list')}
-                      className="h-7 px-2"
+                      className="h-6 md:h-7 px-1 md:px-2"
                     >
                       <List className="h-3 w-3" />
                     </Button>
@@ -429,7 +430,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             
             {/* Column Toggles - Only show for table view */}
             {currentView === 'table' && (
-              <>
+              <div className="flex flex-row space-x-2">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -438,9 +439,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                         size="sm"
                         onClick={() => setShowInterestedColumn(!showInterestedColumn)}
                         data-testid="toggle-interested-column"
+                        className="text-xs h-7 md:h-8 flex-1 sm:flex-none"
                       >
-                        {showInterestedColumn ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        Interested In
+                        {showInterestedColumn ? <Eye className="h-3 w-3 md:h-4 md:w-4" /> : <EyeOff className="h-3 w-3 md:h-4 md:w-4" />}
+                        <span className="hidden sm:inline ml-1">Interested In</span>
+                        <span className="sm:hidden ml-1">Interest</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -456,9 +459,10 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                         size="sm"
                         onClick={() => setShowNotesColumn(!showNotesColumn)}
                         data-testid="toggle-notes-column"
+                        className="text-xs h-7 md:h-8 flex-1 sm:flex-none"
                       >
-                        {showNotesColumn ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        Notes
+                        {showNotesColumn ? <Eye className="h-3 w-3 md:h-4 md:w-4" /> : <EyeOff className="h-3 w-3 md:h-4 md:w-4" />}
+                        <span className="ml-1">Notes</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -466,7 +470,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -478,10 +482,10 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             <Table className={`w-full ${(!showInterestedColumn && !showNotesColumn) ? '' : 'min-w-max'}`}>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16 text-center">Expand</TableHead>
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-12 md:w-16 text-center">Expand</TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-48' : 'w-40'
+                      !showInterestedColumn && !showNotesColumn ? 'w-32 md:w-48' : 'w-28 md:w-40'
                     }`}
                     onClick={() => handleSort('name')}
                   >
@@ -492,7 +496,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-40' : 'w-32'
+                      !showInterestedColumn && !showNotesColumn ? 'w-28 md:w-40' : 'w-24 md:w-32'
                     }`}
                     onClick={() => handleSort('phoneNumber')}
                   >
@@ -503,7 +507,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-40' : 'w-32'
+                      !showInterestedColumn && !showNotesColumn ? 'w-28 md:w-40' : 'w-24 md:w-32'
                     }`}
                     onClick={() => handleSort('companyName')}
                   >
@@ -514,7 +518,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-24' : 'w-20'
+                      !showInterestedColumn && !showNotesColumn ? 'w-20 md:w-24' : 'w-16 md:w-20'
                     }`}
                     onClick={() => handleSort('leadStatus')}
                   >
@@ -525,34 +529,37 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-32' : 'w-28'
+                      !showInterestedColumn && !showNotesColumn ? 'w-24 md:w-32' : 'w-20 md:w-28'
                     }`}
                     onClick={() => handleSort('lastContactedDate')}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Last Contacted Date</span>
+                      <span className="hidden sm:inline">Last Contacted Date</span>
+                      <span className="sm:hidden">Last Contact</span>
                       {getSortIcon('lastContactedDate')}
                     </div>
                   </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-32' : 'w-28'
+                      !showInterestedColumn && !showNotesColumn ? 'w-24 md:w-32' : 'w-20 md:w-28'
                     }`}
                     onClick={() => handleSort('lastContactedBy')}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Last Contacted By</span>
+                      <span className="hidden sm:inline">Last Contacted By</span>
+                      <span className="sm:hidden">Contacted By</span>
                       {getSortIcon('lastContactedBy')}
                     </div>
                   </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-32' : 'w-28'
+                      !showInterestedColumn && !showNotesColumn ? 'w-24 md:w-32' : 'w-20 md:w-28'
                     }`}
                     onClick={() => handleSort('nextFollowupDate')}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Next Followup Date</span>
+                      <span className="hidden sm:inline">Next Followup Date</span>
+                      <span className="sm:hidden">Next Followup</span>
                       {getSortIcon('nextFollowupDate')}
                     </div>
                   </TableHead>
@@ -562,14 +569,15 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       onClick={() => handleSort('customerInterestedIn')}
                     >
                       <div className="flex items-center justify-between">
-                        <span>Customer Interested In</span>
+                        <span className="hidden sm:inline">Customer Interested In</span>
+                        <span className="sm:hidden">Interested In</span>
                         {getSortIcon('customerInterestedIn')}
                       </div>
                     </TableHead>
                   )}
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider text-center cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-16' : 'w-12'
+                      !showInterestedColumn && !showNotesColumn ? 'w-12 md:w-16' : 'w-10 md:w-12'
                     }`}
                     onClick={() => handleSort('preferredCommunicationChannel')}
                   >
@@ -581,16 +589,16 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   {showNotesColumn && (
                     <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
                   )}
-                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Actions</TableHead>
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16 md:w-20">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10} className="text-center py-8">
+                    <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10} className="text-center py-6 md:py-8">
                       <div className="text-gray-500">
-                        <p className="text-lg font-medium">No leads found</p>
-                        <p className="text-sm">Try adjusting your filters or add a new lead.</p>
+                        <p className="text-base md:text-lg font-medium">No leads found</p>
+                        <p className="text-xs md:text-sm">Try adjusting your filters or add a new lead.</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -603,46 +611,46 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleRowExpansion(lead.id)}
-                            className="h-6 w-6 p-0"
+                            className="h-5 w-5 md:h-6 md:w-6 p-0"
                           >
                             {expandedRows.has(lead.id) ? (
-                              <ChevronDown className="h-4 w-4" />
+                              <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
                             ) : (
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                             )}
                           </Button>
                         </TableCell>
                         <TableCell className="font-medium">
                           <div>
-                            <div className="font-semibold text-gray-900">{lead.name}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="font-semibold text-gray-900 text-sm md:text-base">{lead.name}</div>
+                            <div className="text-xs md:text-sm text-gray-500">
                               {lead.customerCategory === 'existing' ? 'Existing Customer' : 'Potential Customer'}
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-900">{lead.phoneNumber}</TableCell>
+                        <TableCell className="text-xs md:text-sm text-gray-900">{lead.phoneNumber}</TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium text-gray-900">{lead.companyName || 'N/A'}</div>
-                            <div className="text-sm text-gray-500">{lead.designation || 'N/A'}</div>
+                            <div className="font-medium text-gray-900 text-xs md:text-sm">{lead.companyName || 'N/A'}</div>
+                            <div className="text-xs text-gray-500">{lead.designation || 'N/A'}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(lead.leadStatus)}>
+                          <Badge className={`${getStatusColor(lead.leadStatus)} text-xs`}>
                             {lead.leadStatus.replace(/([A-Z])/g, ' $1').trim()}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-900">
+                        <TableCell className="text-xs md:text-sm text-gray-900">
                           {lead.lastContactedDate ? format(new Date(lead.lastContactedDate), 'MMM dd, yyyy') : 'N/A'}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-900">{lead.lastContactedBy || 'N/A'}</TableCell>
+                        <TableCell className="text-xs md:text-sm text-gray-900">{lead.lastContactedBy || 'N/A'}</TableCell>
                         <TableCell>
-                          <div className={`px-3 py-1 rounded-md text-sm font-medium ${getFollowupStatus(lead.nextFollowupDate).bgClassName}`}>
+                          <div className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium ${getFollowupStatus(lead.nextFollowupDate).bgClassName}`}>
                             {lead.nextFollowupDate ? format(new Date(lead.nextFollowupDate), 'MMM dd, yyyy') : 'N/A'}
                           </div>
                         </TableCell>
                         {showInterestedColumn && (
-                          <TableCell className="text-sm text-gray-900 max-w-xs truncate">
+                          <TableCell className="text-xs md:text-sm text-gray-900 max-w-xs truncate">
                             {lead.customerInterestedIn || 'N/A'}
                           </TableCell>
                         )}
@@ -661,15 +669,15 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                           </TooltipProvider>
                         </TableCell>
                         {showNotesColumn && (
-                          <TableCell className="text-sm text-gray-900 max-w-xs truncate">
+                          <TableCell className="text-xs md:text-sm text-gray-900 max-w-xs truncate">
                             {lead.additionalNotes || 'N/A'}
                           </TableCell>
                         )}
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <Button variant="ghost" size="sm" className="h-6 w-6 md:h-8 md:w-8 p-0">
+                                <MoreHorizontal className="h-3 w-3 md:h-4 md:w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -691,42 +699,42 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       {expandedRows.has(lead.id) && (
                         <TableRow>
                           <TableCell colSpan={showInterestedColumn && showNotesColumn ? 12 : showInterestedColumn || showNotesColumn ? 11 : 10}>
-                            <div className="bg-gray-50 p-4 rounded-md">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-gray-50 p-3 md:p-4 rounded-md">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                 <div>
-                                  <p className="font-medium text-gray-800 mb-1">Contact Information:</p>
-                                  <p className="pl-2 text-gray-600">Phone: {lead.phoneNumber}</p>
-                                  {lead.email && <p className="pl-2 text-gray-600">Email: {lead.email}</p>}
-                                  {lead.dateOfBirth && <p className="pl-2 text-gray-600">Date of Birth: {format(new Date(lead.dateOfBirth), 'MMM dd, yyyy')}</p>}
+                                  <p className="font-medium text-gray-800 mb-1 text-sm">Contact Information:</p>
+                                  <p className="pl-2 text-gray-600 text-xs md:text-sm">Phone: {lead.phoneNumber}</p>
+                                  {lead.email && <p className="pl-2 text-gray-600 text-xs md:text-sm">Email: {lead.email}</p>}
+                                  {lead.dateOfBirth && <p className="pl-2 text-gray-600 text-xs md:text-sm">Date of Birth: {format(new Date(lead.dateOfBirth), 'MMM dd, yyyy')}</p>}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-800 mb-1">Location:</p>
-                                  {lead.city && <p className="pl-2 text-gray-600">City: {lead.city}</p>}
-                                  {lead.state && <p className="pl-2 text-gray-600">State: {lead.state}</p>}
-                                  {lead.country && <p className="pl-2 text-gray-600">Country: {lead.country}</p>}
-                                  {lead.pincode && <p className="pl-2 text-gray-600">Pincode: {lead.pincode}</p>}
+                                  <p className="font-medium text-gray-800 mb-1 text-sm">Location:</p>
+                                  {lead.city && <p className="pl-2 text-gray-600 text-xs md:text-sm">City: {lead.city}</p>}
+                                  {lead.state && <p className="pl-2 text-gray-600 text-xs md:text-sm">State: {lead.state}</p>}
+                                  {lead.country && <p className="pl-2 text-gray-600 text-xs md:text-sm">Country: {lead.country}</p>}
+                                  {lead.pincode && <p className="pl-2 text-gray-600 text-xs md:text-sm">Pincode: {lead.pincode}</p>}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-800 mb-1">Company Details:</p>
-                                  {lead.companyName && <p className="pl-2 text-gray-600">Company: {lead.companyName}</p>}
-                                  {lead.designation && <p className="pl-2 text-gray-600">Designation: {lead.designation}</p>}
-                                  <p className="pl-2 text-gray-600">Category: {lead.customerCategory === 'existing' ? 'Existing Customer' : 'Potential Customer'}</p>
+                                  <p className="font-medium text-gray-800 mb-1 text-sm">Company Details:</p>
+                                  {lead.companyName && <p className="pl-2 text-gray-600 text-xs md:text-sm">Company: {lead.companyName}</p>}
+                                  {lead.designation && <p className="pl-2 text-gray-600 text-xs md:text-sm">Designation: {lead.designation}</p>}
+                                  <p className="pl-2 text-gray-600 text-xs md:text-sm">Category: {lead.customerCategory === 'existing' ? 'Existing Customer' : 'Potential Customer'}</p>
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-800 mb-1">Lead Information:</p>
-                                  <p className="pl-2 text-gray-600">Source: {lead.leadSource}</p>
-                                  {lead.customLeadSource && <p className="pl-2 text-gray-600">Custom Source: {lead.customLeadSource}</p>}
-                                  {lead.leadCreatedBy && <p className="pl-2 text-gray-600">Created By: {lead.leadCreatedBy}</p>}
+                                  <p className="font-medium text-gray-800 mb-1 text-sm">Lead Information:</p>
+                                  <p className="pl-2 text-gray-600 text-xs md:text-sm">Source: {lead.leadSource}</p>
+                                  {lead.customLeadSource && <p className="pl-2 text-gray-600 text-xs md:text-sm">Custom Source: {lead.customLeadSource}</p>}
+                                  {lead.leadCreatedBy && <p className="pl-2 text-gray-600 text-xs md:text-sm">Created By: {lead.leadCreatedBy}</p>}
                                 </div>
                                 {showInterestedColumn && (
                                   <div>
-                                    <p className="font-medium text-gray-800 mb-1">Interested In:</p>
-                                    <p className="pl-2 text-gray-600">{lead.customerInterestedIn || "Not specified"}</p>
+                                    <p className="font-medium text-gray-800 mb-1 text-sm">Interested In:</p>
+                                    <p className="pl-2 text-gray-600 text-xs md:text-sm">{lead.customerInterestedIn || "Not specified"}</p>
                                   </div>
                                 )}
                                 <div>
-                                  <p className="font-medium text-gray-800 mb-1">Additional Notes:</p>
-                                  <p className="pl-2 italic text-gray-600">{lead.additionalNotes || "No additional notes"}</p>
+                                  <p className="font-medium text-gray-800 mb-1 text-sm">Additional Notes:</p>
+                                  <p className="pl-2 italic text-gray-600 text-xs md:text-sm">{lead.additionalNotes || "No additional notes"}</p>
                                 </div>
                               </div>
                             </div>
@@ -743,12 +751,12 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
         {/* Grid View */}
         {currentView === 'grid' && (
-          <div className="p-6">
+          <div className="p-3 md:p-6">
             {paginatedLeads.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-6 md:py-8">
                 <div className="text-gray-500">
-                  <p className="text-lg font-medium">No leads found</p>
-                  <p className="text-sm">Try adjusting your filters or add a new lead.</p>
+                  <p className="text-base md:text-lg font-medium">No leads found</p>
+                  <p className="text-xs md:text-sm">Try adjusting your filters or add a new lead.</p>
                 </div>
               </div>
             ) : (
@@ -764,12 +772,12 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
 
         {/* List View */}
         {currentView === 'list' && (
-          <div className="p-6">
+          <div className="p-3 md:p-6">
             {paginatedLeads.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-6 md:py-8">
                 <div className="text-gray-500">
-                  <p className="text-lg font-medium">No leads found</p>
-                  <p className="text-sm">Try adjusting your filters or add a new lead.</p>
+                  <p className="text-base md:text-lg font-medium">No leads found</p>
+                  <p className="text-xs md:text-sm">Try adjusting your filters or add a new lead.</p>
                 </div>
               </div>
             ) : (
@@ -786,15 +794,15 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
         
         {/* Pagination Controls */}
         {leads.length > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-700">
+          <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0 px-3 md:px-6 py-3 md:py-4 border-t border-gray-200">
+            <div className="flex flex-col space-y-2 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+              <div className="text-xs md:text-sm text-gray-700">
                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, leads.length)} of {leads.length} leads
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Show:</span>
+                <span className="text-xs md:text-sm text-gray-600">Show:</span>
                 <Select value={itemsPerPage.toString()} onValueChange={handlePageSizeChange}>
-                  <SelectTrigger className="w-20 h-8">
+                  <SelectTrigger className="w-16 md:w-20 h-7 md:h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -804,7 +812,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     <SelectItem value="100">100</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-gray-600">per page</span>
+                <span className="text-xs md:text-sm text-gray-600">per page</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -814,9 +822,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 data-testid="button-prev-page"
+                className="h-7 md:h-8 text-xs"
               >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
+                <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
               
               <div className="flex items-center space-x-1">
@@ -839,7 +849,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       size="sm"
                       onClick={() => setCurrentPage(pageNum)}
                       data-testid={`button-page-${pageNum}`}
-                      className="w-8 h-8 p-0"
+                      className="w-6 h-7 md:w-8 md:h-8 p-0 text-xs"
                     >
                       {pageNum}
                     </Button>
@@ -853,9 +863,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
                 data-testid="button-next-page"
+                className="h-7 md:h-8 text-xs"
               >
-                Next
-                <ChevronRightIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
+                <ChevronRightIcon className="h-3 w-3 md:h-4 md:w-4" />
               </Button>
             </div>
           </div>
