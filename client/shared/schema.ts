@@ -72,10 +72,10 @@ const leadNameSchema = z.string()
     message: "Name must contain at least one letter"
   });
 
-// Phone number validation - exactly 10 digits with +91 country code
+// Phone number validation - 10 digits with optional +91 country code
 const leadPhoneSchema = z.string()
   .min(1, "Phone number is required")
-  .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits with +91 country code (e.g., +911234567890)");
+  .regex(/^(\+91)?[6-9]\d{9}$/, "Phone number must be exactly 10 digits (e.g., 9876543210 or +919876543210)");
 
 // Company name validation - characters and numbers but not full numbers
 const leadCompanyNameSchema = z.string()

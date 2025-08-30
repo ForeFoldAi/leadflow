@@ -57,7 +57,7 @@ export const leads = pgTable("leads", {
 export const insertLeadSchema = createInsertSchema(leads, {
     userId: z.string().optional(), // Will be set automatically based on authenticated user
     name: z.string().min(1, "Name is required"),
-    phoneNumber: z.string().min(1, "Phone number is required").regex(/^(\+91[\s\-]?)?[6-9]\d{9}$|^\+?[\d\s\-\(\)]+$/, "Please enter a valid Indian phone number (e.g., +91 9876543210 or 9876543210)"),
+    phoneNumber: z.string().min(1, "Phone number is required").regex(/^(\+91)?[6-9]\d{9}$/, "Please enter a valid Indian phone number (e.g., 9876543210 or +919876543210)"),
     email: z.string().email("Invalid email address").optional().or(z.literal("")),
     dateOfBirth: z.string().optional(),
     city: z.string().optional(),
@@ -110,7 +110,7 @@ export const insertUserSchema = createInsertSchema(users, {
     companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
     industry: z.string().min(1, "Industry is required"),
     website: flexibleUrlSchema.optional().or(z.literal("")),
-    phoneNumber: z.string().regex(/^(\+91[\s\-]?)?[6-9]\d{9}$|^\+?[\d\s\-\(\)]+$/, "Please enter a valid Indian phone number (e.g., +91 9876543210 or 9876543210)").optional().or(z.literal("")),
+    phoneNumber: z.string().regex(/^(\+91)?[6-9]\d{9}$/, "Please enter a valid Indian phone number (e.g., 9876543210 or +919876543210)").optional().or(z.literal("")),
     subscriptionStatus: z.enum(["trial", "active", "cancelled", "expired"]).default("trial"),
     subscriptionPlan: z.enum(["basic", "professional", "enterprise"]).default("basic"),
 }).omit({ id: true, createdAt: true, updatedAt: true, isActive: true });

@@ -118,7 +118,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 pt-20 md:pt-24">
         {/* Header */}
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6 sm:mb-8">
           <div>

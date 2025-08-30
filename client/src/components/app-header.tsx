@@ -81,7 +81,7 @@ export default function AppHeader() {
   ];
 
   return (
-    <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo, Brand and Welcome Section */}
@@ -100,8 +100,8 @@ export default function AppHeader() {
                   <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
                     LeadsFlow
                   </h1>
-                  <p className="text-xs md:text-sm text-slate-400 font-medium tracking-wide hidden sm:block">
-                    powered by <span className="text-purple-400">ForeFoldAI</span>
+                  <p className="text-xs md:text-sm text-slate-400 font-medium tracking-wide">
+                    powered by <span className="text-purple-400">Forefold</span>
                   </p>
                 </div>
               </div>

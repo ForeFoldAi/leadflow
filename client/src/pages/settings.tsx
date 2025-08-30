@@ -595,7 +595,7 @@ export default function Settings() {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
       
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 pt-20 md:pt-24">
         <div className="mb-4 sm:mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
           <p className="mt-1 text-xs sm:text-sm text-gray-600">Manage your account settings and preferences</p>

@@ -62,7 +62,7 @@ export const leads = pgTable("leads", {
 export const insertLeadSchema = createInsertSchema(leads, {
   userId: z.string().optional(), // Will be set automatically based on authenticated user
   name: z.string().min(1, "Name is required"),
-  phoneNumber: z.string().min(1, "Phone number is required").regex(/^(\+91[\s\-]?)?[6-9]\d{9}$|^\+?[\d\s\-\(\)]+$/, "Please enter a valid Indian phone number (e.g., +91 9876543210 or 9876543210)"),
+  phoneNumber: z.string().min(1, "Phone number is required").regex(/^(\+91)?[6-9]\d{9}$/, "Please enter a valid Indian phone number (e.g., 9876543210 or +919876543210)"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   city: z.string().optional(),

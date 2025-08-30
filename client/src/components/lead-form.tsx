@@ -216,10 +216,10 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       Phone Number <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="+911234567890" {...field} data-testid="input-phone" />
+                      <Input placeholder="9876543210 or +919876543210" {...field} data-testid="input-phone" />
                     </FormControl>
                     <FormMessage />
-                    <p className="text-xs text-gray-500">Format: +91 followed by 10 digits</p>
+                    <p className="text-xs text-gray-500">Format: 10 digits (e.g., 9876543210) or with +91 country code</p>
                   </FormItem>
                 )}
               />

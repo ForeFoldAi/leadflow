@@ -250,6 +250,10 @@ export default function ImportDialog({ onImportSuccess }: ImportDialogProps) {
     // Helper function to validate phone with fallback
     const validatePhone = (value: any) => {
       if (!value) return "N/A"; // Default value instead of error
+      const phoneRegex = /^(\+91)?[6-9]\d{9}$/;
+      if (!phoneRegex.test(value)) {
+        return "N/A"; // Return N/A for invalid phone numbers
+      }
       return value;
     };
 
@@ -341,7 +345,7 @@ export default function ImportDialog({ onImportSuccess }: ImportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="btn-impressive-secondary text-xs sm:text-sm whitespace-nowrap flex-shrink-0 px-2 py-2 sm:px-3 sm:py-2" data-testid="button-import-leads">
+        <Button className="btn-impressive-secondary text-xs sm:text-sm whitespace-nowrap flex-shrink-0 px-3 py-2 h-9" data-testid="button-import-leads">
           <Download className="mr-1 h-3 w-3 sm:h-4 sm:w-4 icon" />
           <span>Import</span>
         </Button>

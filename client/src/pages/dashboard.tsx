@@ -91,7 +91,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pt-20 md:pt-24">
         <LeadTable 
           filters={filters} 
           onFiltersChange={handleFiltersChange}
