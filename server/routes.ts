@@ -304,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set the user ID for the lead
       const leadData = {
         ...validatedData,
-        leadCreatedBy: req.user?.email || validatedData.leadCreatedBy
+        leadCreatedBy: req.user?.name || validatedData.leadCreatedBy
       };
       
       const lead = await storage.createLead(leadData, userId);
@@ -423,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const validatedData = importLeadSchema.parse(leadData);
           validatedLeads.push({
             ...validatedData,
-            leadCreatedBy: req.user?.email || validatedData.leadCreatedBy,
+            leadCreatedBy: req.user?.name || validatedData.leadCreatedBy,
             rowIndex: i + 1
           });
         } catch (error) {
@@ -552,14 +552,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug route to check lead ownership (remove in production)
+  app.get("/api/debug/leads/:id", authenticateUser, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const leadId = req.params.id;
+      
+      console.log(`Debug: Checking lead ${leadId} for user ${userId}`);
+      
+      // Check if lead exists without user filter
+      const leadWithoutUser = await storage.getLead(leadId);
+      if (!leadWithoutUser) {
+        return res.json({ 
+          exists: false, 
+          message: "Lead does not exist in database",
+          userId: userId 
+        });
+      }
+      
+      // Check if lead belongs to current user
+      const leadWithUser = await storage.getLead(leadId, userId);
+      if (!leadWithUser) {
+        return res.json({ 
+          exists: true, 
+          belongsToUser: false,
+          leadOwner: leadWithoutUser.userId,
+          currentUser: userId,
+          message: "Lead exists but doesn't belong to current user"
+        });
+      }
+      
+      return res.json({ 
+        exists: true, 
+        belongsToUser: true,
+        lead: leadWithUser,
+        message: "Lead exists and belongs to current user"
+      });
+    } catch (error) {
+      console.error("Debug error:", error);
+      res.status(500).json({ message: "Debug error" });
+    }
+  });
+
   // Delete lead (filtered by user)
   app.delete("/api/leads/:id", authenticateUser, async (req, res) => {
     try {
       const userId = req.user?.id;
-      const deleted = await storage.deleteLead(req.params.id, userId);
-      if (!deleted) {
+      const leadId = req.params.id;
+      
+      console.log(`Attempting to delete lead ${leadId} for user ${userId}`);
+      
+      // First check if the lead exists and belongs to the user
+      const lead = await storage.getLead(leadId, userId);
+      if (!lead) {
+        console.log(`Lead ${leadId} not found or doesn't belong to user ${userId}`);
         return res.status(404).json({ message: "Lead not found" });
       }
+      
+      const deleted = await storage.deleteLead(leadId, userId);
+      if (!deleted) {
+        console.log(`Failed to delete lead ${leadId} for user ${userId}`);
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      console.log(`Successfully deleted lead ${leadId} for user ${userId}`);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting lead:", error);

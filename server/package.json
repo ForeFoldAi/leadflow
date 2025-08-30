@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:init": "tsx init-database.js",
     "db:fix-production": "psql $DATABASE_URL -f fix-production-db.sql",
+    "fix-lead-created-by": "node fix-lead-created-by.js",
     "setup": "npm run db:push && npm run db:init",
     "deploy": "chmod +x aws-deploy-separate.sh && ./aws-deploy-separate.sh server",
     "prod:build": "npm run build && npm run check",

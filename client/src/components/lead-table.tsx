@@ -159,7 +159,17 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
   // Delete lead mutation
   const deleteLeadMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Debug: Log current user information
+      const userStr = localStorage.getItem("user");
+      const user = userStr ? JSON.parse(userStr) : null;
+      console.log("Current user:", user);
+      console.log("Attempting to delete lead:", id);
+      
       const response = await apiRequest('DELETE', `/api/leads/${id}`);
+      // Handle 204 No Content response (no body to parse)
+      if (response.status === 204) {
+        return { success: true };
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -170,10 +180,35 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
         description: "Lead deleted successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "Failed to delete lead";
+      
+      // Extract user-friendly message from error response
+      if (error?.message) {
+        // Remove HTTP status codes and technical details
+        let message = error.message.replace(/^\d+:\s*/, ''); // Remove status codes like "400: "
+        
+        // Remove JSON formatting if present
+        if (message.includes('{"error":') || message.includes('{"message":')) {
+          try {
+            const parsed = JSON.parse(message);
+            message = parsed.error || parsed.message || message;
+          } catch {
+            // If JSON parsing fails, use the original message
+          }
+        }
+        
+        if (!message.includes('Failed to fetch') && !message.includes('NetworkError')) {
+          errorMessage = message;
+        }
+      }
+      
+      // Add more context for debugging
+      console.error("Delete lead error:", error);
+      
       toast({
         title: "Error",
-        description: "Failed to delete lead",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -234,9 +269,28 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
     setDeletingId(id);
   };
 
+  // Debug function to check lead before deletion
+  const debugLead = async (leadId: string) => {
+    try {
+      const response = await apiRequest('GET', `/api/debug/leads/${leadId}`);
+      const debugInfo = await response.json();
+      console.log('Debug lead info:', debugInfo);
+      return debugInfo;
+    } catch (error) {
+      console.error('Debug error:', error);
+      return null;
+    }
+  };
+
   // Confirm delete
   const confirmDelete = async () => {
     if (deletingId) {
+      // Debug: Check lead before deletion
+      const debugInfo = await debugLead(deletingId);
+      if (debugInfo) {
+        console.log('Lead debug info before deletion:', debugInfo);
+      }
+      
       await deleteLeadMutation.mutateAsync(deletingId);
       setDeletingId(null);
     }
