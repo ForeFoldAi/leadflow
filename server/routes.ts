@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { insertLeadSchema, insertUserSchema } from "./shared/schema.js";
+import { insertLeadSchema, insertUserSchema, type InsertLead } from "./shared/schema.js";
 import { z } from "zod";
 import { notificationService } from "./notifications.js";
 import { MigrationUtility } from "./migration-utility.js";
@@ -493,9 +493,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/leads/:id", authenticateUser, async (req, res) => {
     try {
       const validatedData = insertLeadSchema.partial().parse(req.body);
+      
+      // Transform empty strings to undefined for date fields to prevent PostgreSQL errors
+      const transformedData: Partial<InsertLead> = { ...validatedData };
+      
+      // Handle date fields - remove empty strings to prevent PostgreSQL errors
+      if (validatedData.dateOfBirth === "") {
+        delete transformedData.dateOfBirth;
+      }
+      if (validatedData.lastContactedDate === "") {
+        delete transformedData.lastContactedDate;
+      }
+      if (validatedData.nextFollowupDate === "") {
+        delete transformedData.nextFollowupDate;
+      }
+      
       const userId = req.user?.id;
       const originalLead = await storage.getLead(req.params.id, userId);
-      const lead = await storage.updateLead(req.params.id, validatedData, userId);
+      const lead = await storage.updateLead(req.params.id, transformedData, userId);
       if (!lead) {
         return res.status(404).json({ message: "Lead not found" });
       }
