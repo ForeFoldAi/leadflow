@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { storage } from './storage.js';
 
 // Create reusable transporter object using SMTP transport
 const createTransporter = () => {
@@ -36,7 +37,12 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
       transporter.verify((error: Error | null, success: boolean) => {
         if (error) {
           console.error('SMTP connection error:', error);
-          emailServiceConfigured = false;
+          // In development, don't disable email service completely - allow fallback
+          if (process.env.NODE_ENV === 'production') {
+            emailServiceConfigured = false;
+          } else {
+            console.log('📧 [DEV MODE] SMTP connection failed, but email service will use simulation fallback');
+          }
         } else {
           console.log('SMTP server is ready to take our messages');
         }
@@ -81,28 +87,56 @@ class NotificationService {
   // Get user notification settings
   private async getUserNotificationSettings(userId: string): Promise<UserNotificationSettings | null> {
     try {
-      // For now, return default settings
-      // In a real implementation, you would fetch from database
+      // Import storage to access user preferences
+      const { storage } = await import('./storage.js');
+      
+      // Fetch user's actual notification settings from database
+      const userSettings = await storage.getNotificationSettings(userId);
+      
+      if (userSettings) {
+        // Return user's saved preferences
+        return {
+          newLeads: userSettings.newLeads,
+          followUps: userSettings.followUps,
+          hotLeads: userSettings.hotLeads,
+          conversions: userSettings.conversions,
+          browserPush: userSettings.browserPush,
+          dailySummary: userSettings.dailySummary,
+          emailNotifications: userSettings.emailNotifications
+        };
+      }
+      
+      // If no settings found, return default settings
       return {
-        newLeads: true,
-        followUps: true,
-        hotLeads: true,
-        conversions: true,
+        newLeads: false,
+        followUps: false,
+        hotLeads: false,
+        conversions: false,
         browserPush: false,
-        dailySummary: true,
+        dailySummary: false,
         emailNotifications: true
       };
     } catch (error) {
       console.error('Failed to get user notification settings:', error);
+      
+      // Fallback to default settings if database access fails
+      return {
+        newLeads: false,
+        followUps: false,
+        hotLeads: false,
+        conversions: false,
+        browserPush: false,
+        dailySummary: false,
+        emailNotifications: true
+      };
     }
-    return null;
   }
 
   // Check if user has enabled specific notification type
   private async shouldSendNotification(userId: string, notificationType: keyof UserNotificationSettings): Promise<boolean> {
     const settings = await this.getUserNotificationSettings(userId);
     if (!settings) {
-      // Default to true if no settings found
+      // Default to true if no settings found (backward compatibility)
       return true;
     }
     
@@ -111,19 +145,40 @@ class NotificationService {
       return false;
     }
     
-    // Check specific notification type
+    // Check specific notification type based on user preferences
     return settings[notificationType] || false;
   }
 
-  // Email notifications
+  // Check if this is an authentication-related email (2FA, password reset, etc.)
+  private isAuthenticationEmail(subject: string, type?: string): boolean {
+    const authKeywords = [
+      '2fa', 'two-factor', 'authentication', 'verification', 'otp', 'code',
+      'password', 'reset', 'login', 'security', 'verify', 'confirm'
+    ];
+    
+    const subjectLower = subject.toLowerCase();
+    const typeLower = type?.toLowerCase() || '';
+    
+    return authKeywords.some(keyword => 
+      subjectLower.includes(keyword) || typeLower.includes(keyword)
+    );
+  }
+
+  // Email notifications - only allow authentication emails
   async sendEmail(notification: EmailNotification): Promise<boolean> {
+    // Check if this is an authentication-related email
+    if (!this.isAuthenticationEmail(notification.subject)) {
+      console.log(`📧 [BLOCKED] Non-authentication email blocked: ${notification.subject} to ${notification.to}`);
+      return false;
+    }
+
     if (!emailServiceConfigured || !transporter) {
       // Simulate email sending when SMTP is not properly configured
-      console.log(`📧 [SIMULATED EMAIL] To: ${notification.to}`);
-      console.log(`📧 [SIMULATED EMAIL] Subject: ${notification.subject}`);
-      console.log(`📧 [SIMULATED EMAIL] Content: ${notification.text || 'HTML content provided'}`);
-      console.log('📧 [SIMULATED EMAIL] Email would be sent successfully in production');
-      return true;
+      console.log(`📧 [SIMULATED AUTH EMAIL] To: ${notification.to}`);
+      console.log(`📧 [SIMULATED AUTH EMAIL] Subject: ${notification.subject}`);
+      console.log(`📧 [SIMULATED AUTH EMAIL] Content: ${notification.text || 'HTML content provided'}`);
+      console.log('📧 [SIMULATED AUTH EMAIL] Authentication email would be sent successfully in production');
+      return true; // Always return true for simulation
     }
 
     try {
@@ -136,7 +191,7 @@ class NotificationService {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log(`📧 Email sent successfully to ${notification.to}: ${notification.subject}`);
+      console.log(`📧 Authentication email sent successfully to ${notification.to}: ${notification.subject}`);
       console.log(`📧 Message ID: ${info.messageId}`);
       return true;
     } catch (error) {
@@ -144,7 +199,14 @@ class NotificationService {
       // Fall back to simulation if Nodemailer fails
       console.log(`📧 [FALLBACK SIMULATION] To: ${notification.to}`);
       console.log(`📧 [FALLBACK SIMULATION] Subject: ${notification.subject}`);
-      console.log('📧 [FALLBACK SIMULATION] Email delivery failed but notification logged');
+      console.log('📧 [FALLBACK SIMULATION] Authentication email delivery failed but notification logged');
+      
+      // In development, return true to allow processes to continue
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📧 [DEV MODE] Treating failed authentication email as successful for development');
+        return true;
+      }
+      
       return false;
     }
   }
@@ -207,6 +269,24 @@ class NotificationService {
       `
     };
 
+    // Create notification log in database
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'new_lead',
+        title: 'New Lead Added',
+        message: `New lead: ${leadName}`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
+
     return await this.sendEmail(emailNotification);
   }
 
@@ -242,6 +322,25 @@ class NotificationService {
       `
     };
 
+    // Create notification log in database
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'lead_update',
+        title: 'Lead Updated',
+        message: `${leadName} - ${changes.join(', ')}`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName,
+          changes
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
+
     return await this.sendEmail(emailNotification);
   }
 
@@ -273,6 +372,24 @@ class NotificationService {
         </div>
       `
     };
+
+    // Create notification log in database
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'lead_converted',
+        title: '🎉 Lead Converted',
+        message: `${leadName} has been converted to a customer`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
 
     return await this.sendEmail(emailNotification);
   }

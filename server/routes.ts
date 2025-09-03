@@ -517,7 +517,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send notifications for lead updates
       try {
-        const users = await storage.getUsers();
         const changes: string[] = [];
         
         // Detect what changed
@@ -525,8 +524,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (originalLead.leadStatus !== lead.leadStatus) {
             changes.push(`Status changed from ${originalLead.leadStatus} to ${lead.leadStatus}`);
             
-            // Special notification for conversions
+            // Special notification for conversions - notify all users
             if (lead.leadStatus === 'converted') {
+              const users = await storage.getUsers();
               for (const user of users) {
                 if (user.isActive) {
                   await notificationService.notifyLeadConverted(user.id, user.email, lead.name, lead.id);
@@ -542,13 +542,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Send update notifications if there are changes
-        if (changes.length > 0 && lead.leadStatus !== 'converted') {
-          for (const user of users) {
-            if (user.isActive) {
-              await notificationService.notifyLeadUpdate(user.id, user.email, lead.name, lead.id, changes);
-            }
-          }
+        // Send update notifications only to the user who made the edit
+        if (changes.length > 0 && lead.leadStatus !== 'converted' && req.user) {
+          await notificationService.notifyLeadUpdate(req.user.id, req.user.email, lead.name, lead.id, changes);
         }
       } catch (notificationError) {
         console.error("Error sending lead update notifications:", notificationError);
@@ -795,7 +791,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user exists
-      const user = await storage.getUserByEmail(email);
+      let user;
+      try {
+        user = await storage.getUserByEmail(email);
+      } catch (dbError) {
+        console.error("Database error in forgot password:", dbError);
+        
+        // In development mode, provide a fallback response
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`🔑 [DEV MODE] Database connection failed, simulating password reset for: ${email}`);
+          return res.json({ 
+            message: "If an account with this email exists, a password reset OTP has been sent.",
+            devMode: true,
+            note: "Database connection failed - this is a development fallback"
+          });
+        }
+        
+        return res.status(500).json({ error: "Database connection failed. Please try again later." });
+      }
+      
       if (!user) {
         // Don't reveal if user exists or not for security
         return res.json({ message: "If an account with this email exists, a password reset OTP has been sent." });
@@ -1422,10 +1436,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create default notification settings if none exist
         settings = await storage.createNotificationSettings({
           userId,
-          newLeads: true,
-          followUps: true,
-          hotLeads: true,
-          conversions: true,
+          newLeads: false,
+          followUps: false,
+          hotLeads: false,
+          conversions: false,
           browserPush: false,
           dailySummary: false,
           emailNotifications: true
@@ -1446,10 +1460,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({
           id: "default",
           userId: req.params.userId,
-          newLeads: true,
-          followUps: true,
-          hotLeads: true,
-          conversions: true,
+          newLeads: false,
+          followUps: false,
+          hotLeads: false,
+          conversions: false,
           browserPush: false,
           dailySummary: false,
           emailNotifications: true,
@@ -1510,10 +1524,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({
           id: "default",
           userId: req.params.userId,
-          newLeads: req.body?.newLeads ?? true,
-          followUps: req.body?.followUps ?? true,
-          hotLeads: req.body?.hotLeads ?? true,
-          conversions: req.body?.conversions ?? true,
+          newLeads: req.body?.newLeads ?? false,
+          followUps: req.body?.followUps ?? false,
+          hotLeads: req.body?.hotLeads ?? false,
+          conversions: req.body?.conversions ?? false,
           browserPush: req.body?.browserPush ?? false,
           dailySummary: req.body?.dailySummary ?? false,
           emailNotifications: req.body?.emailNotifications ?? true,
@@ -1557,18 +1571,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       const updates = req.body;
       
+      // Filter updates to only include safe fields that exist in the database
+      const safeUpdates: any = {};
+      const allowedFields = ['twoFactorEnabled', 'loginNotifications', 'sessionTimeout', 'apiKey'];
+      
+      Object.keys(updates).forEach(key => {
+        if (allowedFields.includes(key)) {
+          safeUpdates[key] = updates[key];
+        }
+      });
+      
       let settings = await storage.getSecuritySettings(userId);
       if (!settings) {
         // Create new settings if none exist
         const apiKey = storage.generateApiKey();
         settings = await storage.createSecuritySettings({
           userId,
-          ...updates,
+          ...safeUpdates,
           apiKey
         });
       } else {
         // Update existing settings
-        settings = await storage.updateSecuritySettings(userId, updates);
+        settings = await storage.updateSecuritySettings(userId, safeUpdates);
       }
       
       if (!settings) {
@@ -1601,13 +1625,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification Logs routes
-  app.get("/api/user/notifications/:userId/logs", async (req, res) => {
+  app.get("/api/user/notifications/:userId/logs", authenticateUser, async (req, res) => {
     try {
       const { userId } = req.params;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
       
-      const logs = await storage.getNotificationLogs(userId, limit);
-      res.json(logs);
+      // Ensure user can only access their own notifications
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Get notifications and total count
+      const [logs, totalCount] = await Promise.all([
+        storage.getNotificationLogs(userId, limit, offset),
+        storage.getNotificationLogsCount(userId)
+      ]);
+      
+      res.json({
+        notifications: logs,
+        total: totalCount,
+        page: Math.floor(offset / limit) + 1,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: offset + limit < totalCount,
+        hasPrev: offset > 0
+      });
     } catch (error) {
       console.error("Error fetching notification logs:", error);
       res.status(500).json({ error: "Failed to fetch notification logs" });
@@ -1648,6 +1690,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error marking notification as read:", error);
       res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  // DELETE endpoint for notifications
+  app.delete("/api/user/notifications/logs/:logId", authenticateUser, async (req, res) => {
+    try {
+      const { logId } = req.params;
+      
+      // Get the notification to check ownership
+      const notification = await storage.getNotificationLog(logId);
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+      
+      // Ensure user can only delete their own notifications
+      if (req.user?.id !== notification.userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const success = await storage.deleteNotificationLog(logId);
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete notification" });
+      }
+      
+      res.json({ message: "Notification deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting notification log:", error);
+      res.status(500).json({ error: "Failed to delete notification" });
     }
   });
 
@@ -2050,9 +2120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
              // Enable 2FA
        const updatedSettings = await storage.updateSecuritySettings(userId, {
-         twoFactorEnabled: true,
-         twoFactorMethod: "email",
-         lastTwoFactorSetup: new Date()
+         twoFactorEnabled: true
        });
       
       if (updatedSettings) {
@@ -2079,8 +2147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Disable 2FA
       const updatedSettings = await storage.updateSecuritySettings(userId, {
-        twoFactorEnabled: false,
-        lastTwoFactorSetup: null
+        twoFactorEnabled: false
       });
       
       if (updatedSettings) {

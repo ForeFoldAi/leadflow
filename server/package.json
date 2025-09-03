@@ -17,7 +17,9 @@
     "setup": "npm run db:push && npm run db:init",
     "deploy": "chmod +x aws-deploy-separate.sh && ./aws-deploy-separate.sh server",
     "prod:build": "npm run build && npm run check",
-    "prod:start": "NODE_ENV=production node dist/index.js"
+    "prod:start": "NODE_ENV=production node dist/index.js",
+    "performance:check": "node performance-monitor.js",
+    "performance:indexes": "npm run db:push"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

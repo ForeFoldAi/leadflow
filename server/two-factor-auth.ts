@@ -108,6 +108,14 @@ class TwoFactorAuthService {
         return true;
       } else {
         console.error(`🔐 Failed to send 2FA OTP to ${userEmail} for user ${userId}`);
+        
+        // In development, allow 2FA to proceed even if email fails
+        // The OTP session is still created, so user can manually get the OTP from logs
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`🔐 [DEV MODE] 2FA OTP for ${userEmail}: ${otp} (valid for ${this.OTP_EXPIRY_MINUTES} minutes)`);
+          return true; // Allow login to proceed in development
+        }
+        
         return false;
       }
     } catch (error) {

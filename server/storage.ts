@@ -75,9 +75,12 @@ export interface IStorage {
   generateApiKey(): string;
   
   // Notification Logs operations
-  getNotificationLogs(userId: string, limit?: number): Promise<NotificationLog[]>;
+  getNotificationLogs(userId: string, limit?: number, offset?: number): Promise<NotificationLog[]>;
+  getNotificationLogsCount(userId: string): Promise<number>;
+  getNotificationLog(logId: string): Promise<NotificationLog | undefined>;
   createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
   markNotificationAsRead(logId: string): Promise<boolean>;
+  deleteNotificationLog(logId: string): Promise<boolean>;
   deleteOldNotificationLogs(userId: string, daysOld: number): Promise<number>;
   
   // User Sessions operations
@@ -449,15 +452,30 @@ export class SqlStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
+      // Test database connection first
+      if (!this.db) {
+        console.error("Database connection not available");
+        throw new Error("Database connection not available");
+      }
+
+      console.log(`🔍 Attempting to fetch user with email: ${email}`);
+      
       const result = await this.db
         .select()
         .from(users)
         .where(eq(users.email, email.toLowerCase()))
         .limit(1);
       
+      console.log(`🔍 User fetch result: ${result.length} users found`);
       return result[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching user by email:", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        hint: error.hint
+      });
       throw new Error("Failed to fetch user by email from database");
     }
   }
@@ -741,7 +759,16 @@ export class SqlStorage implements IStorage {
         .insert(securitySettings)
         .values({
           ...safeSettings,
-          lastPasswordChange: safeSettings.lastPasswordChange ? new Date(safeSettings.lastPasswordChange) : null
+          lastPasswordChange: safeSettings.lastPasswordChange 
+            ? (safeSettings.lastPasswordChange instanceof Date 
+                ? safeSettings.lastPasswordChange 
+                : new Date(safeSettings.lastPasswordChange)) 
+            : null,
+          lastTwoFactorSetup: safeSettings.lastTwoFactorSetup 
+            ? (safeSettings.lastTwoFactorSetup instanceof Date 
+                ? safeSettings.lastTwoFactorSetup 
+                : new Date(safeSettings.lastTwoFactorSetup)) 
+            : null
         })
         .returning();
       return result[0];
@@ -783,10 +810,14 @@ export class SqlStorage implements IStorage {
       
       // Handle date fields properly
       if (settings.lastPasswordChange) {
-        updateData.lastPasswordChange = new Date(settings.lastPasswordChange).toISOString();
+        updateData.lastPasswordChange = settings.lastPasswordChange instanceof Date 
+          ? settings.lastPasswordChange 
+          : new Date(settings.lastPasswordChange);
       }
       if (settings.lastTwoFactorSetup) {
-        updateData.lastTwoFactorSetup = new Date(settings.lastTwoFactorSetup).toISOString();
+        updateData.lastTwoFactorSetup = settings.lastTwoFactorSetup instanceof Date 
+          ? settings.lastTwoFactorSetup 
+          : new Date(settings.lastTwoFactorSetup);
       }
       
       // Remove undefined values to prevent database errors
@@ -872,12 +903,16 @@ export class SqlStorage implements IStorage {
   }
 
   // Notification Logs operations
-  async getNotificationLogs(userId: string, limit?: number): Promise<NotificationLog[]> {
+  async getNotificationLogs(userId: string, limit?: number, offset?: number): Promise<NotificationLog[]> {
     try {
       const query = this.db
         .select()
         .from(notificationLogs)
         .where(eq(notificationLogs.userId, userId));
+      
+      if (offset) {
+        query.offset(offset);
+      }
       
       if (limit) {
         query.limit(limit);
@@ -887,6 +922,33 @@ export class SqlStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching notification logs:", error);
       throw new Error("Failed to fetch notification logs from database");
+    }
+  }
+
+  async getNotificationLogsCount(userId: string): Promise<number> {
+    try {
+      const result = await this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(notificationLogs)
+        .where(eq(notificationLogs.userId, userId));
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error("Error fetching notification logs count:", error);
+      throw new Error("Failed to fetch notification logs count from database");
+    }
+  }
+
+  async getNotificationLog(logId: string): Promise<NotificationLog | undefined> {
+    try {
+      const result = await this.db
+        .select()
+        .from(notificationLogs)
+        .where(eq(notificationLogs.id, logId))
+        .limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Error fetching notification log:", error);
+      throw new Error("Failed to fetch notification log from database");
     }
   }
 
@@ -914,6 +976,19 @@ export class SqlStorage implements IStorage {
     } catch (error) {
       console.error("Error marking notification as read:", error);
       throw new Error("Failed to mark notification as read in database");
+    }
+  }
+
+  async deleteNotificationLog(logId: string): Promise<boolean> {
+    try {
+      const result = await this.db
+        .delete(notificationLogs)
+        .where(eq(notificationLogs.id, logId))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting notification log:", error);
+      throw new Error("Failed to delete notification log from database");
     }
   }
 

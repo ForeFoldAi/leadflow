@@ -15,33 +15,74 @@ declare global {
   }
 }
 
-// Simple authentication middleware
+// Session-based authentication middleware
 export async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   try {
-    // Get user information from headers, body, or query
-    const userEmail = req.body.userEmail || req.query.userEmail || req.headers['x-user-email'];
-    const userId = req.body.userId || req.query.userId || req.headers['x-user-id'];
-    
-    if (!userEmail && !userId) {
-      // Require authentication - no backward compatibility
-      return res.status(401).json({ error: "Authentication required" });
+    // First, try to get session token from various sources
+    let sessionToken = req.cookies?.sessionToken || 
+                      req.headers['authorization']?.replace('Bearer ', '') ||
+                      req.headers['x-session-token'] ||
+                      req.query.sessionToken ||
+                      req.body.sessionToken;
+
+    // If no session token, try legacy authentication methods
+    if (!sessionToken) {
+      const userEmail = req.body.userEmail || req.query.userEmail || req.headers['x-user-email'];
+      const userId = req.body.userId || req.query.userId || req.headers['x-user-id'];
+      
+      if (!userEmail && !userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      let user;
+      if (userEmail) {
+        user = await storage.getUserByEmail(userEmail as string);
+      } else if (userId) {
+        user = await storage.getUser(userId as string);
+      }
+      
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      if (!user.isActive) {
+        return res.status(401).json({ error: "User account is inactive" });
+      }
+      
+      // Add user to request object
+      req.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      };
+      
+      return next();
     }
-    
-    let user;
-    if (userEmail) {
-      user = await storage.getUserByEmail(userEmail as string);
-    } else if (userId) {
-      user = await storage.getUser(userId as string);
+
+    // Validate session token
+    const session = await storage.getUserSession(sessionToken);
+    if (!session) {
+      return res.status(401).json({ error: "Invalid session token" });
     }
-    
+
+    // Check if session is expired
+    if (new Date() > session.expiresAt) {
+      await storage.deleteUserSession(sessionToken);
+      return res.status(401).json({ error: "Session expired" });
+    }
+
+    // Get user information from session
+    const user = await storage.getUser(session.userId);
     if (!user) {
+      await storage.deleteUserSession(sessionToken);
       return res.status(401).json({ error: "User not found" });
     }
-    
+
     if (!user.isActive) {
       return res.status(401).json({ error: "User account is inactive" });
     }
-    
+
     // Add user to request object
     req.user = {
       id: user.id,
@@ -49,7 +90,7 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
       name: user.name,
       role: user.role
     };
-    
+
     next();
   } catch (error) {
     console.error("Authentication error:", error);

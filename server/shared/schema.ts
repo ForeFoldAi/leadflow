@@ -391,7 +391,8 @@ export const insertSecuritySettingsSchema = createInsertSchema(securitySettings,
   loginNotifications: z.boolean().default(true),
   sessionTimeout: z.enum(["15", "30", "60", "120", "240"]).default("30"),
   apiKey: z.string().min(1, "API key is required"),
-  lastPasswordChange: z.string().optional(),
+  lastPasswordChange: z.date().optional(),
+  lastTwoFactorSetup: z.date().optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 export type InsertSecuritySettings = z.infer<typeof insertSecuritySettingsSchema>;

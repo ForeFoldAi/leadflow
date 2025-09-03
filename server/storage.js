@@ -6,6 +6,7 @@ const { Pool } = pkg;
 import { eq, and, or, desc, asc, ilike, lt } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { sql } from "drizzle-orm";
 // Load environment variables
 config();
 export class SqlStorage {
@@ -530,12 +531,29 @@ export class SqlStorage {
     }
     async createSecuritySettings(settings) {
         try {
+            // Filter out columns that might not exist in the database yet
+            const safeSettings = {};
+            const allowedColumns = [
+                'userId', 'twoFactorEnabled', 'loginNotifications', 'sessionTimeout', 'apiKey', 
+                'lastPasswordChange'
+            ];
+            
+            Object.keys(settings).forEach(key => {
+                if (allowedColumns.includes(key)) {
+                    safeSettings[key] = settings[key];
+                }
+            });
+            
             const result = await this.db
                 .insert(securitySettings)
                 .values({
-                ...settings,
-                lastPasswordChange: settings.lastPasswordChange ? new Date(settings.lastPasswordChange) : null
-            })
+                    ...safeSettings,
+                    lastPasswordChange: safeSettings.lastPasswordChange 
+                        ? (safeSettings.lastPasswordChange instanceof Date 
+                            ? safeSettings.lastPasswordChange 
+                            : new Date(safeSettings.lastPasswordChange)) 
+                        : null
+                })
                 .returning();
             return result[0];
         }
@@ -566,12 +584,37 @@ export class SqlStorage {
     async updateSecuritySettings(userId, settings) {
         try {
             const updateData = { ...settings };
+            
+            // Handle date fields properly
             if (settings.lastPasswordChange) {
-                updateData.lastPasswordChange = new Date(settings.lastPasswordChange);
+                updateData.lastPasswordChange = settings.lastPasswordChange instanceof Date 
+                    ? settings.lastPasswordChange 
+                    : new Date(settings.lastPasswordChange);
             }
+            
+            // Remove undefined values to prevent database errors
+            Object.keys(updateData).forEach(key => {
+                if (updateData[key] === undefined) {
+                    delete updateData[key];
+                }
+            });
+            
+            // Filter out columns that might not exist in the database yet
+            const safeUpdateData = {};
+            const allowedColumns = [
+                'twoFactorEnabled', 'loginNotifications', 'sessionTimeout', 'apiKey', 
+                'lastPasswordChange'
+            ];
+            
+            Object.keys(updateData).forEach(key => {
+                if (allowedColumns.includes(key)) {
+                    safeUpdateData[key] = updateData[key];
+                }
+            });
+            
             const result = await this.db
                 .update(securitySettings)
-                .set(updateData)
+                .set(safeUpdateData)
                 .where(eq(securitySettings.userId, userId))
                 .returning();
             return result[0];
@@ -605,22 +648,42 @@ export class SqlStorage {
         return apiKey;
     }
     // Notification Logs operations
-    async getNotificationLogs(userId, limit) {
+    async getNotificationLogs(userId, limit, offset) {
         try {
             const query = this.db
                 .select()
                 .from(notificationLogs)
                 .where(eq(notificationLogs.userId, userId));
+            
+            if (offset) {
+                query.offset(offset);
+            }
+            
             if (limit) {
                 query.limit(limit);
             }
+
             return await query.orderBy(desc(notificationLogs.createdAt));
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error fetching notification logs:", error);
             throw new Error("Failed to fetch notification logs from database");
         }
     }
+
+    async getNotificationLog(logId) {
+        try {
+            const result = await this.db
+                .select()
+                .from(notificationLogs)
+                .where(eq(notificationLogs.id, logId))
+                .limit(1);
+            return result[0];
+        } catch (error) {
+            console.error("Error fetching notification log:", error);
+            throw new Error("Failed to fetch notification log from database");
+        }
+    }
+
     async createNotificationLog(log) {
         try {
             const result = await this.db
@@ -628,12 +691,12 @@ export class SqlStorage {
                 .values(log)
                 .returning();
             return result[0];
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error creating notification log:", error);
             throw new Error("Failed to create notification log in database");
         }
     }
+
     async markNotificationAsRead(logId) {
         try {
             const result = await this.db
@@ -642,12 +705,25 @@ export class SqlStorage {
                 .where(eq(notificationLogs.id, logId))
                 .returning();
             return result.length > 0;
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error marking notification as read:", error);
             throw new Error("Failed to mark notification as read in database");
         }
     }
+
+    async deleteNotificationLog(logId) {
+        try {
+            const result = await this.db
+                .delete(notificationLogs)
+                .where(eq(notificationLogs.id, logId))
+                .returning();
+            return result.length > 0;
+        } catch (error) {
+            console.error("Error deleting notification log:", error);
+            throw new Error("Failed to delete notification log from database");
+        }
+    }
+
     async deleteOldNotificationLogs(userId, daysOld) {
         try {
             const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
@@ -656,10 +732,21 @@ export class SqlStorage {
                 .where(and(eq(notificationLogs.userId, userId), lt(notificationLogs.createdAt, cutoffDate)))
                 .returning();
             return result.length;
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error deleting old notification logs:", error);
             throw new Error("Failed to delete old notification logs from database");
+        }
+    }
+    async getNotificationLogsCount(userId) {
+        try {
+            const result = await this.db
+                .select({ count: sql`count(*)` })
+                .from(notificationLogs)
+                .where(eq(notificationLogs.userId, userId));
+            return result[0]?.count || 0;
+        } catch (error) {
+            console.error("Error fetching notification logs count:", error);
+            throw new Error("Failed to fetch notification logs count from database");
         }
     }
     // User Sessions operations
