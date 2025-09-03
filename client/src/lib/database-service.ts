@@ -6,10 +6,16 @@ const apiRequest = async (method: string, endpoint: string, data?: any) => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
   const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl.replace(/\/$/, '')}${endpoint}`;
 
+  // Get current user for authentication headers
+  const user = getCurrentUser();
+  
   const response = await fetch(fullUrl, {
     method,
+    credentials: 'include', // Include cookies for session-based auth
     headers: {
       "Content-Type": "application/json",
+      ...(user?.id && { 'x-user-id': user.id }),
+      ...(user?.email && { 'x-user-email': user.email }),
     },
     body: data ? JSON.stringify(data) : undefined,
   });
@@ -23,7 +29,7 @@ const apiRequest = async (method: string, endpoint: string, data?: any) => {
 };
 
 // Get current user from localStorage
-const getCurrentUser = () => {
+export const getCurrentUser = () => {
   try {
     const userStr = localStorage.getItem("user");
     if (!userStr || userStr === "null" || userStr === "undefined") {
@@ -153,15 +159,14 @@ export const useRegenerateApiKey = () => {
 };
 
 // Notification Logs
-export const useNotificationLogs = (limit: number = 10) => {
-  const user = getCurrentUser();
-  const userId = user?.id;
+export const useNotificationLogs = (userId: string | undefined, page: number = 1, limit: number = 10) => {
+  const offset = (page - 1) * limit;
 
   return useQuery({
-    queryKey: ["notificationLogs", userId, limit],
+    queryKey: ["notificationLogs", userId, page, limit],
     queryFn: async () => {
       if (!userId) throw new Error("User not authenticated");
-      const response = await apiRequest("GET", `/api/user/notifications/${userId}/logs?limit=${limit}`);
+      const response = await apiRequest("GET", `/api/user/notifications/${userId}/logs?limit=${limit}&offset=${offset}`);
       return response.json();
     },
     enabled: !!userId,
@@ -193,6 +198,22 @@ export const useMarkNotificationAsRead = () => {
   return useMutation({
     mutationFn: async (logId: string) => {
       const response = await apiRequest("PUT", `/api/user/notifications/logs/${logId}/read`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notificationLogs", userId] });
+    },
+  });
+};
+
+export const useDeleteNotificationLog = () => {
+  const queryClient = useQueryClient();
+  const user = getCurrentUser();
+  const userId = user?.id;
+
+  return useMutation({
+    mutationFn: async (logId: string) => {
+      const response = await apiRequest("DELETE", `/api/user/notifications/logs/${logId}`);
       return response.json();
     },
     onSuccess: () => {

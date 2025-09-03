@@ -633,30 +633,6 @@ export class SqlStorage implements IStorage {
       return result[0];
     } catch (error) {
       console.error("Error creating notification settings:", error);
-      
-      // If the table structure is missing columns, return a mock object
-      if (error instanceof Error && (
-        error.message.includes("column") && error.message.includes("does not exist") ||
-        error.message.includes("push_subscription") ||
-        error.message.includes("42703")
-      )) {
-        console.log("Notification settings table missing columns, returning mock object");
-        return {
-          id: "mock",
-          userId: settings.userId,
-          newLeads: settings.newLeads,
-          followUps: settings.followUps,
-          hotLeads: settings.hotLeads,
-          conversions: settings.conversions,
-          browserPush: settings.browserPush,
-          dailySummary: settings.dailySummary,
-          emailNotifications: settings.emailNotifications,
-          pushSubscription: null,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as NotificationSettings;
-      }
-      
       throw new Error("Failed to create notification settings in database");
     }
   }
@@ -671,30 +647,6 @@ export class SqlStorage implements IStorage {
       return result[0];
     } catch (error) {
       console.error("Error updating notification settings:", error);
-      
-      // If the table structure is missing columns, return a mock object
-      if (error instanceof Error && (
-        error.message.includes("column") && error.message.includes("does not exist") ||
-        error.message.includes("push_subscription") ||
-        error.message.includes("42703")
-      )) {
-        console.log("Notification settings table missing columns, returning mock object");
-        return {
-          id: "mock",
-          userId: userId,
-          newLeads: settings.newLeads ?? true,
-          followUps: settings.followUps ?? true,
-          hotLeads: settings.hotLeads ?? true,
-          conversions: settings.conversions ?? true,
-          browserPush: settings.browserPush ?? false,
-          dailySummary: settings.dailySummary ?? false,
-          emailNotifications: settings.emailNotifications ?? true,
-          pushSubscription: null,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as NotificationSettings;
-      }
-      
       throw new Error("Failed to update notification settings in database");
     }
   }
@@ -775,31 +727,6 @@ export class SqlStorage implements IStorage {
     } catch (error) {
       console.error("Error creating security settings:", error);
       
-      // If the error is due to missing columns, return a mock created object
-      if (error instanceof Error && error.message && (
-        error.message.includes('column') && error.message.includes('does not exist') ||
-        error.message.includes('two_factor_method') ||
-        error.message.includes('two_factor_secret') ||
-        error.message.includes('two_factor_backup_codes')
-      )) {
-        console.log("Security settings table missing 2FA columns, returning mock created object");
-        return {
-          id: 'mock',
-          userId: settings.userId,
-          twoFactorEnabled: settings.twoFactorEnabled ?? false,
-          twoFactorMethod: settings.twoFactorMethod ?? 'email',
-          twoFactorSecret: settings.twoFactorSecret ?? null,
-          twoFactorBackupCodes: settings.twoFactorBackupCodes ?? null,
-          loginNotifications: settings.loginNotifications ?? true,
-          sessionTimeout: settings.sessionTimeout ?? '30',
-          apiKey: settings.apiKey ?? 'mock',
-          lastPasswordChange: settings.lastPasswordChange ? new Date(settings.lastPasswordChange) : null,
-          lastTwoFactorSetup: settings.lastTwoFactorSetup ? new Date(settings.lastTwoFactorSetup) : null,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as SecuritySettings;
-      }
-      
       throw new Error("Failed to create security settings in database");
     }
   }
@@ -848,31 +775,6 @@ export class SqlStorage implements IStorage {
       return result[0];
     } catch (error) {
       console.error("Error updating security settings:", error);
-      
-      // If the error is due to missing columns, return a mock updated object
-      if (error instanceof Error && error.message && (
-        error.message.includes('column') && error.message.includes('does not exist') ||
-        error.message.includes('two_factor_method') ||
-        error.message.includes('two_factor_secret') ||
-        error.message.includes('two_factor_backup_codes')
-      )) {
-        console.log("Security settings table missing 2FA columns, returning mock updated object");
-        return {
-          id: 'mock',
-          userId: userId,
-          twoFactorEnabled: settings.twoFactorEnabled ?? false,
-          twoFactorMethod: settings.twoFactorMethod ?? 'email',
-          twoFactorSecret: settings.twoFactorSecret ?? null,
-          twoFactorBackupCodes: settings.twoFactorBackupCodes ?? null,
-          loginNotifications: settings.loginNotifications ?? true,
-          sessionTimeout: settings.sessionTimeout ?? '30',
-          apiKey: settings.apiKey ?? 'mock',
-          lastPasswordChange: settings.lastPasswordChange ? new Date(settings.lastPasswordChange) : null,
-          lastTwoFactorSetup: settings.lastTwoFactorSetup ? new Date(settings.lastTwoFactorSetup) : new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as SecuritySettings;
-      }
       
       throw new Error("Failed to update security settings in database");
     }

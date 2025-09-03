@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Bell, Mail, Smartphone, CheckCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useNotificationLogs, useDeleteNotificationLog, getCurrentUser } from "@/lib/database-service";
 
 interface NotificationLog {
   id: string;
@@ -15,122 +16,46 @@ interface NotificationLog {
 }
 
 export default function NotificationDisplay() {
-  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const notificationsPerPage = 10;
+  const user = getCurrentUser();
+  const userId = user?.id;
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [currentPage]);
+  // Use React Query hooks
+  const { data: notificationData, isLoading: loading, error: queryError } = useNotificationLogs(userId, currentPage, notificationsPerPage);
+  const deleteNotificationMutation = useDeleteNotificationLog();
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Get current user from localStorage
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (!user.id) {
-        setError("User not authenticated");
-        return;
-      }
+  // Extract data from the hook response
+  const notifications = notificationData?.notifications || [];
+  const totalPages = notificationData?.totalPages || 1;
+  const error = queryError ? (queryError as Error).message : null;
 
-      console.log('Fetching notifications for user:', user.id);
-      const offset = (currentPage - 1) * notificationsPerPage;
-      const apiUrl = `/api/user/notifications/${user.id}/logs?limit=${notificationsPerPage}&offset=${offset}`;
-      console.log('API URL:', apiUrl);
-
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user.id, // Send user ID in header for authentication
-          'x-user-email': user.email, // Send user email in header for authentication
-        },
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`Failed to fetch notifications: ${response.status} - ${errorText}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const responseText = await response.text();
-        console.error('Non-JSON response:', responseText);
-        throw new Error('Server returned non-JSON response');
-      }
-
-      const data = await response.json();
-      console.log('Fetched notifications:', data);
-      
-      // Handle both array and paginated response
-      if (Array.isArray(data)) {
-        setNotifications(data);
-        setTotalPages(Math.ceil(data.length / notificationsPerPage));
-      } else if (data.notifications && data.total) {
-        setNotifications(data.notifications);
-        setTotalPages(Math.ceil(data.total / notificationsPerPage));
-      } else {
-        setNotifications(data);
-        setTotalPages(1);
-      }
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
-      // Fallback to localStorage for backward compatibility
-      const savedLogs = localStorage.getItem('notificationLogs');
-      if (savedLogs) {
-        try {
-          const logs = JSON.parse(savedLogs).map((log: any) => ({
-            ...log,
-            timestamp: new Date(log.timestamp)
-          }));
-          setNotifications(logs.slice(-10));
-        } catch {
-          setNotifications([]);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  // If no user, show authentication error
+  if (!userId) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Recent Notifications
+          </CardTitle>
+          <CardDescription>
+            User not authenticated
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-sm">Please log in to view notifications</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const deleteNotification = async (notificationId: string) => {
     try {
       setDeletingId(notificationId);
-      
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (!user.id) {
-        throw new Error("User not authenticated");
-      }
-
-      const response = await fetch(`/api/user/notifications/logs/${notificationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user.id,
-          'x-user-email': user.email,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete notification');
-      }
-
-      // Remove from local state
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      await deleteNotificationMutation.mutateAsync(notificationId);
       
       // If current page becomes empty and not first page, go to previous page
       if (notifications.length === 1 && currentPage > 1) {
@@ -138,7 +63,6 @@ export default function NotificationDisplay() {
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
-      // You could add a toast notification here
     } finally {
       setDeletingId(null);
     }
@@ -323,7 +247,7 @@ export default function NotificationDisplay() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        {notifications.map((notification) => (
+        {notifications.map((notification: NotificationLog) => (
           <div 
             key={notification.id} 
             className={`flex items-start gap-3 p-3 border rounded-lg border-l-4 ${getNotificationColor(notification.type)}`}

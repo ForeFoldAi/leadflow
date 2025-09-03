@@ -23,7 +23,7 @@ interface AnalyticsProps {
 }
 
 export default function Analytics({ onAddNewLead }: AnalyticsProps) {
-  const [timeRange, setTimeRange] = useState("30");
+  const [timeRange, setTimeRange] = useState("7");
   const [, setLocation] = useLocation();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
@@ -118,9 +118,9 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 pt-20 md:pt-24">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 pt-32 md:pt-26 lg:pt-40">
         {/* Header */}
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6 sm:mb-8">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-8 sm:mb-10">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900" data-testid="text-analytics-title">
               Analytics Dashboard
@@ -166,15 +166,15 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
         </div>
 
         {/* Lead Management Overview */}
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-6 sm:mb-8">
           {/* Header */}
-          <div className="mb-3 sm:mb-4">
+          <div className="mb-4 sm:mb-6">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Lead Management Overview</h1>
             <p className="text-xs sm:text-sm text-gray-600">Track and manage your sales pipeline with real-time insights</p>
           </div>
 
           {/* Main Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Potential Customers Card */}
             <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-xl"></div>
@@ -554,7 +554,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Lead Source Breakdown */}
           <Card data-testid="card-lead-source-chart">
             <CardHeader className="pb-3 sm:pb-4">
@@ -613,7 +613,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
         </div>
 
         {/* Monthly Trends */}
-        <div className="grid grid-cols-1 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 mb-6 sm:mb-8">
           <Card data-testid="card-monthly-trends">
             <CardHeader className="pb-3 sm:pb-4">
               <CardTitle className="text-base sm:text-lg">Monthly Trends</CardTitle>

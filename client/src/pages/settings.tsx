@@ -105,13 +105,15 @@ export default function Settings() {
     dailySummary: boolean;
     emailNotifications: boolean;
   }>({
-    newLeads: true,
-    followUps: true,
-    hotLeads: true,
-    conversions: true,
+    // Default values - ALL OFF by default for privacy
+    // These will be overridden by server data when loaded
+    newLeads: false,
+    followUps: false,
+    hotLeads: false,
+    conversions: false,
     browserPush: false,
-    dailySummary: true,
-    emailNotifications: true
+    dailySummary: false,
+    emailNotifications: false
   });
 
   const [securitySettings, setSecuritySettings] = useState<{
@@ -121,7 +123,7 @@ export default function Settings() {
     apiKey: string;
   }>({
     twoFactorEnabled: false,
-    loginNotifications: true,
+    loginNotifications: false,
     sessionTimeout: '30',
     apiKey: ''
   });
@@ -163,7 +165,9 @@ export default function Settings() {
     queryFn: async () => {
       if (!currentUser.id) return null;
       const response = await apiRequest('GET', `/api/user/notifications/${currentUser.id}`);
-      return response.json();
+      const data = await response.json();
+      console.log('Fetched notification settings from server:', data);
+      return data;
     },
     enabled: !!currentUser.id
   });
@@ -187,7 +191,12 @@ export default function Settings() {
 
   React.useEffect(() => {
     if (userNotificationSettings) {
+      console.log('=== LOADING NOTIFICATION SETTINGS FROM SERVER ===');
+      console.log('Server data:', userNotificationSettings);
+      
       setNotificationSettings(userNotificationSettings);
+      
+      console.log('State updated from server data');
     }
   }, [userNotificationSettings]);
 
@@ -277,6 +286,8 @@ export default function Settings() {
       }
     },
     onError: (error: any) => {
+      console.error('Profile update error:', error);
+      
       let errorMessage = "We couldn't update your profile. Please check your information and try again.";
       
       // Extract user-friendly message from error response
@@ -327,7 +338,16 @@ export default function Settings() {
       return data;
     },
     onSuccess: (data) => {
+      console.log('=== NOTIFICATION SETTINGS SAVED SUCCESSFULLY ===');
+      console.log('Server response:', data);
+      
       queryClient.invalidateQueries({ queryKey: ['userNotificationSettings', currentUser.id] });
+      
+      // Update local state
+      setNotificationSettings(data);
+      
+      console.log('State updated from server response');
+      
       toast({
         title: "Success",
         description: "Notification settings saved successfully",
@@ -341,9 +361,10 @@ export default function Settings() {
           variant: "destructive",
         });
       } else {
+        console.error('Failed to save notification settings:', error);
         toast({
           title: "Error",
-          description: error.message || "Failed to save notification settings",
+          description: "Failed to save notification settings. Please try again or contact support if the issue persists.",
           variant: "destructive",
         });
       }
@@ -449,17 +470,30 @@ export default function Settings() {
   });
 
   const onSubmit = (data: ProfileForm) => {
+    console.log('Form submission data:', data);
+    
     // Only send password fields if user is actually changing password
     const submitData = { ...data };
     if (!data.newPassword || data.newPassword.trim() === '') {
       delete submitData.currentPassword;
       delete submitData.newPassword;
       delete submitData.confirmPassword;
+    } else {
+      console.log('Password change detected:', {
+        hasCurrentPassword: !!data.currentPassword,
+        hasNewPassword: !!data.newPassword,
+        hasConfirmPassword: !!data.confirmPassword,
+        passwordsMatch: data.newPassword === data.confirmPassword
+      });
     }
+    
+    console.log('Submitting data:', submitData);
     updateProfileMutation.mutate(submitData);
   };
 
   const handleSaveNotifications = () => {
+    console.log('=== SAVING NOTIFICATION SETTINGS ===');
+    console.log('Current state:', notificationSettings);
     saveNotificationsMutation.mutate(notificationSettings);
   };
 
@@ -890,6 +924,23 @@ export default function Settings() {
           <TabsContent value="notifications" className="space-y-4 sm:space-y-6">
             <NotificationDisplay />
             
+            {/* Privacy Notice */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-blue-900">Privacy-First Notification Settings</h4>
+                    <p className="text-sm text-blue-800">
+                      All notifications are <strong>OFF by default</strong> to protect your privacy. 
+                      Only enable the notifications you actually want to receive. 
+                      No emails will be sent unless you explicitly turn on specific options.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1011,6 +1062,23 @@ export default function Settings() {
 
           {/* Security Tab */}
           <TabsContent value="security" className="space-y-4 sm:space-y-6">
+            {/* Privacy Notice */}
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-green-900">Privacy-First Security Settings</h4>
+                    <p className="text-sm text-green-800">
+                      Security features are <strong>OFF by default</strong> for your privacy. 
+                      Only enable features you actually need. 
+                      No notifications or tracking will occur unless explicitly enabled.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

@@ -1008,15 +1008,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/users/profile", async (req, res) => {
+  app.put("/api/users/profile", authenticateUser, async (req, res) => {
     try {
-      const { email, currentPassword, newPassword, confirmPassword, ...updates } = req.body;
+      const { currentPassword, newPassword, confirmPassword, ...updates } = req.body;
       
-      if (!email) {
-        return res.status(400).json({ error: "Email is required" });
-      }
-
-      const user = await storage.getUserByEmail(email);
+      // Use authenticated user from middleware
+      const user = await storage.getUser(req.user!.id);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1028,8 +1025,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Verify current password
-        const isValidPassword = await storage.validateUserPassword(email, currentPassword);
-        if (!isValidPassword) {
+        const userValidation = await storage.validateUserPassword(user.email, currentPassword);
+        if (!userValidation) {
           return res.status(400).json({ error: "Current password is incorrect" });
         }
         
@@ -1430,9 +1427,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/notifications/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
+      console.log('=== GETTING NOTIFICATION SETTINGS ===');
+      console.log('User ID:', userId);
+      
       let settings = await storage.getNotificationSettings(userId);
+      console.log('Settings from DB:', settings);
       
       if (!settings) {
+        console.log('No settings found, creating defaults...');
         // Create default notification settings if none exist
         settings = await storage.createNotificationSettings({
           userId,
@@ -1442,36 +1444,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           conversions: false,
           browserPush: false,
           dailySummary: false,
-          emailNotifications: true
+          emailNotifications: false
         });
+        console.log('Created default settings:', settings);
+      } else {
+        // Settings exist and are valid - no need to force them to false
+        console.log('Settings exist and are valid:', settings);
       }
       
+      console.log('Final settings being sent to client:', settings);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching notification settings:", error);
-      
-      // If the table structure is missing columns, return default settings
-      if (error instanceof Error && (
-        error.message.includes("column") && error.message.includes("does not exist") ||
-        error.message.includes("push_subscription") ||
-        error.message.includes("42703")
-      )) {
-        console.log("Notification settings table missing columns, returning default settings");
-        return res.json({
-          id: "default",
-          userId: req.params.userId,
-          newLeads: false,
-          followUps: false,
-          hotLeads: false,
-          conversions: false,
-          browserPush: false,
-          dailySummary: false,
-          emailNotifications: true,
-          pushSubscription: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
       
       res.status(500).json({ error: "We're having trouble loading your notification preferences. Please try again in a few moments." });
     }
@@ -1481,6 +1465,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const updates = req.body;
+      
+      console.log('=== UPDATING NOTIFICATION SETTINGS ===');
+      console.log('User ID:', userId);
+      console.log('Request body:', updates);
       
       // Clean the updates object to remove non-updatable fields
       const cleanUpdates = {
@@ -1494,48 +1482,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pushSubscription: updates.pushSubscription
       };
       
+      console.log('Clean updates:', cleanUpdates);
+      
       let settings = await storage.getNotificationSettings(userId);
+      console.log('Existing settings from DB:', settings);
+      
       if (!settings) {
+        console.log('No existing settings, creating new ones...');
         // Create new settings if none exist
         settings = await storage.createNotificationSettings({
           userId,
           ...cleanUpdates
         });
+        console.log('Created new settings:', settings);
       } else {
+        console.log('Updating existing settings...');
         // Update existing settings
         settings = await storage.updateNotificationSettings(userId, cleanUpdates);
+        console.log('Updated settings:', settings);
       }
       
       if (!settings) {
+        console.log('Failed to get settings after update');
         return res.status(404).json({ error: "Failed to update notification settings" });
       }
       
+      console.log('Final settings being sent to client:', settings);
       res.json(settings);
     } catch (error) {
       console.error("Error updating notification settings:", error);
-      
-      // If the table structure is missing columns, return success with default settings
-      if (error instanceof Error && (
-        error.message.includes("column") && error.message.includes("does not exist") ||
-        error.message.includes("push_subscription") ||
-        error.message.includes("42703")
-      )) {
-        console.log("Notification settings table missing columns, returning default settings");
-        return res.json({
-          id: "default",
-          userId: req.params.userId,
-          newLeads: req.body?.newLeads ?? false,
-          followUps: req.body?.followUps ?? false,
-          hotLeads: req.body?.hotLeads ?? false,
-          conversions: req.body?.conversions ?? false,
-          browserPush: req.body?.browserPush ?? false,
-          dailySummary: req.body?.dailySummary ?? false,
-          emailNotifications: req.body?.emailNotifications ?? true,
-          pushSubscription: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
       
       res.status(500).json({ error: "We couldn't save your notification preferences. Please try again in a few moments." });
     }
@@ -1553,7 +1528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         settings = await storage.createSecuritySettings({
           userId,
           twoFactorEnabled: false,
-          loginNotifications: true,
+          loginNotifications: false,
           sessionTimeout: "30",
           apiKey
         });

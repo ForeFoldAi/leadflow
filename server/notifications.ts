@@ -242,11 +242,30 @@ class NotificationService {
 
   // Lead-specific notification helpers with user settings check
   async notifyNewLead(userId: string, userEmail: string, leadName: string, leadId: string) {
-    // Check if user has enabled new lead notifications
-    const shouldSend = await this.shouldSendNotification(userId, 'newLeads');
-    if (!shouldSend) {
-      console.log(`📧 Skipping new lead notification for user ${userId} - notifications disabled`);
-      return false;
+    // ALWAYS create notification log in database for Recent Notifications
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'new_lead',
+        title: 'New Lead Added',
+        message: `New lead: ${leadName}`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName
+        }
+      });
+      console.log(`📝 Notification log created for new lead: ${leadName}`);
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
+
+    // Check if user has enabled new lead notifications for EMAIL only
+    const shouldSendEmail = await this.shouldSendNotification(userId, 'newLeads');
+    if (!shouldSendEmail) {
+      console.log(`📧 Skipping new lead EMAIL for user ${userId} - email notifications disabled`);
+      return true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {
@@ -262,40 +281,42 @@ class NotificationService {
             <p style="margin: 5px 0;"><strong>Lead ID:</strong> ${leadId}</p>
           </div>
           <p>You can view and manage this lead in your LeadsFlow dashboard.</p>
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size:14px;">
             <p>This is an automated notification from LeadsFlow.</p>
           </div>
         </div>
       `
     };
 
-    // Create notification log in database
-    try {
-      const { storage } = await import('./storage.js');
-      await storage.createNotificationLog({
-        userId,
-        type: 'new_lead',
-        title: 'New Lead Added',
-        message: `New lead: ${leadName}`,
-        read: false,
-        metadata: {
-          leadId,
-          leadName
-        }
-      });
-    } catch (error) {
-      console.error('Failed to create notification log:', error);
-    }
-
     return await this.sendEmail(emailNotification);
   }
 
   async notifyLeadUpdate(userId: string, userEmail: string, leadName: string, leadId: string, changes: string[]) {
-    // Check if user has enabled follow-up notifications
-    const shouldSend = await this.shouldSendNotification(userId, 'followUps');
-    if (!shouldSend) {
-      console.log(`📧 Skipping lead update notification for user ${userId} - notifications disabled`);
-      return false;
+    // ALWAYS create notification log in database for Recent Notifications
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'lead_update',
+        title: 'Lead Updated',
+        message: `${leadName} - ${changes.join(', ')}`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName,
+          changes
+        }
+      });
+      console.log(`📝 Notification log created for lead update: ${leadName}`);
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
+
+    // Check if user has enabled follow-up notifications for EMAIL only
+    const shouldSendEmail = await this.shouldSendNotification(userId, 'followUps');
+    if (!shouldSendEmail) {
+      console.log(`📧 Skipping lead update EMAIL for user ${userId} - email notifications disabled`);
+      return true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {
@@ -322,34 +343,34 @@ class NotificationService {
       `
     };
 
-    // Create notification log in database
-    try {
-      const { storage } = await import('./storage.js');
-      await storage.createNotificationLog({
-        userId,
-        type: 'lead_update',
-        title: 'Lead Updated',
-        message: `${leadName} - ${changes.join(', ')}`,
-        read: false,
-        metadata: {
-          leadId,
-          leadName,
-          changes
-        }
-      });
-    } catch (error) {
-      console.error('Failed to create notification log:', error);
-    }
-
     return await this.sendEmail(emailNotification);
   }
 
   async notifyLeadConverted(userId: string, userEmail: string, leadName: string, leadId: string) {
-    // Check if user has enabled conversion notifications
-    const shouldSend = await this.shouldSendNotification(userId, 'conversions');
-    if (!shouldSend) {
-      console.log(`📧 Skipping lead conversion notification for user ${userId} - notifications disabled`);
-      return false;
+    // ALWAYS create notification log in database for Recent Notifications
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'lead_converted',
+        title: '🎉 Lead Converted',
+        message: `${leadName} has been converted to a customer`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName
+        }
+      });
+      console.log(`📝 Notification log created for lead conversion: ${leadName}`);
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
+
+    // Check if user has enabled conversion notifications for EMAIL only
+    const shouldSendEmail = await this.shouldSendNotification(userId, 'conversions');
+    if (!shouldSendEmail) {
+      console.log(`📧 Skipping lead conversion EMAIL for user ${userId} - email notifications disabled`);
+      return true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {
@@ -373,33 +394,34 @@ class NotificationService {
       `
     };
 
-    // Create notification log in database
+    return await this.sendEmail(emailNotification);
+  }
+
+  async notifyHotLead(userId: string, userEmail: string, leadName: string, leadId: string) {
+    // ALWAYS create notification log in database for Recent Notifications
     try {
       const { storage } = await import('./storage.js');
       await storage.createNotificationLog({
         userId,
-        type: 'lead_converted',
-        title: '🎉 Lead Converted',
-        message: `${leadName} has been converted to a customer`,
+        type: 'lead_update',
+        title: '🔥 Hot Lead Alert',
+        message: `${leadName} has been marked as HOT`,
         read: false,
         metadata: {
           leadId,
           leadName
         }
       });
+      console.log(`📝 Notification log created for hot lead: ${leadName}`);
     } catch (error) {
       console.error('Failed to create notification log:', error);
     }
 
-    return await this.sendEmail(emailNotification);
-  }
-
-  async notifyHotLead(userId: string, userEmail: string, leadName: string, leadId: string) {
-    // Check if user has enabled hot lead notifications
-    const shouldSend = await this.shouldSendNotification(userId, 'hotLeads');
-    if (!shouldSend) {
-      console.log(`📧 Skipping hot lead notification for user ${userId} - notifications disabled`);
-      return false;
+    // Check if user has enabled hot lead notifications for EMAIL only
+    const shouldSendEmail = await this.shouldSendNotification(userId, 'hotLeads');
+    if (!shouldSendEmail) {
+      console.log(`📧 Skipping hot lead EMAIL for user ${userId} - email notifications disabled`);
+      return true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {
@@ -427,11 +449,31 @@ class NotificationService {
   }
 
   async notifyFollowUpReminder(userId: string, userEmail: string, leadName: string, leadId: string, followUpDate: string) {
-    // Check if user has enabled follow-up notifications
-    const shouldSend = await this.shouldSendNotification(userId, 'followUps');
-    if (!shouldSend) {
-      console.log(`📧 Skipping follow-up reminder for user ${userId} - notifications disabled`);
-      return false;
+    // ALWAYS create notification log in database for Recent Notifications
+    try {
+      const { storage } = await import('./storage.js');
+      await storage.createNotificationLog({
+        userId,
+        type: 'followup',
+        title: '⏰ Follow-up Reminder',
+        message: `Follow-up reminder for ${leadName} on ${followUpDate}`,
+        read: false,
+        metadata: {
+          leadId,
+          leadName,
+          followUpDate
+        }
+      });
+      console.log(`📝 Notification log created for follow-up reminder: ${leadName}`);
+    } catch (error) {
+      console.error('Failed to create notification log:', error);
+    }
+
+    // Check if user has enabled follow-up notifications for EMAIL only
+    const shouldSendEmail = await this.shouldSendNotification(userId, 'followUps');
+    if (!shouldSendEmail) {
+      console.log(`📧 Skipping follow-up reminder EMAIL for user ${userId} - email notifications disabled`);
+      return true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {

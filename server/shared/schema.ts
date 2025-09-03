@@ -341,13 +341,13 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export const notificationSettings = pgTable("notification_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  newLeads: boolean("new_leads").notNull().default(true),
-  followUps: boolean("follow_ups").notNull().default(true),
-  hotLeads: boolean("hot_leads").notNull().default(true),
-  conversions: boolean("conversions").notNull().default(true),
+  newLeads: boolean("new_leads").notNull().default(false),
+  followUps: boolean("follow_ups").notNull().default(false),
+  hotLeads: boolean("hot_leads").notNull().default(false),
+  conversions: boolean("conversions").notNull().default(false),
   browserPush: boolean("browser_push").notNull().default(false),
   dailySummary: boolean("daily_summary").notNull().default(false),
-  emailNotifications: boolean("email_notifications").notNull().default(true),
+  emailNotifications: boolean("email_notifications").notNull().default(false),
   pushSubscription: jsonb("push_subscription"), // Store push notification subscription data
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
@@ -355,13 +355,13 @@ export const notificationSettings = pgTable("notification_settings", {
 
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings, {
   userId: z.string().min(1, "User ID is required"),
-  newLeads: z.boolean().default(true),
-  followUps: z.boolean().default(true),
-  hotLeads: z.boolean().default(true),
-  conversions: z.boolean().default(true),
+  newLeads: z.boolean().default(false),
+  followUps: z.boolean().default(false),
+  hotLeads: z.boolean().default(false),
+  conversions: z.boolean().default(false),
   browserPush: z.boolean().default(false),
   dailySummary: z.boolean().default(false),
-  emailNotifications: z.boolean().default(true),
+  emailNotifications: z.boolean().default(false),
   pushSubscription: z.any().optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
@@ -376,7 +376,7 @@ export const securitySettings = pgTable("security_settings", {
   twoFactorMethod: text("two_factor_method").notNull().default("email"), // "email" | "sms" | "authenticator"
   twoFactorSecret: text("two_factor_secret"), // For authenticator apps (future use)
   twoFactorBackupCodes: jsonb("two_factor_backup_codes"), // Backup codes for account recovery
-  loginNotifications: boolean("login_notifications").notNull().default(true),
+  loginNotifications: boolean("login_notifications").notNull().default(false),
   sessionTimeout: text("session_timeout").notNull().default("30"), // minutes
   apiKey: text("api_key").notNull(),
   lastPasswordChange: timestamp("last_password_change"),
@@ -388,7 +388,7 @@ export const securitySettings = pgTable("security_settings", {
 export const insertSecuritySettingsSchema = createInsertSchema(securitySettings, {
   userId: z.string().min(1, "User ID is required"),
   twoFactorEnabled: z.boolean().default(false),
-  loginNotifications: z.boolean().default(true),
+  loginNotifications: z.boolean().default(false),
   sessionTimeout: z.enum(["15", "30", "60", "120", "240"]).default("30"),
   apiKey: z.string().min(1, "API key is required"),
   lastPasswordChange: z.date().optional(),

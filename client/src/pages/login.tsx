@@ -183,7 +183,7 @@ export default function Login() {
             {/* Feature Highlights */}
             <div className="space-y-2 mb-4">
               <h2 className="text-lg font-bold mb-2 text-gray-700 drop-shadow-sm">
-                Transform Your Lead Management
+                Transform Your Leads Management
               </h2>
               <div className="space-y-2">
                 <div className="flex items-center space-x-3 p-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/50 hover:bg-white/80 transition-all duration-300 group shadow-sm">
@@ -202,7 +202,7 @@ export default function Login() {
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-gray-800">Generate Quality Leads</h3>
-                    <p className="text-gray-600 text-xs">AI-powered lead generation strategies</p>
+                    <p className="text-gray-600 text-xs">AI-powered leads generation strategies</p>
                   </div>
                 </div>
                 
@@ -229,7 +229,7 @@ export default function Login() {
                 <h3 className="text-base font-bold text-gray-800">What is LeadsFlow?</h3>
               </div>
               <p className="text-gray-600 text-xs leading-relaxed">
-                LeadsFlow is an <span className="text-purple-600 font-semibold">AI-powered lead management platform</span> that helps businesses 
+                LeadsFlow is an <span className="text-purple-600 font-semibold">AI-powered leads management platform</span> that helps businesses 
                 onboard potential clients, generate quality leads, and convert them into 
                 paying customers through intelligent automation and insights.
               </p>
@@ -266,7 +266,7 @@ export default function Login() {
                 Welcome to Unlock Potential Customers
               </CardTitle>
               <CardDescription className="text-sm text-gray-600">
-                Sign in to access your lead management dashboard
+                Sign in to access your leads management dashboard
               </CardDescription>
             </CardHeader>
             
