@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import AppHeader from "@/components/app-header";
+import AppLayout from "@/components/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,10 @@ import { ButtonLoader } from "@/components/ui/loader";
 // Custom URL validation function that accepts various formats
 const flexibleUrlSchema = z.string().refine((value) => {
   if (!value || value === "") return true; // Allow empty strings
-  
+
   // Remove leading/trailing whitespace
   const trimmedValue = value.trim();
-  
+
   // Basic URL patterns
   const urlPatterns = [
     // Full URLs with protocol
@@ -40,7 +40,7 @@ const flexibleUrlSchema = z.string().refine((value) => {
     // IP addresses
     /^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?(\/.*)?$/i,
   ];
-  
+
   return urlPatterns.some(pattern => pattern.test(trimmedValue));
 }, {
   message: "Please enter a valid website URL (e.g., example.com, www.example.com, https://example.com)"
@@ -87,7 +87,7 @@ export default function Settings() {
   const [apiKey, setApiKey] = useState(() => {
     const saved = localStorage.getItem('userApiKey');
     if (saved) return saved;
-    
+
     const newKey = `lf_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
     localStorage.setItem('userApiKey', newKey);
     return newKey;
@@ -193,9 +193,9 @@ export default function Settings() {
     if (userNotificationSettings) {
       console.log('=== LOADING NOTIFICATION SETTINGS FROM SERVER ===');
       console.log('Server data:', userNotificationSettings);
-      
+
       setNotificationSettings(userNotificationSettings);
-      
+
       console.log('State updated from server data');
     }
   }, [userNotificationSettings]);
@@ -247,19 +247,19 @@ export default function Settings() {
       if (typeof response.json === 'function') {
         data = await response.json();
       }
-      
+
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
       });
-      
+
       // Update localStorage with new user data if returned
       if (data && data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        
+
         // Dispatch custom event to notify header of user data change
         window.dispatchEvent(new CustomEvent("userUpdated"));
-        
+
         // Reset form with updated values instead of reloading page
         form.reset({
           name: data.user.name || "",
@@ -280,21 +280,21 @@ export default function Settings() {
         const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
         const updatedUser = { ...currentUser, ...form.getValues() };
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        
+
         // Dispatch custom event to notify header of user data change
         window.dispatchEvent(new CustomEvent("userUpdated"));
       }
     },
     onError: (error: any) => {
       console.error('Profile update error:', error);
-      
+
       let errorMessage = "We couldn't update your profile. Please check your information and try again.";
-      
+
       // Extract user-friendly message from error response
       if (error?.message) {
         // Remove HTTP status codes and technical details
         let message = error.message.replace(/^\d+:\s*/, ''); // Remove status codes like "400: "
-        
+
         // Remove JSON formatting if present
         if (message.includes('{"error":') || message.includes('{"message":')) {
           try {
@@ -304,12 +304,12 @@ export default function Settings() {
             // If JSON parsing fails, use the original message
           }
         }
-        
+
         if (!message.includes('Failed to fetch') && !message.includes('NetworkError')) {
           errorMessage = message;
         }
       }
-      
+
       toast({
         title: "Profile Update Failed",
         description: errorMessage,
@@ -321,10 +321,10 @@ export default function Settings() {
   const saveNotificationsMutation = useMutation({
     mutationFn: async (settings: any) => {
       if (!currentUser.id) throw new Error('User not authenticated');
-      
+
       const response = await apiRequest('PUT', `/api/user/notifications/${currentUser.id}`, settings);
       const data = await response.json();
-      
+
       // Handle push notification subscription/unsubscription
       if (settings.browserPush && 'Notification' in window) {
         if (Notification.permission === 'default') {
@@ -340,14 +340,14 @@ export default function Settings() {
     onSuccess: (data) => {
       console.log('=== NOTIFICATION SETTINGS SAVED SUCCESSFULLY ===');
       console.log('Server response:', data);
-      
+
       queryClient.invalidateQueries({ queryKey: ['userNotificationSettings', currentUser.id] });
-      
+
       // Update local state
       setNotificationSettings(data);
-      
+
       console.log('State updated from server response');
-      
+
       toast({
         title: "Success",
         description: "Notification settings saved successfully",
@@ -471,7 +471,7 @@ export default function Settings() {
 
   const onSubmit = (data: ProfileForm) => {
     console.log('Form submission data:', data);
-    
+
     // Only send password fields if user is actually changing password
     const submitData = { ...data };
     if (!data.newPassword || data.newPassword.trim() === '') {
@@ -486,7 +486,7 @@ export default function Settings() {
         passwordsMatch: data.newPassword === data.confirmPassword
       });
     }
-    
+
     console.log('Submitting data:', submitData);
     updateProfileMutation.mutate(submitData);
   };
@@ -557,7 +557,7 @@ export default function Settings() {
     mutationFn: async (format: string) => {
       if (!currentUser.id) throw new Error('User not authenticated');
       const response = await apiRequest('GET', `/api/user/data/${currentUser.id}/export?format=${format}&includeNotes=${preferenceSettings.exportNotes}`);
-      
+
       if (format === 'csv') {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -569,7 +569,7 @@ export default function Settings() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       }
-      
+
       return response;
     },
     onSuccess: () => {
@@ -626,10 +626,8 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader />
-      
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 pt-20 md:pt-24">
+    <AppLayout>
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         <div className="mb-4 sm:mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900" data-testid="page-title">Settings</h2>
           <p className="mt-1 text-xs sm:text-sm text-gray-600">Manage your account settings and preferences</p>
@@ -824,7 +822,7 @@ export default function Settings() {
 
                   <div className="space-y-3 sm:space-y-4">
                     <h3 className="text-base sm:text-lg font-medium">Change Password</h3>
-                    
+
                     <div className="space-y-1 sm:space-y-2">
                       <Label htmlFor="currentPassword" className="text-xs sm:text-sm">Current Password</Label>
                       <div className="relative">
@@ -920,10 +918,10 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          {/* Notifications Tab */}  
+          {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-4 sm:space-y-6">
             <NotificationDisplay />
-            
+
             {/* Privacy Notice */}
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="p-4 sm:p-6">
@@ -932,15 +930,15 @@ export default function Settings() {
                   <div className="space-y-2">
                     <h4 className="font-medium text-blue-900">Privacy-First Notification Settings</h4>
                     <p className="text-sm text-blue-800">
-                      All notifications are <strong>OFF by default</strong> to protect your privacy. 
-                      Only enable the notifications you actually want to receive. 
+                      All notifications are <strong>OFF by default</strong> to protect your privacy.
+                      Only enable the notifications you actually want to receive.
                       No emails will be sent unless you explicitly turn on specific options.
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -957,11 +955,11 @@ export default function Settings() {
                     <Label htmlFor="new-leads" className="text-xs sm:text-sm">New Lead Notifications</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Get notified when new leads are added</p>
                   </div>
-                  <Switch 
-                    id="new-leads" 
+                  <Switch
+                    id="new-leads"
                     checked={notificationSettings.newLeads}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, newLeads: checked }))}
-                    data-testid="switch-new-leads" 
+                    data-testid="switch-new-leads"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -969,11 +967,11 @@ export default function Settings() {
                     <Label htmlFor="follow-ups" className="text-xs sm:text-sm">Follow-up Reminders</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Receive reminders for scheduled follow-ups</p>
                   </div>
-                  <Switch 
-                    id="follow-ups" 
+                  <Switch
+                    id="follow-ups"
                     checked={notificationSettings.followUps}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, followUps: checked }))}
-                    data-testid="switch-follow-ups" 
+                    data-testid="switch-follow-ups"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -981,11 +979,11 @@ export default function Settings() {
                     <Label htmlFor="hot-leads" className="text-xs sm:text-sm">Hot Lead Alerts</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Get alerted when leads become hot prospects</p>
                   </div>
-                  <Switch 
-                    id="hot-leads" 
+                  <Switch
+                    id="hot-leads"
                     checked={notificationSettings.hotLeads}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, hotLeads: checked }))}
-                    data-testid="switch-hot-leads" 
+                    data-testid="switch-hot-leads"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -993,11 +991,11 @@ export default function Settings() {
                     <Label htmlFor="conversions" className="text-xs sm:text-sm">Conversion Notifications</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Celebrate when leads convert to customers</p>
                   </div>
-                  <Switch 
-                    id="conversions" 
+                  <Switch
+                    id="conversions"
                     checked={notificationSettings.conversions}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, conversions: checked }))}
-                    data-testid="switch-conversions" 
+                    data-testid="switch-conversions"
                   />
                 </div>
               </CardContent>
@@ -1019,11 +1017,11 @@ export default function Settings() {
                     <Label htmlFor="browser-push" className="text-xs sm:text-sm">Browser Notifications</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Show notifications in your browser</p>
                   </div>
-                  <Switch 
-                    id="browser-push" 
+                  <Switch
+                    id="browser-push"
                     checked={notificationSettings.browserPush}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, browserPush: checked }))}
-                    data-testid="switch-browser-push" 
+                    data-testid="switch-browser-push"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -1031,11 +1029,11 @@ export default function Settings() {
                     <Label htmlFor="daily-summary" className="text-xs sm:text-sm">Daily Summary</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Daily digest of your lead activity</p>
                   </div>
-                  <Switch 
-                    id="daily-summary" 
+                  <Switch
+                    id="daily-summary"
                     checked={notificationSettings.dailySummary}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, dailySummary: checked }))}
-                    data-testid="switch-daily-summary" 
+                    data-testid="switch-daily-summary"
                   />
                 </div>
               </CardContent>
@@ -1070,15 +1068,15 @@ export default function Settings() {
                   <div className="space-y-2">
                     <h4 className="font-medium text-green-900">Privacy-First Security Settings</h4>
                     <p className="text-sm text-green-800">
-                      Security features are <strong>OFF by default</strong> for your privacy. 
-                      Only enable features you actually need. 
+                      Security features are <strong>OFF by default</strong> for your privacy.
+                      Only enable features you actually need.
                       No notifications or tracking will occur unless explicitly enabled.
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1095,9 +1093,9 @@ export default function Settings() {
                     <Label htmlFor="two-factor" className="text-xs sm:text-sm">Two-Factor Authentication</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Add an extra layer of security to your account</p>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleEnable2FA}
                     disabled={enable2FAMutation.isPending || disable2FAMutation.isPending}
                     className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
@@ -1120,10 +1118,10 @@ export default function Settings() {
                     <Label className="text-xs sm:text-sm">Login Notifications</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Get notified of new sign-ins to your account</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={securitySettings.loginNotifications}
                     onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, loginNotifications: checked }))}
-                    data-testid="switch-login-notifications" 
+                    data-testid="switch-login-notifications"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -1131,9 +1129,9 @@ export default function Settings() {
                     <Label className="text-xs sm:text-sm">Session Management</Label>
                     <p className="text-xs sm:text-sm text-gray-500">View and manage your active sessions</p>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleManageSessions}
                     className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                     data-testid="button-manage-sessions"
@@ -1145,8 +1143,8 @@ export default function Settings() {
             </Card>
 
             <Card>
-              
-              
+
+
             </Card>
 
             <div className="flex justify-end">
@@ -1183,8 +1181,8 @@ export default function Settings() {
               <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="space-y-1 sm:space-y-2">
                   <Label className="text-xs sm:text-sm">Default Lead View</Label>
-                  <Select 
-                    value={preferenceSettings.defaultView} 
+                  <Select
+                    value={preferenceSettings.defaultView}
                     onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, defaultView: value }))}
                     data-testid="select-default-view"
                   >
@@ -1200,8 +1198,8 @@ export default function Settings() {
                 </div>
                 <div className="space-y-1 sm:space-y-2">
                   <Label className="text-xs sm:text-sm">Items Per Page</Label>
-                  <Select 
-                    value={preferenceSettings.itemsPerPage} 
+                  <Select
+                    value={preferenceSettings.itemsPerPage}
                     onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, itemsPerPage: value }))}
                     data-testid="select-items-per-page"
                   >
@@ -1221,10 +1219,10 @@ export default function Settings() {
                     <Label className="text-xs sm:text-sm">Auto-save Changes</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Automatically save form changes</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={preferenceSettings.autoSave}
                     onCheckedChange={(checked) => setPreferenceSettings(prev => ({ ...prev, autoSave: checked }))}
-                    data-testid="switch-auto-save" 
+                    data-testid="switch-auto-save"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -1232,10 +1230,10 @@ export default function Settings() {
                     <Label className="text-xs sm:text-sm">Compact Mode</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Show more data in less space</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={preferenceSettings.compactMode}
                     onCheckedChange={(checked) => setPreferenceSettings(prev => ({ ...prev, compactMode: checked }))}
-                    data-testid="switch-compact-mode" 
+                    data-testid="switch-compact-mode"
                   />
                 </div>
               </CardContent>
@@ -1277,8 +1275,8 @@ export default function Settings() {
               <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="space-y-1 sm:space-y-2">
                   <Label className="text-xs sm:text-sm">Default Export Format</Label>
-                  <Select 
-                    value={preferenceSettings.exportFormat} 
+                  <Select
+                    value={preferenceSettings.exportFormat}
                     onValueChange={(value) => setPreferenceSettings(prev => ({ ...prev, exportFormat: value }))}
                     data-testid="select-export-format"
                   >
@@ -1288,7 +1286,7 @@ export default function Settings() {
                     <SelectContent>
                       <SelectItem value="csv">CSV</SelectItem>
                       <SelectItem value="xlsx">Excel</SelectItem>
-                      
+
                     </SelectContent>
                   </Select>
                 </div>
@@ -1297,24 +1295,24 @@ export default function Settings() {
                     <Label className="text-xs sm:text-sm">Include Notes in Export</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Add additional notes to exported data</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={preferenceSettings.exportNotes}
                     onCheckedChange={(checked) => setPreferenceSettings(prev => ({ ...prev, exportNotes: checked }))}
-                    data-testid="switch-export-notes" 
+                    data-testid="switch-export-notes"
                   />
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-3 sm:space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-xs sm:text-sm">Export All Data</Label>
                       <p className="text-xs sm:text-sm text-gray-500">Download all your leads as a file</p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={handleExportData}
                       disabled={exportDataMutation.isPending}
                       className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
@@ -1323,23 +1321,8 @@ export default function Settings() {
                       {exportDataMutation.isPending ? "Exporting..." : "Export Data"}
                     </Button>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-xs sm:text-sm text-red-600">Delete All Leads</Label>
-                      <p className="text-xs sm:text-sm text-red-500">Permanently delete all your leads</p>
-                    </div>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      onClick={handleDeleteAllLeads}
-                      disabled={deleteAllLeadsMutation.isPending}
-                      className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
-                      data-testid="button-delete-all-leads"
-                    >
-                      {deleteAllLeadsMutation.isPending ? "Deleting..." : "Delete All"}
-                    </Button>
-                  </div>
+
+
                 </div>
               </CardContent>
             </Card>
@@ -1364,6 +1347,6 @@ export default function Settings() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppLayout>
   );
 }

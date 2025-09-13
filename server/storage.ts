@@ -44,6 +44,8 @@ export interface IStorage {
   updateLead(id: string, lead: Partial<InsertLead>, userId?: string): Promise<Lead | undefined>;
   deleteLead(id: string, userId?: string): Promise<boolean>;
   searchLeads(query: string, userId?: string): Promise<Lead[]>;
+  getCities(userId?: string): Promise<string[]>;
+
   filterLeads(filters: {
     status?: string | string[];
     category?: string;
@@ -1062,6 +1064,29 @@ export class SqlStorage implements IStorage {
     } catch (error) {
       console.error("Error hashing password:", error);
       throw new Error("Failed to hash password");
+    }
+  }
+
+
+  // Add implementation after filterLeads method (around line 425)
+  async getCities(userId?: string): Promise<string[]> {
+    try {
+      const conditions = [sql`${leads.city} IS NOT NULL AND ${leads.city} != ''`];
+      
+      if (userId) {
+        conditions.push(eq(leads.userId, userId));
+      }
+      
+      const result = await this.db
+        .selectDistinct({ city: leads.city })
+        .from(leads)
+        .where(and(...conditions))
+        .orderBy(asc(leads.city));
+      
+      return result.map(row => row.city).filter((city): city is string => city !== null);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+      throw new Error("Failed to fetch cities from database");
     }
   }
 }

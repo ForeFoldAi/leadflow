@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import AppHeader from "@/components/app-header";
+import AppLayout from "@/components/app-layout";
 import LeadTable from "@/components/lead-table";
 import LeadForm from "@/components/lead-form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -88,10 +88,8 @@ export default function Dashboard() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pt-20 md:pt-24">
+    <AppLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <LeadTable 
           filters={filters} 
           onFiltersChange={handleFiltersChange}
@@ -113,6 +111,6 @@ export default function Dashboard() {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </AppLayout>
   );
 }

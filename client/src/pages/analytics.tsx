@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import AppHeader from "@/components/app-header";
+import AppLayout from "@/components/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, AreaChart, Area } from "recharts";
 import { TrendingUp, TrendingDown, Users, Target, Calendar, Download, FileText, Clock, CheckCircle, XCircle, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -39,21 +39,19 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <AppHeader />
+      <AppLayout>
         <Loader text="Loading analytics..." />
-      </div>
+      </AppLayout>
     );
   }
 
   if (!analytics) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <AppHeader />
+      <AppLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-lg text-red-600">Failed to load analytics data</div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -73,6 +71,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
     { name: 'LinkedIn', value: analytics.leadSourceBreakdown?.linkedin || 0, color: '#FFBB28' },
     { name: 'Facebook', value: analytics.leadSourceBreakdown?.facebook || 0, color: '#FF8042' },
     { name: 'Twitter', value: analytics.leadSourceBreakdown?.twitter || 0, color: '#8884d8' },
+    { name: 'Instagram', value: analytics.leadSourceBreakdown?.instagram || 0, color: '#E1306C' },
     { name: 'Campaign', value: analytics.leadSourceBreakdown?.campaign || 0, color: '#82ca9d' },
     { name: 'Other', value: analytics.leadSourceBreakdown?.other || 0, color: '#ff7675' },
   ].filter(item => item.value > 0);
@@ -103,7 +102,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
       leadsByStatus: analytics.leadsByStatus,
       next7DaysFollowups: analytics.next7DaysFollowups
     };
-    
+
     const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -116,9 +115,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 pt-32 md:pt-26 lg:pt-40">
+    <AppLayout>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-8 sm:mb-10">
           <div>
@@ -138,8 +136,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                 <SelectItem value="90" data-testid="option-90-days">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button 
-              onClick={exportReport} 
+            <Button
+              onClick={exportReport}
               variant="outline"
               size="sm"
               className="text-sm"
@@ -149,7 +147,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
               <span className="hidden sm:inline">Export Report</span>
               <span className="sm:hidden">Export</span>
             </Button>
-            <Button 
+            <Button
               className="btn-impressive-primary text-sm"
               size="sm"
               onClick={() => {
@@ -185,24 +183,24 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <Users size={64} className="sm:w-24 sm:h-24" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 leading-tight">Potential Customers</h3>
                   <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                   </div>
                 </div>
-                
+
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
                       {(analytics.leadsByCategory?.potential || 0).toLocaleString()}
-              </div>
+                    </div>
                     <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
                       <span>This Week</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-blue-700">New This Week</span>
                     <span className="text-xs font-bold text-blue-600">
@@ -223,14 +221,14 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <Clock size={64} className="sm:w-24 sm:h-24" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 leading-tight">Pending Follow-ups</h3>
                   <div className="p-1.5 sm:p-2 bg-amber-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
                   </div>
                 </div>
-                
+
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
@@ -239,8 +237,8 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <div className="flex items-center space-x-1 text-xs font-medium text-gray-500">
                       <span>This Week</span>
                     </div>
-                      </div>
-                  
+                  </div>
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-amber-700">Due This Week</span>
                     <span className="text-xs font-bold text-amber-600">
@@ -251,7 +249,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                         return diffDays >= 0 && diffDays <= 7;
                       }).length || 0}
-                      </span>
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -267,14 +265,14 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <Target size={64} className="sm:w-24 sm:h-24" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 leading-tight">Qualified Leads</h3>
                   <div className="p-1.5 sm:p-2 bg-purple-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <Target className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
                   </div>
                 </div>
-                
+
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
@@ -284,7 +282,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <span>This Week</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-purple-700">Ready to Convert</span>
                     <span className="text-xs font-bold text-purple-600">
@@ -305,14 +303,14 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <TrendingUp size={64} className="sm:w-24 sm:h-24" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 leading-tight">Hot Leads</h3>
                   <div className="p-1.5 sm:p-2 bg-orange-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
                   </div>
-                      </div>
-                
+                </div>
+
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
@@ -322,7 +320,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <span>This Week</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-orange-700">High Priority</span>
                     <span className="text-xs font-bold text-orange-600">
@@ -360,7 +358,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <span>This Month</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-emerald-700">This Month</span>
                     <span className="text-xs font-bold text-emerald-600">
@@ -381,14 +379,14 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <XCircle size={64} className="sm:w-24 sm:h-24" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 leading-tight">Lost Opportunities</h3>
                   <div className="p-1.5 sm:p-2 bg-red-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                   </div>
-                      </div>
-                
+                </div>
+
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
@@ -398,7 +396,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <span>This Month</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-red-700">Closed Lost</span>
                     <span className="text-xs font-bold text-red-600">
@@ -419,14 +417,14 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                     <TrendingUp size={64} className="sm:w-24 sm:h-24" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 leading-tight">Conversion Rate</h3>
                   <div className="p-1.5 sm:p-2 bg-teal-50 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-teal-600" />
                   </div>
-                      </div>
-                
+                </div>
+
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-end justify-between">
                     <div className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">
@@ -436,7 +434,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <span>This Month</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-teal-700">Success Rate</span>
                     <span className="text-xs font-bold text-teal-600">
@@ -474,7 +472,7 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                       <span>Average</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-1 border-t border-gray-50">
                     <span className="text-xs font-medium text-indigo-700">Days Average</span>
                     <span className="text-xs font-bold text-indigo-600">
@@ -498,51 +496,51 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
                 <div className="p-2 sm:p-3 bg-cyan-50 rounded-lg">
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
                 </div>
-                      </div>
-              
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {/* Overdue */}
                 <div className="text-center group">
                   <div className="bg-red-50 rounded-xl p-3 sm:p-4 group-hover:bg-red-100 transition-colors duration-200">
                     <div className="text-xl sm:text-2xl font-bold text-red-600 mb-1 sm:mb-2">
-                        {analytics.next7DaysFollowups?.filter((f: any) => {
-                          const date = new Date(f.nextFollowupDate);
-                          return date < new Date();
-                        }).length || 0}
+                      {analytics.next7DaysFollowups?.filter((f: any) => {
+                        const date = new Date(f.nextFollowupDate);
+                        return date < new Date();
+                      }).length || 0}
                     </div>
                     <div className="text-xs font-semibold text-red-700 mb-1">Overdue</div>
                     <div className="text-xs text-red-600">Requires immediate attention</div>
                   </div>
-                      </div>
-                
+                </div>
+
                 {/* Due Soon */}
                 <div className="text-center group">
                   <div className="bg-amber-50 rounded-xl p-3 sm:p-4 group-hover:bg-amber-100 transition-colors duration-200">
                     <div className="text-xl sm:text-2xl font-bold text-amber-600 mb-1 sm:mb-2">
-                        {analytics.next7DaysFollowups?.filter((f: any) => {
-                          const date = new Date(f.nextFollowupDate);
-                          const today = new Date();
-                          const diffTime = date.getTime() - today.getTime();
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          return diffDays >= 0 && diffDays <= 7;
-                        }).length || 0}
+                      {analytics.next7DaysFollowups?.filter((f: any) => {
+                        const date = new Date(f.nextFollowupDate);
+                        const today = new Date();
+                        const diffTime = date.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays >= 0 && diffDays <= 7;
+                      }).length || 0}
                     </div>
                     <div className="text-xs font-semibold text-amber-700 mb-1">Due This Week</div>
                     <div className="text-xs text-amber-600">Plan your outreach</div>
                   </div>
-                      </div>
-                
+                </div>
+
                 {/* Future */}
                 <div className="text-center group">
                   <div className="bg-blue-50 rounded-xl p-3 sm:p-4 group-hover:bg-blue-100 transition-colors duration-200">
                     <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1 sm:mb-2">
-                        {analytics.next7DaysFollowups?.filter((f: any) => {
-                          const date = new Date(f.nextFollowupDate);
-                          const today = new Date();
-                          const diffTime = date.getTime() - today.getTime();
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          return diffDays > 7;
-                        }).length || 0}
+                      {analytics.next7DaysFollowups?.filter((f: any) => {
+                        const date = new Date(f.nextFollowupDate);
+                        const today = new Date();
+                        const diffTime = date.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays > 7;
+                      }).length || 0}
                     </div>
                     <div className="text-xs font-semibold text-blue-700 mb-1">Future</div>
                     <div className="text-xs text-blue-600">Scheduled ahead</div>
@@ -613,56 +611,57 @@ export default function Analytics({ onAddNewLead }: AnalyticsProps) {
         </div>
 
         {/* Monthly Trends */}
+
         <div className="grid grid-cols-1 mb-6 sm:mb-8">
           <Card data-testid="card-monthly-trends">
             <CardHeader className="pb-3 sm:pb-4">
               <CardTitle className="text-base sm:text-lg">Monthly Trends</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Leads added and converted over time</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
+                Leads added vs. converted over time with conversion rate trend
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-48 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analytics.monthlyTrends || []}>
+                  <AreaChart data={analytics.monthlyTrends || []}>
+                    <defs>
+                      <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorConverted" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="leads" 
-                      stroke="#8884d8" 
-                      strokeWidth={2}
-                      name="Leads Added"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="converted" 
-                      stroke="#82ca9d" 
-                      strokeWidth={2}
-                      name="Converted Leads"
-                    />
-                  </LineChart>
+                    <Area type="monotone" dataKey="leads" stroke="#8884d8" fillOpacity={1} fill="url(#colorLeads)" name="Leads Added" />
+                    <Area type="monotone" dataKey="converted" stroke="#82ca9d" fillOpacity={1} fill="url(#colorConverted)" name="Leads Converted" />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
         </div>
 
-       
+
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <LeadForm 
-            lead={editingLead} 
+          <LeadForm
+            lead={editingLead}
             onClose={() => {
               setIsFormOpen(false);
               setEditingLead(null);
-            }} 
+            }}
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   );
 }

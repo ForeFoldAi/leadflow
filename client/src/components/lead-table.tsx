@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Phone, Mail, Trash2, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff, ChevronLeft, ChevronRight as ChevronRightIcon, Upload, Plus, Download, MoreHorizontal, X, ArrowUpDown, ArrowUp, ArrowDown, Grid3X3, List, Table as TableIcon, User } from "lucide-react";
+import { Edit, Phone, Mail, MessageCircle, ChevronDown, ChevronRight, Eye, EyeOff, ChevronLeft, ChevronRight as ChevronRightIcon, Upload, Plus, Download, X, ArrowUpDown, ArrowUp, ArrowDown, Grid3X3, List, Table as TableIcon, User } from "lucide-react";
 import LeadFilters from "./lead-filters";
 import LeadGrid from "./lead-grid";
 import LeadList from "./lead-list";
@@ -714,26 +713,14 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                           </TableCell>
                         )}
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 md:h-8 md:w-8 p-0">
-                                <MoreHorizontal className="h-3 w-3 md:h-4 md:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => onEditLead(lead)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteLead(lead.id)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 md:h-8 md:w-8 p-0"
+                            onClick={() => onEditLead(lead)}
+                          >
+                            <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                       {expandedRows.has(lead.id) && (

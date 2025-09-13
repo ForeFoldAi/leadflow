@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit,Phone , Mail, Trash2, MessageCircle, MoreHorizontal, Building, User, Calendar, MapPin, ChevronRight, ChevronDown, PhoneCall } from "lucide-react";
+import { Edit, Phone , Mail, MessageCircle, Building, User, Calendar, MapPin, ChevronRight, ChevronDown, PhoneCall } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Lead } from "../../shared/schema";
@@ -183,31 +182,17 @@ export default function LeadList({ leads, onEditLead, onDeleteLead, compactMode 
               {/* Actions - Only More Options and Expand/Collapse Arrow */}
               <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
                 {/* More Options */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEditLead(lead)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => onDeleteLead(lead.id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditLead(lead);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
                 
                 {/* Expand/Collapse Arrow */}
                 <Button

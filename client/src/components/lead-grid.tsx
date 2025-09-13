@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, Phone, Mail, Trash2, MessageCircle, MoreHorizontal, Building, User, Calendar, MapPin } from "lucide-react";
+import { Edit, Phone, Mail, Trash2, MessageCircle, Building, User, Calendar, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Lead } from "../../shared/schema";
@@ -93,26 +93,14 @@ export default function LeadGrid({ leads, onEditLead, onDeleteLead, compactMode 
                     {lead.customerCategory === 'existing' ? 'Existing Customer' : 'Potential Customer'}
                   </p>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEditLead(lead)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => onDeleteLead(lead.id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => onEditLead(lead)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
               
               <div className="flex items-center justify-between mt-2">

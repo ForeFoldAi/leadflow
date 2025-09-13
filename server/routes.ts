@@ -280,6 +280,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get cities from user leads (must be before /:id route)
+  app.get("/api/leads/cities", authenticateUser, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const cities = await storage.getCities(userId);
+      res.json(cities);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+      res.status(500).json({ message: "Failed to fetch cities" });
+    }
+  });
+
   // Get lead by ID (filtered by user)
   app.get("/api/leads/:id", authenticateUser, async (req, res) => {
     try {
@@ -309,16 +321,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const lead = await storage.createLead(leadData, userId);
       
-      // Send notification for new lead
+      // Send notification only to the user who created the lead
       try {
-        const users = await storage.getUsers();
-        for (const user of users) {
-          if (user.isActive) {
-            await notificationService.notifyNewLead(user.id, user.email, lead.name, lead.id);
-          }
+        if (req.user) {
+          await notificationService.notifyNewLead(req.user.id, req.user.email, lead.name, lead.id);
         }
       } catch (notificationError) {
-        console.error("Error sending new lead notifications:", notificationError);
+        console.error("Error sending new lead notification:", notificationError);
       }
       
       res.status(201).json(lead);
@@ -450,20 +459,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const createdLeads = await storage.batchCreateLeads(validatedLeads, userId);
           results.successful = createdLeads.length;
           
-          // Send batch notification instead of individual notifications
+          // Send batch notification only to the user who imported the leads
           try {
-            const users = await storage.getUsers();
-            const activeUsers = users.filter(user => user.isActive);
-            
-            if (activeUsers.length > 0 && createdLeads.length > 0) {
+            if (req.user && createdLeads.length > 0) {
               await notificationService.notifyBatchImport(
-                activeUsers.map(user => ({ id: user.id, email: user.email })),
+                [{ id: req.user.id, email: req.user.email }],
                 createdLeads.length,
-                req.user?.email || 'Unknown'
+                req.user.name || req.user.email || 'Unknown User'
               );
             }
           } catch (notificationError) {
-            console.error("Error sending batch import notifications:", notificationError);
+            console.error("Error sending batch import notification:", notificationError);
           }
           
         } catch (error) {
@@ -524,14 +530,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (originalLead.leadStatus !== lead.leadStatus) {
             changes.push(`Status changed from ${originalLead.leadStatus} to ${lead.leadStatus}`);
             
-            // Special notification for conversions - notify all users
-            if (lead.leadStatus === 'converted') {
-              const users = await storage.getUsers();
-              for (const user of users) {
-                if (user.isActive) {
-                  await notificationService.notifyLeadConverted(user.id, user.email, lead.name, lead.id);
-                }
-              }
+            // Special notification for conversions - notify only the lead owner
+            if (lead.leadStatus === 'converted' && req.user) {
+              await notificationService.notifyLeadConverted(req.user.id, req.user.email, lead.name, lead.id);
             }
           }
           if (originalLead.nextFollowupDate !== lead.nextFollowupDate) {
@@ -1124,6 +1125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         linkedin: leads.filter(l => l.leadSource === "linkedin").length,
         facebook: leads.filter(l => l.leadSource === "facebook").length,
         twitter: leads.filter(l => l.leadSource === "twitter").length,
+        instagram: leads.filter(l => l.leadSource === "instagram").length,
         campaign: leads.filter(l => l.leadSource === "campaign").length,
         other: leads.filter(l => l.leadSource === "other").length,
         unspecified: leads.filter(l => !l.leadSource).length
@@ -1610,6 +1612,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user?.id !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
+
+      // Clean up old notifications (older than 30 days) before fetching
+      try {
+        const deletedCount = await storage.deleteOldNotificationLogs(userId, 30);
+        if (deletedCount > 0) {
+          console.log(`Cleaned up ${deletedCount} old notifications for user ${userId}`);
+        }
+      } catch (cleanupError) {
+        console.error("Error cleaning up old notifications:", cleanupError);
+        // Continue even if cleanup fails
+      }
       
       // Get notifications and total count
       const [logs, totalCount] = await Promise.all([
@@ -1665,6 +1678,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error marking notification as read:", error);
       res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  // Cleanup old notifications endpoint
+  app.delete("/api/user/notifications/:userId/cleanup", authenticateUser, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const daysOld = parseInt(req.query.days as string) || 30;
+      
+      // Ensure user can only cleanup their own notifications
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const deletedCount = await storage.deleteOldNotificationLogs(userId, daysOld);
+      
+      res.json({ 
+        message: `Successfully cleaned up ${deletedCount} old notifications`,
+        deletedCount,
+        daysOld
+      });
+    } catch (error) {
+      console.error("Error cleaning up notifications:", error);
+      res.status(500).json({ error: "Failed to cleanup notifications" });
     }
   });
 

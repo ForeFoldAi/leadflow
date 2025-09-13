@@ -137,16 +137,6 @@ export default function AppHeader() {
 
             {/* User Menu */}
             <div className="flex items-center space-x-2 md:space-x-4">
-              {/* Mobile menu button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="md:hidden text-slate-300 hover:text-white hover:bg-slate-700/50 p-2"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                data-testid="mobile-menu-button"
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
 
               {/* User Profile Section - Desktop */}
               <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
@@ -227,28 +217,7 @@ export default function AppHeader() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-3 pt-3 pb-4 space-y-1 border-t border-slate-700 bg-slate-800/30">
-              {navItems.map((item) => (
-                <Button
-                  key={item.path}
-                  variant="ghost"
-                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors py-3"
-                  onClick={() => {
-                    setLocation(item.path);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  data-testid={`mobile-nav-${item.label.toLowerCase()}`}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  <span className="font-medium text-base">{item.label}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
+
       </div>
     </header>
   );

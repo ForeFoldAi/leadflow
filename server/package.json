@@ -18,6 +18,7 @@
     "fix-notification-defaults-simple": "node fix-notification-defaults-simple.js",
     "fix-notification-defaults-current-user": "node fix-notification-defaults-current-user.js",
     "fix-missing-columns": "node fix-missing-columns.js",
+    "cleanup-notifications": "node cleanup-notifications.js",
     "setup": "npm run db:push && npm run db:init",
     "deploy": "chmod +x aws-deploy-separate.sh && ./aws-deploy-separate.sh server",
     "prod:build": "npm run build && npm run check",
