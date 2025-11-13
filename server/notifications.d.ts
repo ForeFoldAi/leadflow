@@ -8,8 +8,8 @@ export interface PushNotification {
     userId: string;
     title: string;
     message: string;
-    type: 'lead_created' | 'lead_updated' | 'lead_converted' | 'system';
-    data?: any;
+    type: 'lead_created' | 'lead_updated' | 'lead_converted' | 'followup' | 'system';
+    data?: Record<string, any>;
 }
 export interface UserNotificationSettings {
     newLeads: boolean;
@@ -21,12 +21,19 @@ export interface UserNotificationSettings {
     emailNotifications: boolean;
 }
 declare class NotificationService {
-    private pushSubscriptions;
+    private firebaseEnabled;
     private getUserNotificationSettings;
     private shouldSendNotification;
+    private getMessaging;
+    private isValidTokenEntry;
+    private normalizeSubscriptionPayload;
+    private getPushTokenEntries;
+    private savePushTokens;
+    private shouldSendPush;
+    private mergeTokenEntries;
     sendEmail(notification: EmailNotification): Promise<boolean>;
-    subscribeToPush(userId: string, subscription: any): void;
-    unsubscribeFromPush(userId: string): void;
+    subscribeToPush(userId: string, subscription: any): Promise<void>;
+    unsubscribeFromPush(userId: string, token?: string): Promise<void>;
     sendPushNotification(notification: PushNotification): Promise<boolean>;
     notifyNewLead(userId: string, userEmail: string, leadName: string, leadId: string): Promise<boolean>;
     notifyLeadUpdate(userId: string, userEmail: string, leadName: string, leadId: string, changes: string[]): Promise<boolean>;

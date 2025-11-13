@@ -28,7 +28,7 @@ import {
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
-import { eq, and, or, like, desc, asc, ilike, sql, lt } from "drizzle-orm";
+import { eq, and, or, like, desc, asc, ilike, sql, lt, gte, lte, isNotNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
@@ -84,6 +84,8 @@ export interface IStorage {
   markNotificationAsRead(logId: string): Promise<boolean>;
   deleteNotificationLog(logId: string): Promise<boolean>;
   deleteOldNotificationLogs(userId: string, daysOld: number): Promise<number>;
+  findLeadsDueForFollowup(start: Date, end: Date, limit?: number): Promise<Lead[]>;
+  hasFollowUpNotification(userId: string, leadId: string, followUpDate: string): Promise<boolean>;
   
   // User Sessions operations
   createUserSession(session: InsertUserSession): Promise<UserSession>;
@@ -907,6 +909,51 @@ export class SqlStorage implements IStorage {
     } catch (error) {
       console.error("Error deleting old notification logs:", error);
       throw new Error("Failed to delete old notification logs from database");
+    }
+  }
+
+  async findLeadsDueForFollowup(start: Date, end: Date, limit: number = 250): Promise<Lead[]> {
+    try {
+      const startDate = start.toISOString().split("T")[0];
+      const endDate = end.toISOString().split("T")[0];
+
+      return await this.db
+        .select()
+        .from(leads)
+        .where(
+          and(
+            isNotNull(leads.nextFollowupDate),
+            gte(leads.nextFollowupDate, startDate),
+            lte(leads.nextFollowupDate, endDate)
+          )
+        )
+        .orderBy(asc(leads.nextFollowupDate))
+        .limit(limit);
+    } catch (error) {
+      console.error("Error fetching leads due for follow-up:", error);
+      throw new Error("Failed to fetch leads due for follow-up from database");
+    }
+  }
+
+  async hasFollowUpNotification(userId: string, leadId: string, followUpDate: string): Promise<boolean> {
+    try {
+      const result = await this.db
+        .select({ id: notificationLogs.id })
+        .from(notificationLogs)
+        .where(
+          and(
+            eq(notificationLogs.userId, userId),
+            eq(notificationLogs.type, 'followup'),
+            sql`${notificationLogs.metadata}->>'leadId' = ${leadId}`,
+            sql`${notificationLogs.metadata}->>'followUpDate' = ${followUpDate}`
+          )
+        )
+        .limit(1);
+
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error checking follow-up notification existence:", error);
+      return false;
     }
   }
 

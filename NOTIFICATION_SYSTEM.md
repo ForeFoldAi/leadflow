@@ -17,7 +17,11 @@ Users can configure the following notification types in **Settings > Notificatio
 - **Email Notifications** - Master toggle for all email notifications
 
 ### Push Notifications
-- **Browser Push** - Receive browser push notifications (future feature)
+- **Browser Push** - Receive browser push notifications for lead events and follow-up reminders.
+  - Delivered via Firebase Cloud Messaging (FCM) with background service worker support.
+  - Users opt-in from **Settings → Notifications → Browser Notifications**.
+  - Tokens are stored per-user and invalid tokens are cleaned up automatically.
+  - Follow-up reminders are delivered even when email notifications are disabled.
 
 ## 📧 Email Notification Types
 
@@ -84,7 +88,13 @@ private async shouldSendNotification(userId: string, notificationType: keyof Use
 4. **Send Email** - If permitted, send the notification
 5. **Log Result** - Record success/failure
 
-### 3. Default Behavior
+### 3. Follow-up Reminder Scheduler
+- A background job (`startFollowUpReminderScheduler`) scans daily follow-up windows every `FOLLOWUP_REMINDER_INTERVAL_MINUTES` (default 60 minutes).
+- Only leads whose `nextFollowupDate` falls on the current day and that have not already triggered a notification will be processed.
+- Reminders always create a notification log and attempt push delivery when browser push is enabled.
+- Invalid or expired push tokens are automatically removed after FCM rejects them.
+
+### 4. Default Behavior
 - If no user settings are found, notifications are **enabled by default**
 - If `emailNotifications` is disabled, **no emails are sent**
 - Individual notification types can be toggled independently
@@ -117,8 +127,28 @@ SMTP_USER=noreply@forefoldai.com
 SMTP_PASS=your_password
 SMTP_FROM=noreply@forefoldai.com
 
-# Test Email
+# Firebase Admin (server)
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Follow-up Scheduler (optional)
+FOLLOWUP_REMINDER_INTERVAL_MINUTES=60
+FOLLOWUP_REMINDER_BATCH_LIMIT=250
+# Set to "true" to disable the scheduler entirely
+DISABLE_FOLLOWUP_REMINDERS=false
+
+# Test Email (optional helper script)
 TEST_EMAIL=your_test_email@gmail.com
+
+# Client-side Firebase (Vite)
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=messaging_sender_id
+VITE_FIREBASE_APP_ID=1:sender:web:app_id
+VITE_FIREBASE_VAPID_KEY=web_push_certificate_key
 ```
 
 ### User Settings Schema

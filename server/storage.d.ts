@@ -32,6 +32,8 @@ export interface IStorage {
     createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
     markNotificationAsRead(logId: string): Promise<boolean>;
     deleteOldNotificationLogs(userId: string, daysOld: number): Promise<number>;
+    findLeadsDueForFollowup(start: Date, end: Date, limit?: number): Promise<Lead[]>;
+    hasFollowUpNotification(userId: string, leadId: string, followUpDate: string): Promise<boolean>;
     createUserSession(session: InsertUserSession): Promise<UserSession>;
     getUserSession(sessionToken: string): Promise<UserSession | undefined>;
     deleteUserSession(sessionToken: string): Promise<boolean>;
@@ -80,6 +82,8 @@ export declare class SqlStorage implements IStorage {
     createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
     markNotificationAsRead(logId: string): Promise<boolean>;
     deleteOldNotificationLogs(userId: string, daysOld: number): Promise<number>;
+    findLeadsDueForFollowup(start: Date, end: Date, limit?: number): Promise<Lead[]>;
+    hasFollowUpNotification(userId: string, leadId: string, followUpDate: string): Promise<boolean>;
     createUserSession(session: InsertUserSession): Promise<UserSession>;
     getUserSession(sessionToken: string): Promise<UserSession | undefined>;
     deleteUserSession(sessionToken: string): Promise<boolean>;

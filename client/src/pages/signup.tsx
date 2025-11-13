@@ -56,31 +56,22 @@ const nameSchema = z.string()
     message: "Name must contain at least one letter"
   });
 
-// Phone number validation - 10 digits with optional +91 country code
+// Phone number validation - allow up to 15 digits and any formatting characters
 const phoneSchema = z.string()
-  .regex(/^(\+91)?[6-9]\d{9}$/, "Phone number must be exactly 10 digits (e.g., 9876543210 or +919876543210)")
+  .refine((value) => {
+    if (!value || value.trim() === "") return true;
+    const digitCount = (value.match(/\d/g) ?? []).length;
+    return digitCount > 0 && digitCount <= 15;
+  }, {
+    message: "Phone number can include formatting characters but must contain up to 15 digits",
+  })
   .optional()
   .or(z.literal(""));
 
-// Company name validation - characters and numbers but not full numbers
+// Company name validation - allow any characters up to 100 length
 const companyNameSchema = z.string()
   .min(1, "Company name is required")
-  .min(2, "Company name must be at least 2 characters")
-  .max(100, "Company name must be less than 100 characters")
-  .refine((value) => {
-    // Must contain at least one letter
-    if (!/[a-zA-Z]/.test(value)) {
-      return false;
-    }
-    // Cannot be all numbers
-    if (/^\d+$/.test(value)) {
-      return false;
-    }
-    // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
-    return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
-  }, {
-    message: "Company name must contain letters and can include numbers, but cannot be all numbers"
-  });
+  .max(100, "Company name must be less than 100 characters");
 
 // Password strength validation
 const passwordSchema = z.string()
@@ -477,7 +468,7 @@ export default function Signup() {
                 <Input
                   id="phoneNumber"
                   type="tel"
-                  placeholder="+911234567890"
+                  placeholder="Enter phone number"
                   className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                   {...form.register("phoneNumber")}
                   data-testid="input-phone-number"
@@ -488,7 +479,7 @@ export default function Signup() {
                     {form.formState.errors.phoneNumber.message}
                   </p>
                 )}
-                <p className="text-xs text-gray-500">Format: +91 followed by 10 digits (e.g., +911234567890)</p>
+                <p className="text-xs text-gray-500">Up to 15 digits; formatting characters like spaces, dashes, or parentheses are allowed</p>
               </div>
             </div>
           </div>
@@ -518,7 +509,7 @@ export default function Signup() {
                     {form.formState.errors.companyName.message}
                   </p>
                 )}
-                <p className="text-xs text-gray-500">Can contain letters, numbers, spaces, dots, hyphens, and common business characters</p>
+                <p className="text-xs text-gray-500">Up to 100 characters; letters, numbers, spaces, and symbols are allowed</p>
               </div>
 
               <div className="space-y-2">

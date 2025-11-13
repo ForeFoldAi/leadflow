@@ -39,30 +39,19 @@ const leadNameSchema = z.string()
         message: "Name must contain at least one letter"
     });
 
-// Phone number validation - exactly 10 digits with optional +91 country code
+// Phone number validation - allow up to 15 digits and any formatting characters
 const leadPhoneSchema = z.string()
     .min(1, "Phone number is required")
-    .regex(/^(\+91)?[6-9]\d{9}$/, "Please enter a valid Indian phone number (e.g., 9876543210 or +919876543210)");
-
-// Company name validation - characters and numbers but not full numbers
-const leadCompanyNameSchema = z.string()
-    .min(2, "Company name must be at least 2 characters")
-    .max(100, "Company name must be less than 100 characters")
     .refine((value) => {
-        if (!value || value.trim() === "") return true; // Allow empty
-        // Must contain at least one letter
-        if (!/[a-zA-Z]/.test(value)) {
-            return false;
-        }
-        // Cannot be all numbers
-        if (/^\d+$/.test(value)) {
-            return false;
-        }
-        // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
-        return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
-    }, {
-        message: "Company name must contain letters and can include numbers, but cannot be all numbers"
-    })
+    const digitCount = ((value.match(/\d/g)) ?? []).length;
+    return digitCount > 0 && digitCount <= 15;
+}, {
+    message: "Phone number can include formatting characters but must contain up to 15 digits",
+});
+
+// Company name validation - allow any characters up to 100 length
+const leadCompanyNameSchema = z.string()
+    .max(100, "Company name must be less than 100 characters")
     .optional()
     .or(z.literal(""));
 
@@ -228,11 +217,18 @@ export const insertUserSchema = createInsertSchema(users, {
     name: z.string().min(1, "Name is required"),
     role: z.enum(["admin", "user", "manager", "other"]).default("user"),
     customRole: z.string().max(50, "Maximum 50 characters allowed").optional(),
-    companyName: z.string().min(1, "Company name is required"),
+    companyName: z.string().min(1, "Company name is required").max(100, "Company name must be less than 100 characters"),
     companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"], { required_error: "Company size is required" }),
     industry: z.string().min(1, "Industry is required"),
     website: flexibleUrlSchema.optional().or(z.literal("")),
-    phoneNumber: z.string().regex(/^(\+91)?[6-9]\d{9}$/, "Please enter a valid Indian phone number (e.g., 9876543210 or +919876543210)").optional().or(z.literal("")),
+    phoneNumber: z.string().refine((value) => {
+    if (!value || value.trim() === "")
+        return true;
+    const digitCount = ((value.match(/\d/g)) ?? []).length;
+    return digitCount > 0 && digitCount <= 15;
+}, {
+    message: "Phone number can include formatting characters but must contain up to 15 digits",
+}).optional().or(z.literal("")),
     subscriptionStatus: z.enum(["trial", "active", "cancelled", "expired"]).default("trial"),
     subscriptionPlan: z.enum(["basic", "professional", "enterprise"]).default("basic"),
 }).omit({ id: true, createdAt: true, updatedAt: true, isActive: true });

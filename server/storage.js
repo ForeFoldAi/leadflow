@@ -3,7 +3,7 @@ import { leads, users, userPreferences, notificationSettings, securitySettings, 
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
-import { eq, and, or, desc, asc, ilike, lt } from "drizzle-orm";
+import { eq, and, or, desc, asc, ilike, lt, gte, lte, isNotNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sql } from "drizzle-orm";
@@ -735,6 +735,34 @@ export class SqlStorage {
         } catch (error) {
             console.error("Error deleting old notification logs:", error);
             throw new Error("Failed to delete old notification logs from database");
+        }
+    }
+    async findLeadsDueForFollowup(start, end, limit = 250) {
+        try {
+            return await this.db
+                .select()
+                .from(leads)
+                .where(and(isNotNull(leads.nextFollowupDate), gte(leads.nextFollowupDate, start), lte(leads.nextFollowupDate, end)))
+                .orderBy(asc(leads.nextFollowupDate))
+                .limit(limit);
+        }
+        catch (error) {
+            console.error("Error fetching leads due for follow-up:", error);
+            throw new Error("Failed to fetch leads due for follow-up from database");
+        }
+    }
+    async hasFollowUpNotification(userId, leadId, followUpDate) {
+        try {
+            const result = await this.db
+                .select({ id: notificationLogs.id })
+                .from(notificationLogs)
+                .where(and(eq(notificationLogs.userId, userId), eq(notificationLogs.type, 'followup'), sql`${notificationLogs.metadata}->>'leadId' = ${leadId}`, sql`${notificationLogs.metadata}->>'followUpDate' = ${followUpDate}`))
+                .limit(1);
+            return result.length > 0;
+        }
+        catch (error) {
+            console.error("Error checking follow-up notification existence:", error);
+            return false;
         }
     }
     async getNotificationLogsCount(userId) {

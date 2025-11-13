@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { storage } from './storage.js';
+import { getFirebaseMessaging, isFirebaseConfigured } from './firebase-admin.js';
 
 // Create reusable transporter object using SMTP transport
 const createTransporter = () => {
@@ -67,9 +68,20 @@ export interface PushNotification {
   userId: string;
   title: string;
   message: string;
-  type: 'lead_created' | 'lead_updated' | 'lead_converted' | 'system';
-  data?: any;
+  type: 'lead_created' | 'lead_updated' | 'lead_converted' | 'followup' | 'system';
+  data?: Record<string, any>;
 }
+
+type PushTokenEntry = {
+  token: string;
+  platform: 'web';
+  updatedAt: string;
+  device?: string;
+};
+
+type PushSubscriptionPayload = {
+  tokens: PushTokenEntry[];
+};
 
 export interface UserNotificationSettings {
   newLeads: boolean;
@@ -82,7 +94,7 @@ export interface UserNotificationSettings {
 }
 
 class NotificationService {
-  private pushSubscriptions: Map<string, any> = new Map();
+  private firebaseEnabled: boolean = isFirebaseConfigured();
 
   // Get user notification settings
   private async getUserNotificationSettings(userId: string): Promise<UserNotificationSettings | null> {
@@ -211,29 +223,192 @@ class NotificationService {
     }
   }
 
-  // Push notifications (web push)
-  subscribeToPush(userId: string, subscription: any) {
-    this.pushSubscriptions.set(userId, subscription);
-    console.log(`User ${userId} subscribed to push notifications`);
+  private getMessaging() {
+    if (!this.firebaseEnabled) {
+      return null;
+    }
+
+    const messaging = getFirebaseMessaging();
+    if (!messaging) {
+      this.firebaseEnabled = false;
+      return null;
+    }
+
+    return messaging;
   }
 
-  unsubscribeFromPush(userId: string) {
-    this.pushSubscriptions.delete(userId);
-    console.log(`User ${userId} unsubscribed from push notifications`);
+  private isValidTokenEntry(entry: any): entry is PushTokenEntry {
+    return Boolean(
+      entry &&
+        typeof entry.token === 'string' &&
+        entry.token.trim().length > 0 &&
+        entry.platform === 'web',
+    );
+  }
+
+  private normalizeSubscriptionPayload(payload: unknown): PushSubscriptionPayload | null {
+    if (!payload || typeof payload !== 'object') {
+      return null;
+    }
+
+    const maybePayload = payload as { tokens?: unknown } | { token?: unknown };
+
+    if (Array.isArray((maybePayload as any).tokens)) {
+      const tokens = ((maybePayload as any).tokens as unknown[]).filter(this.isValidTokenEntry.bind(this));
+      return tokens.length > 0 ? { tokens } : { tokens: [] };
+    }
+
+    if (this.isValidTokenEntry(maybePayload)) {
+      return { tokens: [maybePayload as PushTokenEntry] };
+    }
+
+    if (typeof (maybePayload as any).token === 'string') {
+      return {
+        tokens: [
+          {
+            token: String((maybePayload as any).token),
+            platform: 'web',
+            updatedAt: new Date().toISOString(),
+            device: (maybePayload as any).device,
+          },
+        ],
+      };
+    }
+
+    return null;
+  }
+
+  private async getPushTokenEntries(userId: string): Promise<PushTokenEntry[]> {
+    const settings = await storage.getNotificationSettings(userId);
+    const payload = settings?.pushSubscription as PushSubscriptionPayload | null;
+    if (!payload || !Array.isArray(payload.tokens)) {
+      return [];
+    }
+
+    return payload.tokens.filter(this.isValidTokenEntry.bind(this));
+  }
+
+  private async savePushTokens(userId: string, tokens: PushTokenEntry[]): Promise<void> {
+    const cleaned = tokens.filter(this.isValidTokenEntry.bind(this));
+    await storage.updateNotificationSettings(userId, {
+      browserPush: cleaned.length > 0,
+      pushSubscription: cleaned.length > 0 ? { tokens: cleaned } : null,
+    });
+  }
+
+  private async shouldSendPush(userId: string): Promise<boolean> {
+    try {
+      const settings = await storage.getNotificationSettings(userId);
+      return Boolean(settings?.browserPush);
+    } catch (error) {
+      console.error('Failed to check push notification settings:', error);
+      return false;
+    }
+  }
+
+  private mergeTokenEntries(existing: PushTokenEntry[], incoming: PushTokenEntry[]): PushTokenEntry[] {
+    const map = new Map<string, PushTokenEntry>();
+
+    for (const entry of existing) {
+      if (this.isValidTokenEntry(entry)) {
+        map.set(entry.token, entry);
+      }
+    }
+
+    for (const entry of incoming) {
+      if (this.isValidTokenEntry(entry)) {
+        map.set(entry.token, { ...entry, updatedAt: entry.updatedAt ?? new Date().toISOString() });
+      }
+    }
+
+    return Array.from(map.values());
+  }
+
+  // Push notifications (web push)
+  async subscribeToPush(userId: string, subscription: any) {
+    const normalized = this.normalizeSubscriptionPayload(subscription);
+    if (!normalized || normalized.tokens.length === 0) {
+      console.warn(`Invalid push subscription payload for user ${userId}`);
+      return;
+    }
+
+    const existing = await this.getPushTokenEntries(userId);
+    const merged = this.mergeTokenEntries(existing, normalized.tokens);
+    await this.savePushTokens(userId, merged);
+
+    if (!this.firebaseEnabled) {
+      console.warn(`Firebase messaging not configured. Stored push token for user ${userId}, but notifications won't be sent until configured.`);
+    } else {
+      console.log(`User ${userId} subscribed to push notifications (${merged.length} token(s) stored)`);
+  }
+  }
+
+  async unsubscribeFromPush(userId: string, token?: string) {
+    if (!token) {
+      await this.savePushTokens(userId, []);
+      console.log(`User ${userId} unsubscribed from all push notifications`);
+      return;
+    }
+
+    const existing = await this.getPushTokenEntries(userId);
+    const remaining = existing.filter(entry => entry.token !== token);
+    await this.savePushTokens(userId, remaining);
+
+    console.log(`Removed push token for user ${userId}. Remaining tokens: ${remaining.length}`);
   }
 
   async sendPushNotification(notification: PushNotification): Promise<boolean> {
-    const subscription = this.pushSubscriptions.get(notification.userId);
-    if (!subscription) {
-      console.warn(`No push subscription found for user ${notification.userId}`);
+    const messaging = this.getMessaging();
+    if (!messaging) {
+      console.warn('[Firebase] Messaging service unavailable. Push notification skipped.');
       return false;
     }
 
+    const tokens = await this.getPushTokenEntries(notification.userId);
+    if (tokens.length === 0) {
+      console.warn(`No push tokens stored for user ${notification.userId}`);
+      return false;
+    }
+
+    const payload = {
+      notification: {
+        title: notification.title,
+        body: notification.message,
+      },
+      data: {
+        type: notification.type,
+        ...Object.fromEntries(
+          Object.entries(notification.data ?? {}).map(([key, value]) => [key, typeof value === 'string' ? value : JSON.stringify(value)]),
+        ),
+      },
+      tokens: tokens.map(entry => entry.token),
+    };
+
     try {
-      // For now, we'll store the notification for the user to retrieve
-      // In a real implementation, you'd use web-push library to send actual push notifications
-      console.log(`Push notification for user ${notification.userId}: ${notification.title} - ${notification.message}`);
-      return true;
+      const response = await messaging.sendEachForMulticast(payload);
+      const invalidTokens: string[] = [];
+
+      response.responses.forEach((res, index) => {
+        if (!res.success) {
+          const errCode = res.error?.code ?? 'unknown';
+          console.error(`Failed to send push notification to user ${notification.userId} (token index ${index}):`, res.error);
+
+          if (errCode === 'messaging/registration-token-not-registered' || errCode === 'messaging/invalid-registration-token') {
+            invalidTokens.push(tokens[index].token);
+          }
+        }
+      });
+
+      if (invalidTokens.length > 0) {
+        const cleaned = tokens.filter(entry => !invalidTokens.includes(entry.token));
+        await this.savePushTokens(notification.userId, cleaned);
+        console.log(`Removed ${invalidTokens.length} invalid push token(s) for user ${notification.userId}`);
+      }
+
+      console.log(
+        `Push notification for user ${notification.userId}: ${notification.title} - ${notification.message}. Success: ${response.successCount}, Failure: ${response.failureCount}`,
+      );
+      return response.successCount > 0;
     } catch (error) {
       console.error('Push notification error:', error);
       return false;
@@ -261,11 +436,29 @@ class NotificationService {
       console.error('Failed to create notification log:', error);
     }
 
+    // Push notification (does not depend on email settings)
+    let pushSent = false;
+    const pushEnabled = await this.shouldSendPush(userId);
+    if (pushEnabled) {
+      pushSent = await this.sendPushNotification({
+        userId,
+        title: 'New Lead Added',
+        message: `${leadName} was just added to your pipeline.`,
+        type: 'lead_created',
+        data: {
+          leadId,
+          leadName,
+        },
+      });
+    } else {
+      console.log(`🔕 Push notifications disabled for user ${userId}, skipping new lead push`);
+    }
+
     // Check if user has enabled new lead notifications for EMAIL only
     const shouldSendEmail = await this.shouldSendNotification(userId, 'newLeads');
     if (!shouldSendEmail) {
       console.log(`📧 Skipping new lead EMAIL for user ${userId} - email notifications disabled`);
-      return true; // Return true since we successfully created the database log
+      return pushSent || true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {
@@ -288,7 +481,8 @@ class NotificationService {
       `
     };
 
-    return await this.sendEmail(emailNotification);
+    const emailSent = await this.sendEmail(emailNotification);
+    return pushSent || emailSent;
   }
 
   async notifyLeadUpdate(userId: string, userEmail: string, leadName: string, leadId: string, changes: string[]) {
@@ -469,11 +663,30 @@ class NotificationService {
       console.error('Failed to create notification log:', error);
     }
 
+    // Push notification (does not depend on email settings)
+    let pushSent = false;
+    const pushEnabled = await this.shouldSendPush(userId);
+    if (pushEnabled) {
+      pushSent = await this.sendPushNotification({
+        userId,
+        title: 'Follow-up Reminder',
+        message: `It's time to follow up with ${leadName}.`,
+        type: 'followup',
+        data: {
+          leadId,
+          followUpDate,
+          leadName,
+        },
+      });
+    } else {
+      console.log(`🔕 Push notifications disabled for user ${userId}, skipping follow-up push`);
+    }
+
     // Check if user has enabled follow-up notifications for EMAIL only
     const shouldSendEmail = await this.shouldSendNotification(userId, 'followUps');
     if (!shouldSendEmail) {
       console.log(`📧 Skipping follow-up reminder EMAIL for user ${userId} - email notifications disabled`);
-      return true; // Return true since we successfully created the database log
+      return pushSent || true; // Return true since we successfully created the database log
     }
 
     const emailNotification: EmailNotification = {
@@ -497,7 +710,8 @@ class NotificationService {
       `
     };
 
-    return await this.sendEmail(emailNotification);
+    const emailSent = await this.sendEmail(emailNotification);
+    return pushSent || emailSent;
   }
 
   async sendDailySummary(userId: string, userEmail: string, summaryData: any) {

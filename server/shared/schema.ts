@@ -42,30 +42,19 @@ const leadNameSchema = z.string()
     message: "Name must contain at least one letter"
   });
 
-// Phone number validation - exactly 10 digits with optional +91 country code
+// Phone number validation - allow up to 15 digits and any formatting characters
 const leadPhoneSchema = z.string()
   .min(1, "Phone number is required")
-  .regex(/^(\+91)?[6-9]\d{9}$/, "Please enter a valid Indian phone number (e.g., 9876543210 or +919876543210)");
-
-// Company name validation - characters and numbers but not full numbers
-const leadCompanyNameSchema = z.string()
-  .min(2, "Company name must be at least 2 characters")
-  .max(100, "Company name must be less than 100 characters")
   .refine((value) => {
-    if (!value || value.trim() === "") return true; // Allow empty
-    // Must contain at least one letter
-    if (!/[a-zA-Z]/.test(value)) {
-      return false;
-    }
-    // Cannot be all numbers
-    if (/^\d+$/.test(value)) {
-      return false;
-    }
-    // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
-    return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
+    const digitCount = (value.match(/\d/g) ?? []).length;
+    return digitCount > 0 && digitCount <= 15;
   }, {
-    message: "Company name must contain letters and can include numbers, but cannot be all numbers"
-  })
+    message: "Phone number can include formatting characters but must contain up to 15 digits",
+  });
+
+// Company name validation - allow any characters up to 100 length
+const leadCompanyNameSchema = z.string()
+  .max(100, "Company name must be less than 100 characters")
   .optional()
   .or(z.literal(""));
 
@@ -243,31 +232,22 @@ const userNameSchema = z.string()
     message: "Name must contain at least one letter"
   });
 
-// Phone number validation for users - exactly 10 digits with +91 country code
+// Phone number validation for users - allow up to 15 digits and formatting characters
 const userPhoneSchema = z.string()
-  .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits with +91 country code (e.g., +911234567890)")
+  .refine((value) => {
+    if (!value || value.trim() === "") return true;
+    const digitCount = (value.match(/\d/g) ?? []).length;
+    return digitCount > 0 && digitCount <= 15;
+  }, {
+    message: "Phone number can include formatting characters but must contain up to 15 digits",
+  })
   .optional()
   .or(z.literal(""));
 
-// Company name validation for users - characters and numbers but not full numbers
+// Company name validation for users - allow any characters up to 100 length
 const userCompanyNameSchema = z.string()
   .min(1, "Company name is required")
-  .min(2, "Company name must be at least 2 characters")
-  .max(100, "Company name must be less than 100 characters")
-  .refine((value) => {
-    // Must contain at least one letter
-    if (!/[a-zA-Z]/.test(value)) {
-      return false;
-    }
-    // Cannot be all numbers
-    if (/^\d+$/.test(value)) {
-      return false;
-    }
-    // Can contain letters, numbers, spaces, dots, hyphens, and common business characters
-    return /^[a-zA-Z0-9\s.\-&'()]+$/.test(value);
-  }, {
-    message: "Company name must contain letters and can include numbers, but cannot be all numbers"
-  });
+  .max(100, "Company name must be less than 100 characters");
 
 // Password strength validation for users
 const userPasswordSchema = z.string()

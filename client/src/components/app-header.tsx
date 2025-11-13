@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Users, Search, BarChart3, Settings, LogOut, Menu, X, UserCheck } from "lucide-react";
+import { Users, Search, BarChart3, Settings, LogOut, Menu, X, UserCheck, Bell, BellOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -18,6 +18,18 @@ export default function AppHeader() {
   const [, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    const stored = localStorage.getItem("notificationsEnabled");
+    if (stored !== null) return stored === "true";
+    return true;
+  });
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return "default";
+    }
+    return Notification.permission;
+  });
   const { toast } = useToast();
 
   const getUserFromStorage = () => {
@@ -41,13 +53,29 @@ export default function AppHeader() {
       setCurrentUser(user);
     };
 
+    const updatePermission = () => {
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setNotificationPermission(Notification.permission);
+      }
+    };
+
+    const loadNotificationPreference = () => {
+      const stored = localStorage.getItem("notificationsEnabled");
+      setNotificationsEnabled(stored === null ? true : stored === "true");
+      updatePermission();
+    };
+
     // Load initial user data
     loadUser();
+    loadNotificationPreference();
 
     // Listen for storage changes (when user data is updated)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "user") {
         loadUser();
+      }
+      if (e.key === "notificationsEnabled") {
+        loadNotificationPreference();
       }
     };
 
@@ -56,14 +84,124 @@ export default function AppHeader() {
       loadUser();
     };
 
+    const handleNotificationsUpdate = () => {
+      loadNotificationPreference();
+    };
+
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("userUpdated", handleUserUpdate);
+    window.addEventListener("notificationsUpdated", handleNotificationsUpdate);
+    window.addEventListener("focus", loadNotificationPreference);
+    document.addEventListener("visibilitychange", loadNotificationPreference);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("userUpdated", handleUserUpdate);
+      window.removeEventListener("notificationsUpdated", handleNotificationsUpdate);
+      window.removeEventListener("focus", loadNotificationPreference);
+      document.removeEventListener("visibilitychange", loadNotificationPreference);
     };
   }, []);
+
+  const syncPermissionWithState = (permission: NotificationPermission) => {
+    setNotificationPermission(permission);
+    if (permission !== "granted") {
+      setNotificationsEnabled(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("notificationsEnabled", "false");
+        window.dispatchEvent(new Event("notificationsUpdated"));
+      }
+    }
+  };
+
+  const toggleNotifications = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      toast({
+        title: "Browser Not Supported",
+        description: "Your browser does not support push notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const latestPermission = Notification.permission;
+    syncPermissionWithState(latestPermission);
+
+    let currentPermission = latestPermission;
+
+    if (notificationPermission !== "granted") {
+      try {
+        const permission = await Notification.requestPermission();
+        syncPermissionWithState(permission);
+        currentPermission = permission;
+        if (permission !== "granted") {
+          toast({
+            title: "Notifications Blocked",
+            description: "Enable notifications in your browser settings to receive alerts.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to request notification permission:", error);
+        toast({
+          title: "Notification Error",
+          description: "We couldn't update your notification permission. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const canShow = currentPermission === "granted";
+    setNotificationsEnabled((prev) => {
+      const next = canShow ? !prev : prev;
+      if (canShow) {
+        localStorage.setItem("notificationsEnabled", String(next));
+        window.dispatchEvent(new Event("notificationsUpdated"));
+        toast({
+          title: next ? "Notifications Enabled" : "Notifications Muted",
+          description: next
+            ? "You will receive alerts and updates."
+            : "Notifications are muted until you re-enable them.",
+        });
+      }
+      return next;
+    });
+  };
+
+  const isBrowserPushActive = notificationPermission === "granted" && notificationsEnabled;
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const stored = localStorage.getItem("notificationsEnabled");
+    if (stored === null && Notification.permission === "denied") {
+      setNotificationsEnabled(false);
+      localStorage.setItem("notificationsEnabled", "false");
+    }
+  }, [notificationPermission]);
+
+  const handleToggleClick = () => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      syncPermissionWithState(Notification.permission);
+    }
+    setNotificationsEnabled((prev) => {
+      if (notificationPermission !== "granted") {
+        toggleNotifications();
+        return prev;
+      }
+      const next = !prev;
+      localStorage.setItem("notificationsEnabled", String(next));
+      window.dispatchEvent(new Event("notificationsUpdated"));
+      toast({
+        title: next ? "Notifications Enabled" : "Notifications Muted",
+        description: next
+          ? "You will receive alerts and updates."
+          : "Notifications are muted until you re-enable them.",
+      });
+      return next;
+    });
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -137,6 +275,38 @@ export default function AppHeader() {
 
             {/* User Menu */}
             <div className="flex items-center space-x-2 md:space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  if (notificationPermission !== "granted") {
+                    toggleNotifications();
+                  } else {
+                    handleToggleClick();
+                  }
+                }}
+                className={`relative h-10 w-10 rounded-full border border-slate-700 bg-slate-800/40 hover:bg-slate-700/60 transition-colors ${isBrowserPushActive ? "text-yellow-300" : "text-slate-400"}`}
+                aria-label={
+                  notificationPermission === "granted"
+                    ? isBrowserPushActive
+                      ? "Mute notifications"
+                      : "Enable notifications"
+                    : "Request notification permission"
+                }
+                data-testid="button-toggle-notifications"
+              >
+                {isBrowserPushActive ? (
+                  <Bell className="h-5 w-5" />
+                ) : (
+                  <BellOff className="h-5 w-5" />
+                )}
+                {isBrowserPushActive && (
+                  <span className="absolute top-2 right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400"></span>
+                  </span>
+                )}
+              </Button>
 
               {/* User Profile Section - Desktop */}
               <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">

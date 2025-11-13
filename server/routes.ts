@@ -1271,12 +1271,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification management routes
   app.post("/api/notifications/push/subscribe", async (req, res) => {
     try {
-      const { userId, subscription } = req.body;
-      if (!userId || !subscription) {
-        return res.status(400).json({ error: "User ID and subscription data required" });
+      const { userId, subscription, token, device } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const payload = subscription ?? (token
+        ? {
+            token,
+            platform: 'web',
+            device,
+            updatedAt: new Date().toISOString(),
+          }
+        : null);
+
+      if (!payload) {
+        return res.status(400).json({ error: "Subscription payload or token is required" });
       }
       
-      notificationService.subscribeToPush(userId, subscription);
+      await notificationService.subscribeToPush(userId, payload);
       res.json({ message: "Successfully subscribed to push notifications" });
     } catch (error) {
       console.error("Push subscription error:", error);
@@ -1287,7 +1300,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/notifications/push/unsubscribe/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
-      notificationService.unsubscribeFromPush(userId);
+      const token = (req.query.token as string | undefined) ?? (req.body?.token as string | undefined);
+      await notificationService.unsubscribeFromPush(userId, token);
       res.json({ message: "Successfully unsubscribed from push notifications" });
     } catch (error) {
       console.error("Push unsubscribe error:", error);

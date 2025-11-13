@@ -521,7 +521,12 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
             <Table className={`w-full ${(!showInterestedColumn && !showNotesColumn) ? '' : 'min-w-max'}`}>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-12 md:w-16 text-center">Expand</TableHead>
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16 text-center sm:hidden">
+                    Actions
+                  </TableHead>
+                  <TableHead className="hidden text-xs font-medium text-gray-500 uppercase tracking-wider w-12 md:w-16 text-center sm:table-cell">
+                    Expand
+                  </TableHead>
                   <TableHead 
                     className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
                       !showInterestedColumn && !showNotesColumn ? 'w-32 md:w-48' : 'w-28 md:w-40'
@@ -531,6 +536,18 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                     <div className="flex items-center justify-between">
                       <span>Lead</span>
                       {getSortIcon('name')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
+                      !showInterestedColumn && !showNotesColumn ? 'w-24 md:w-32' : 'w-20 md:w-28'
+                    }`}
+                    onClick={() => handleSort('nextFollowupDate')}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="hidden sm:inline">Next Followup Date</span>
+                      <span className="sm:hidden">Next Followup</span>
+                      {getSortIcon('nextFollowupDate')}
                     </div>
                   </TableHead>
                   <TableHead 
@@ -590,18 +607,6 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                       {getSortIcon('lastContactedBy')}
                     </div>
                   </TableHead>
-                  <TableHead 
-                    className={`text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none ${
-                      !showInterestedColumn && !showNotesColumn ? 'w-24 md:w-32' : 'w-20 md:w-28'
-                    }`}
-                    onClick={() => handleSort('nextFollowupDate')}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="hidden sm:inline">Next Followup Date</span>
-                      <span className="sm:hidden">Next Followup</span>
-                      {getSortIcon('nextFollowupDate')}
-                    </div>
-                  </TableHead>
                   {showInterestedColumn && (
                     <TableHead 
                       className="text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
@@ -628,7 +633,12 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   {showNotesColumn && (
                     <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Notes</TableHead>
                   )}
-                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-16 md:w-20">Actions</TableHead>
+                  <TableHead className="hidden text-xs font-medium text-gray-500 uppercase tracking-wider w-16 md:w-20 sm:table-cell">
+                    Actions
+                  </TableHead>
+                  <TableHead className="text-xs font-medium text-gray-500 uppercase tracking-wider w-12 text-center sm:hidden">
+                    Expand
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -645,7 +655,17 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                   paginatedLeads.map((lead) => (
                     <React.Fragment key={lead.id}>
                       <TableRow className="hover:bg-gray-50">
-                        <TableCell className="text-center">
+                        <TableCell className="w-16 text-center sm:hidden">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 md:h-8 md:w-8 p-0"
+                            onClick={() => onEditLead(lead)}
+                          >
+                            <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="hidden w-12 text-center sm:table-cell md:w-16">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -667,6 +687,11 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                             </div>
                           </div>
                         </TableCell>
+                        <TableCell>
+                          <div className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium ${getFollowupStatus(lead.nextFollowupDate).bgClassName}`}>
+                            {lead.nextFollowupDate ? format(new Date(lead.nextFollowupDate), 'MMM dd, yyyy') : 'N/A'}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-xs md:text-sm text-gray-900">{lead.phoneNumber}</TableCell>
                         <TableCell>
                           <div>
@@ -683,11 +708,6 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                           {lead.lastContactedDate ? format(new Date(lead.lastContactedDate), 'MMM dd, yyyy') : 'N/A'}
                         </TableCell>
                         <TableCell className="text-xs md:text-sm text-gray-900">{lead.lastContactedBy || 'N/A'}</TableCell>
-                        <TableCell>
-                          <div className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium ${getFollowupStatus(lead.nextFollowupDate).bgClassName}`}>
-                            {lead.nextFollowupDate ? format(new Date(lead.nextFollowupDate), 'MMM dd, yyyy') : 'N/A'}
-                          </div>
-                        </TableCell>
                         {showInterestedColumn && (
                           <TableCell className="text-xs md:text-sm text-gray-900 max-w-xs truncate">
                             {lead.customerInterestedIn || 'N/A'}
@@ -712,7 +732,7 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                             {lead.additionalNotes || 'N/A'}
                           </TableCell>
                         )}
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -720,6 +740,20 @@ export default function LeadTable({ filters, onFiltersChange, onEditLead, userPr
                             onClick={() => onEditLead(lead)}
                           >
                             <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="w-12 text-center sm:hidden">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleRowExpansion(lead.id)}
+                            className="h-5 w-5 md:h-6 md:w-6 p-0"
+                          >
+                            {expandedRows.has(lead.id) ? (
+                              <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
+                            ) : (
+                              <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
+                            )}
                           </Button>
                         </TableCell>
                       </TableRow>

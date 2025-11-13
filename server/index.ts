@@ -4,6 +4,7 @@ import { config } from "dotenv";
 import cors from "cors";
 import session from "express-session";
 import { storage } from "./storage.js";
+import { startFollowUpReminderScheduler } from "./followup-reminder.js";
 
 // Import session store for production
 let sessionStore: any;
@@ -190,6 +191,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  const followUpScheduler = startFollowUpReminderScheduler();
+  const stopSchedulers = () => {
+    try {
+      followUpScheduler?.stop?.();
+    } catch (error) {
+      console.error("Error while stopping follow-up scheduler:", error);
+    }
+  };
 
   // Health check endpoint for production monitoring
   app.get('/health', async (req: Request, res: Response) => {
@@ -251,4 +260,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     log(`Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
   });
+
+  const handleShutdown = (signal: NodeJS.Signals) => {
+    console.log(`Received ${signal}, shutting down schedulers...`);
+    stopSchedulers();
+    process.exit(0);
+  };
+
+  process.once('SIGINT', handleShutdown);
+  process.once('SIGTERM', handleShutdown);
 })();

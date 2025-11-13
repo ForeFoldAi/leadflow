@@ -17,7 +17,7 @@ import { Settings as SettingsIcon, User, Bell, Shield, Database, Mail, Phone, Sa
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import NotificationDisplay from "@/components/notification-display";
+import { requestFirebaseToken, isFirebaseMessagingConfigured } from "@/lib/firebase";
 import { ButtonLoader } from "@/components/ui/loader";
 
 // Custom URL validation function that accepts various formats
@@ -104,6 +104,7 @@ export default function Settings() {
     browserPush: boolean;
     dailySummary: boolean;
     emailNotifications: boolean;
+    pushSubscription?: any;
   }>({
     // Default values - ALL OFF by default for privacy
     // These will be overridden by server data when loaded
@@ -113,7 +114,8 @@ export default function Settings() {
     conversions: false,
     browserPush: false,
     dailySummary: false,
-    emailNotifications: false
+    emailNotifications: false,
+    pushSubscription: null,
   });
 
   const [securitySettings, setSecuritySettings] = useState<{
@@ -143,6 +145,16 @@ export default function Settings() {
     exportFormat: 'csv',
     exportNotes: true
   });
+
+  const isPushConfigAvailable = isFirebaseMessagingConfigured();
+  const isBrowserPushSupported = typeof window !== 'undefined' && 'Notification' in window && typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+  const canEnableBrowserPush = isPushConfigAvailable && isBrowserPushSupported;
+
+  type SaveNotificationPayload = {
+    settings: Record<string, any>;
+    pushToken?: string | null;
+    unsubscribePush?: boolean;
+  };
 
 
 
@@ -319,20 +331,32 @@ export default function Settings() {
   });
 
   const saveNotificationsMutation = useMutation({
-    mutationFn: async (settings: any) => {
+    mutationFn: async ({ settings, pushToken, unsubscribePush }: SaveNotificationPayload) => {
       if (!currentUser.id) throw new Error('User not authenticated');
 
       const response = await apiRequest('PUT', `/api/user/notifications/${currentUser.id}`, settings);
       const data = await response.json();
 
-      // Handle push notification subscription/unsubscription
-      if (settings.browserPush && 'Notification' in window) {
-        if (Notification.permission === 'default') {
-          const permission = await Notification.requestPermission();
-          if (permission !== 'granted') {
-            throw new Error('Push notification permission denied');
-          }
+      if (pushToken) {
+        try {
+          await apiRequest('POST', `/api/notifications/push/subscribe`, {
+            userId: currentUser.id,
+            token: pushToken,
+            device: navigator.userAgent,
+          });
+          localStorage.setItem('fcmToken', pushToken);
+        } catch (error) {
+          console.error('Failed to register push token with server:', error);
+          throw new Error('PushSubscriptionFailed');
         }
+      } else if (unsubscribePush) {
+        try {
+          await apiRequest('DELETE', `/api/notifications/push/unsubscribe/${currentUser.id}`);
+        } catch (error) {
+          console.error('Failed to unsubscribe push token on server:', error);
+          throw new Error('PushUnsubscribeFailed');
+        }
+        localStorage.removeItem('fcmToken');
       }
 
       return data;
@@ -354,20 +378,32 @@ export default function Settings() {
       });
     },
     onError: (error: any) => {
-      if (error.message === 'Push notification permission denied') {
+      const message = error?.message || '';
+
+      if (message === 'PushSubscriptionFailed') {
         toast({
           title: "Push Notifications",
-          description: "Push notification permission denied. Please enable in browser settings.",
+          description: "We saved your settings, but registering the browser token failed. Please try again.",
           variant: "destructive",
         });
-      } else {
-        console.error('Failed to save notification settings:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save notification settings. Please try again or contact support if the issue persists.",
-          variant: "destructive",
-        });
+        return;
       }
+
+      if (message === 'PushUnsubscribeFailed') {
+        toast({
+          title: "Push Notifications",
+          description: "We couldn't remove your push token from the server. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.error('Failed to save notification settings:', error);
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to save notification settings. Please try again or contact support if the issue persists.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -491,10 +527,112 @@ export default function Settings() {
     updateProfileMutation.mutate(submitData);
   };
 
-  const handleSaveNotifications = () => {
+  const buildNotificationPayload = async (): Promise<SaveNotificationPayload> => {
+    const baseSettings = {
+      newLeads: notificationSettings.newLeads,
+      followUps: notificationSettings.followUps,
+      hotLeads: notificationSettings.hotLeads,
+      conversions: notificationSettings.conversions,
+      browserPush: notificationSettings.browserPush,
+      dailySummary: notificationSettings.dailySummary,
+      emailNotifications: notificationSettings.emailNotifications,
+      pushSubscription: notificationSettings.pushSubscription ?? null,
+    };
+
+    if (!notificationSettings.browserPush) {
+      return {
+        settings: {
+          ...baseSettings,
+          pushSubscription: null,
+        },
+        unsubscribePush: true,
+      };
+    }
+
+    if (
+      !isPushConfigAvailable ||
+      typeof window === 'undefined' ||
+      !('Notification' in window) ||
+      typeof navigator === 'undefined' ||
+      !('serviceWorker' in navigator)
+    ) {
+      throw new Error('PushUnsupported');
+    }
+
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('PushPermissionDenied');
+      }
+    } else if (Notification.permission === 'denied') {
+      throw new Error('PushPermissionDenied');
+    }
+
+    const token = await requestFirebaseToken();
+    if (!token) {
+      throw new Error('PushTokenUnavailable');
+    }
+
+    const deviceInfo = navigator.userAgent ? navigator.userAgent.slice(0, 255) : 'browser';
+    const nowIso = new Date().toISOString();
+
+    return {
+      settings: {
+        ...baseSettings,
+        pushSubscription: {
+          tokens: [
+            {
+              token,
+              platform: 'web',
+              updatedAt: nowIso,
+              device: deviceInfo,
+            },
+          ],
+        },
+      },
+      pushToken: token,
+    };
+  };
+
+  const handleSaveNotifications = async () => {
     console.log('=== SAVING NOTIFICATION SETTINGS ===');
     console.log('Current state:', notificationSettings);
-    saveNotificationsMutation.mutate(notificationSettings);
+
+    let payload: SaveNotificationPayload;
+
+    try {
+      payload = await buildNotificationPayload();
+    } catch (error: any) {
+      if (error?.message === 'PushPermissionDenied') {
+        toast({
+          title: "Push Notifications",
+          description: "We need notification permission to enable browser push alerts. Please allow notifications in your browser settings.",
+          variant: "destructive",
+        });
+      } else if (error?.message === 'PushUnsupported') {
+        toast({
+          title: "Push Notifications",
+          description: "Browser push notifications are not supported in this environment or Firebase is not configured.",
+          variant: "destructive",
+        });
+      } else if (error?.message === 'PushTokenUnavailable') {
+        toast({
+          title: "Push Notifications",
+          description: "We couldn't generate a push token for this browser. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        console.error('Failed to prepare notification settings:', error);
+        toast({
+          title: "Error",
+          description: "Something went wrong while preparing your notification preferences.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    saveNotificationsMutation.mutate(payload);
   };
 
   const handleSaveSecurity = () => {
@@ -641,7 +779,7 @@ export default function Settings() {
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
               <Bell className="h-4 w-4 sm:h-4 sm:w-4" />
-              <span className="text-center">Notif</span>
+              <span className="text-center">Notifications</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex flex-col items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 min-h-[60px] sm:min-h-0">
               <Shield className="h-4 w-4 sm:h-4 sm:w-4" />
@@ -920,8 +1058,6 @@ export default function Settings() {
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-4 sm:space-y-6">
-            <NotificationDisplay />
-
             {/* Privacy Notice */}
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="p-4 sm:p-6">
@@ -1020,10 +1156,16 @@ export default function Settings() {
                   <Switch
                     id="browser-push"
                     checked={notificationSettings.browserPush}
+                    disabled={!notificationSettings.browserPush && !canEnableBrowserPush}
                     onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, browserPush: checked }))}
                     data-testid="switch-browser-push"
                   />
                 </div>
+                {!canEnableBrowserPush && (
+                  <p className="text-xs text-gray-400">
+                    Browser push notifications require HTTPS, service worker support, and Firebase configuration.
+                  </p>
+                )}
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="daily-summary" className="text-xs sm:text-sm">Daily Summary</Label>
@@ -1090,7 +1232,7 @@ export default function Settings() {
               <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="two-factor" className="text-xs sm:text-sm">Two-Factor Authentication</Label>
+                    <Label className="text-xs sm:text-sm">Two-Factor Authentication</Label>
                     <p className="text-xs sm:text-sm text-gray-500">Add an extra layer of security to your account</p>
                   </div>
                   <Button

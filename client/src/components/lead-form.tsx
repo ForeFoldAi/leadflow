@@ -23,6 +23,7 @@ interface LeadFormProps {
 
 export default function LeadForm({ lead, onClose }: LeadFormProps) {
   const { toast } = useToast();
+  const isEditing = Boolean(lead);
   const [lastContactedByCount, setLastContactedByCount] = useState(lead?.lastContactedBy?.length || 0);
   const [interestedInCount, setInterestedInCount] = useState(lead?.customerInterestedIn?.length || 0);
   const [notesCount, setNotesCount] = useState(lead?.additionalNotes?.length || 0);
@@ -216,10 +217,9 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       Phone Number <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="9876543210 or +919876543210" {...field} data-testid="input-phone" />
+                      <Input placeholder="Enter phone number" {...field} data-testid="input-phone" />
                     </FormControl>
                     <FormMessage />
-                    <p className="text-xs text-gray-500">Format: 10 digits (e.g., 9876543210) or with +91 country code</p>
                   </FormItem>
                 )}
               />
@@ -419,7 +419,7 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                       <Input placeholder="Enter company name" {...field} data-testid="input-company" />
                     </FormControl>
                     <FormMessage />
-                    <p className="text-xs text-gray-500">Can contain letters, numbers, and business characters</p>
+                    <p className="text-xs text-gray-500">Up to 100 characters; letters, numbers, spaces, and symbols are allowed</p>
                   </FormItem>
                 )}
               />
@@ -582,7 +582,21 @@ export default function LeadForm({ lead, onClose }: LeadFormProps) {
                   <FormItem>
                     <FormLabel className="text-xs">Next Followup Date</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} data-testid="input-next-followup-date" />
+                      <Input
+                        type="date"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (isEditing && e.target.value) {
+                            const today = new Date();
+                            const isoToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+                              .toISOString()
+                              .split("T")[0];
+                            form.setValue("lastContactedDate", isoToday, { shouldDirty: true });
+                          }
+                        }}
+                        data-testid="input-next-followup-date"
+                      />
                     </FormControl>
                     <FormMessage />
                     <p className="text-xs text-gray-500">Must be today or in the future</p>
